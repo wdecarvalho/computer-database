@@ -1,5 +1,6 @@
 package main.java.com.excilys.model;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 
 public class Computer {
@@ -16,6 +17,18 @@ public class Computer {
 	
 	public Computer(String name) {
 		this.name = name;
+	}
+	
+	public Computer(String name,Timestamp introduced, Timestamp discon,Company company) {
+		this.name = name;
+		this.introduced = introduced == null ? null : introduced.toLocalDateTime().toLocalDate();
+		this.discontinued = discontinued == null ? null : discon.toLocalDateTime().toLocalDate();
+		this.company = company;
+	}
+	
+	public Computer(Long id,String name,Timestamp introduced, Timestamp discon,Company company) {
+		this(name,introduced,discon,company);
+		this.id = id;
 	}
 
 	public long getId() {
@@ -49,6 +62,21 @@ public class Computer {
 	public void setDiscontinued(LocalDate discontinued) {
 		this.discontinued = discontinued;
 	}
+
+	public Company getCompany() {
+		return company;
+	}
+
+	public void setCompany(Company company) {
+		this.company = company;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+	
+	
+	
 	
 	
 

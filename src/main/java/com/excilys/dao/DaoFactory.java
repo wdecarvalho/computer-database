@@ -3,14 +3,13 @@ package main.java.com.excilys.dao;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-
-import org.omg.CORBA.PRIVATE_MEMBER;
-
-import sun.security.jca.GetInstance;
+import java.util.logging.Logger;
 
 public class DaoFactory {
 
-	private DaoFactory factory;
+	private static final Logger LOGGER = Logger.getLogger(DaoFactory.class.getName());
+	
+	private static DaoFactory factory;
 	
 	//fixme remove and put it to file properties
 	private final String url = "jdbc:mysql://";
@@ -26,41 +25,29 @@ public class DaoFactory {
 	
 	/**
 	 * Crée une ComputerDao en initialisant sa connexion
+	 * @throws SQLException La connexion n'a pas pu s'effectuer
 	 * @return ComputerDao
 	 */
-	public ComputerDao getComputerDao() {
-		Connection conn = null;
-		try {
-			conn = initConnexion();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public ComputerDao getComputerDao() throws SQLException {
+		final Connection conn = initConnexion();
 		return new ComputerDao(conn);
 	}
-
-	
 	
 	/**
 	 * Crée une CompanyDao en initialisation sa connexion
+	 * @throws SQLException La connexion n'a pas pu s'effectuer
 	 * @return CompanyDao
 	 */
-	public CompanyDao getCompanyDao() {
-		Connection conn = null;
-		try {
-			conn = initConnexion();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return new CompanyDao(null);
+	public CompanyDao getCompanyDao() throws SQLException {
+		final Connection conn = initConnexion();
+		return new CompanyDao(conn);
 	}
 	
 	/**
 	 * Retourne la factory et la crée si elle n'existe pas
 	 * @return
 	 */
-	public DaoFactory getInstance() {
+	public static DaoFactory getInstance() {
 		if(factory == null) {
 			factory = new DaoFactory();
 		}
@@ -68,6 +55,11 @@ public class DaoFactory {
 		
 	}
 	
+	/**
+	 * Initiliase la connexion a la base de donnée
+	 * @return Connection
+	 * @throws SQLException La connexion n'a pas pu s'effectuer
+	 */
 	private Connection initConnexion() throws SQLException {
 		final StringBuilder sb = new StringBuilder(url);
 		sb.append(host);
@@ -75,7 +67,7 @@ public class DaoFactory {
 		sb.append(port);
 		sb.append("/");
 		sb.append(database);
-		Connection conn = DriverManager.getConnection(sb.toString(), user, password);
+		final Connection conn = DriverManager.getConnection(sb.toString(), user, password);
 		return conn;
 	}
 	

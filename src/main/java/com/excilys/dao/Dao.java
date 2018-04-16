@@ -1,6 +1,7 @@
 package main.java.com.excilys.dao;
 
 import java.sql.Connection;
+import java.util.Collection;
 
 public abstract class Dao<T> {
 
@@ -12,25 +13,10 @@ public abstract class Dao<T> {
 	}
 	
 	/**
-	 * Stocke l'objet en base de donnée
-	 * @param obj T
-	 * @return true si ok sinon false
+	 * Retourne l'ensemble des objets stockée en base de donnée
+	 * @return Collection<T>
 	 */
-	public abstract boolean create(T obj);
-	
-	/**
-	 * Supprime l'objet de la base de donnée
-	 * @param obj T
-	 * @return true si ok sinon false
-	 */
-	public abstract boolean delete(T obj);
-	
-	/**
-	 * Met a jour l'objet en base de donnée
-	 * @param obj T
-	 * @return true si ok sinon false
-	 */
-	public abstract boolean update(T obj);
+	public abstract Collection<T> findAll();
 	
 	/**
 	 * Recupere un objet stockée en base de donnée
@@ -42,6 +28,5 @@ public abstract class Dao<T> {
 	public Connection getConnection() {
 		return connection;
 	}
-	
 	
 }

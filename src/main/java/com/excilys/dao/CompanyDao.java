@@ -1,6 +1,7 @@
 package main.java.com.excilys.dao;
 
 import java.sql.Connection;
+import java.util.Collection;
 
 import main.java.com.excilys.model.Company;
 
@@ -10,23 +11,26 @@ public class CompanyDao extends Dao<Company> {
 		super(conn);
 	}
 
-	@Override
-	public boolean create(Company obj) {
+	public boolean create(final Company obj) {
+		return false;
+	}
+
+	public boolean delete(final Company obj) {
+		return false;
+	}
+
+	public boolean update(final Company obj) {
 		return false;
 	}
 
 	@Override
-	public boolean delete(Company obj) {
-		return false;
+	public Company find(final Long id) {
+		return null;
 	}
 
 	@Override
-	public boolean update(Company obj) {
-		return false;
-	}
-
-	@Override
-	public Company find(Long id) {
+	public Collection<Company> findAll() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 
