@@ -3,11 +3,9 @@ package main.java.com.excilys.dao;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.logging.Logger;
+import main.java.com.excilys.exception.DaoNotInitializeException;
 
 public class DaoFactory {
-
-	private static final Logger LOGGER = Logger.getLogger(DaoFactory.class.getName());
 	
 	private static DaoFactory factory;
 	
@@ -24,11 +22,30 @@ public class DaoFactory {
 	}
 	
 	/**
+	 * La factory fourni la DAO demandé et si on lui demande une DAO qu'elle ne possede pas throw une exception
+	 * @param type Type de la DAO demandé
+	 * @return DAO requise
+	 * @throws SQLException
+	 * @throws DaoNotInitializeException Une DAO non géré a été demandé
+	 */
+	public Dao<?> getDao(DaoType type) throws SQLException, DaoNotInitializeException {
+
+		switch(type) {
+			case COMPUTER_DAO :
+				return getComputerDao();
+			case COMPANY_DAO :
+				return getCompanyDao();
+			default :
+				throw new DaoNotInitializeException("");
+		}
+	}
+	
+	/**
 	 * Crée une ComputerDao en initialisant sa connexion
 	 * @throws SQLException La connexion n'a pas pu s'effectuer
 	 * @return ComputerDao
 	 */
-	public ComputerDao getComputerDao() throws SQLException {
+	private ComputerDao getComputerDao() throws SQLException {
 		final Connection conn = initConnexion();
 		return new ComputerDao(conn);
 	}
@@ -38,7 +55,7 @@ public class DaoFactory {
 	 * @throws SQLException La connexion n'a pas pu s'effectuer
 	 * @return CompanyDao
 	 */
-	public CompanyDao getCompanyDao() throws SQLException {
+	private CompanyDao getCompanyDao() throws SQLException {
 		final Connection conn = initConnexion();
 		return new CompanyDao(conn);
 	}

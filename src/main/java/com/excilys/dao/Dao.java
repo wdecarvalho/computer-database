@@ -2,6 +2,7 @@ package main.java.com.excilys.dao;
 
 import java.sql.Connection;
 import java.util.Collection;
+import java.util.Optional;
 
 public abstract class Dao<T> {
 
@@ -23,7 +24,7 @@ public abstract class Dao<T> {
 	 * @param id long
 	 * @return objet T
 	 */
-	public abstract T find(Long id);
+	public abstract Optional<T> find(Long id);
 
 	public Connection getConnection() {
 		return connection;

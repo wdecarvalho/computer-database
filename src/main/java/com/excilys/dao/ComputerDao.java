@@ -4,21 +4,28 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.logging.Logger;
 
-import com.sun.istack.internal.FinalArrayList;
-
+import main.java.com.excilys.mapper.MapUtil;
 import main.java.com.excilys.model.Company;
 import main.java.com.excilys.model.Computer;
 
 public class ComputerDao extends Dao<Computer> {
-	
-	//map de company
+
+	private static final String DELETE_ONE_COMPUTER = "DELETE FROM computer where id = ?;";
+	private static final String CREATE_ONE_COMPUTER = "INSERT INTO computer (name,introduced,discontinued,company_id) values (?,?,?,?);";
+	private static final String UPDATE_ONE_COMPUTER = "UPDATE computer SET "
+			+ "name = ?, introduced = ?, discontinued = ?, company_id = ? where id = ?;";
+	private static final String FIND_ONE_COMPUTER = "SELECT computer.id, computer.name, computer.introduced, computer.discontinued, company.id, company.name "
+			+ "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id where computer.id = ?;";
+	private static final String FIND_ALL_COMPUTER = "SELECT computer.id, computer.name, computer.introduced, computer.discontinued, company.id, company.name "
+			+ "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id";
 
 	private static final Logger LOGGER = Logger.getLogger(ComputerDao.class.getName());
-	
+
 	public ComputerDao(Connection conn) {
 		super(conn);
 	}
@@ -32,10 +39,12 @@ public class ComputerDao extends Dao<Computer> {
 		boolean res = false;
 		try {
 			final PreparedStatement ps = this.getConnection().prepareStatement(
-					"INSERT INTO computer (name,introduced,discontinued,company_id) values (?,?,?,?);",ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
+					CREATE_ONE_COMPUTER,
+					ResultSet.TYPE_SCROLL_SENSITIVE,
+					ResultSet.CONCUR_UPDATABLE);
 			ps.setString(1, obj.getName());
-			ps.setTimestamp(2, obj.getIntroduced() == null ? null : Timestamp.valueOf(obj.getIntroduced().atStartOfDay()));
-			ps.setTimestamp(3, obj.getDiscontinued() == null ? null : Timestamp.valueOf(obj.getDiscontinued().atStartOfDay()));
+			ps.setTimestamp(2, MapUtil.convertLocalDateToTimeStamp(obj.getIntroduced()));
+			ps.setTimestamp(3, MapUtil.convertLocalDateToTimeStamp(obj.getDiscontinued()));
 			ps.setString(4, obj.getCompany() == null ? null : obj.getCompany().getId()+"");
 			ps.executeUpdate();
 			res = true;
@@ -44,19 +53,19 @@ public class ComputerDao extends Dao<Computer> {
 		}
 		return res;
 	}
-	
-	
+
+
 	/**
 	 * Supprime un computer de la base de donnée 
 	 * @param obj Computer
 	 * @return true si l'objet est supprimé sinon false
 	 */
-	
+
 	public boolean delete(final Computer obj) {
 		boolean res = false;
 		try {
 			final PreparedStatement ps = this.getConnection().prepareStatement(
-					"DELETE FROM computer where id = ?;",ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
+					DELETE_ONE_COMPUTER,ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
 			ps.setLong(1, obj.getId());
 			ps.executeUpdate();
 			res = true;
@@ -65,23 +74,22 @@ public class ComputerDao extends Dao<Computer> {
 		}
 		return res;
 	}
-	
+
 
 	/**
 	 * Met a jour le computer en base de donnée
 	 * @param obj Computer
 	 * @return true si l'objet est mit a jour sinon false
 	 */
-	
+
 	public boolean update(final Computer obj) {
 		boolean res = false;
 		try {
 			final PreparedStatement ps = this.getConnection().prepareStatement(
-					"UPDATE computer SET "
-					+ "name = ?, introduced = ?, discontinued = ?, company_id = ? where id = ?;",ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
+					UPDATE_ONE_COMPUTER,ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
 			ps.setString(1, obj.getName());
-			ps.setTimestamp(2, obj.getIntroduced() == null ? null : Timestamp.valueOf(obj.getIntroduced().atStartOfDay()));
-			ps.setTimestamp(3, obj.getDiscontinued() == null ? null : Timestamp.valueOf(obj.getDiscontinued().atStartOfDay()));
+			ps.setTimestamp(2, obj.getIntroduced() == null ? null : MapUtil.convertLocalDateToTimeStamp(obj.getIntroduced()));
+			ps.setTimestamp(3, obj.getDiscontinued() == null ? null : MapUtil.convertLocalDateToTimeStamp(obj.getDiscontinued()));
 			ps.setLong(4, obj.getCompany() == null ? null : obj.getCompany().getId());
 			ps.setLong(5, obj.getId());
 			ps.executeUpdate();
@@ -93,36 +101,68 @@ public class ComputerDao extends Dao<Computer> {
 	}
 
 	@Override
-	public Computer find(final Long id) {  // FIXME Si company = null;
-		Computer computer = null;
+	public Optional<Computer> find(final Long id) {  // FIXME Si company = null;
+		Optional<Computer> computer = Optional.empty();
+		PreparedStatement preparedStatement;
 		try {
-			final PreparedStatement preparedStatement = this.getConnection().prepareStatement(
-					"SELECT com.id, com.name, com.introduced, com.discontinued, comp.id as comp_id, comp.name as comp_name "
-					+ "fROM computer AS com LEFT OUTER JOIN company AS comp on com.id = comp.id where com.id = ?;",
+			preparedStatement = this.getConnection().prepareStatement(
+					FIND_ONE_COMPUTER,
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 			preparedStatement.setInt(1,id.intValue());
 			final ResultSet resultSet = preparedStatement.executeQuery();
-			if(resultSet.next()){
-				Company company = null;
-				if(resultSet.getString("comp_id") != null){
-					company = new Company(resultSet.getLong("comp_id"),resultSet.getString("comp_name"));
-				}
-				computer = new Computer(resultSet.getLong("id"),resultSet.getString("name"),resultSet.getTimestamp("introduced"),
-						resultSet.getTimestamp("discontinued"),company);
+			if(resultSet.next()) {
+				computer = createComputerWithcompany(computer, resultSet);
 			}
 		} catch (SQLException e) {
-			LOGGER.severe(e.getMessage());
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+
 		return computer;
 	}
 
 	@Override
 	public Collection<Computer> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		final Collection<Computer> computers = new ArrayList<>();
+		try {
+			final PreparedStatement preparedStatement = this.getConnection().prepareStatement(
+					FIND_ALL_COMPUTER,
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			final ResultSet resultSet = preparedStatement.executeQuery();
+			while(resultSet.next()){
+					computers.add(createComputerWithcompany(null, resultSet).get());
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return computers;
+	}
+	
+	/**
+	 * Permet de creer un computer si il existe. (La company est spécifiée si elle existe)
+	 * @param computer
+	 * @param resultSet
+	 * @return Un computer si il existe
+	 * @throws SQLException
+	 */
+	private Optional<Computer> createComputerWithcompany(Optional<Computer> computer, final ResultSet resultSet) throws SQLException {
+		Company company = null;
+		if(resultSet.getString("company.id") != null){
+			company = new Company(resultSet.getLong("company.id"),resultSet.getString("company.name"));
+		}
+		computer = Optional.ofNullable(
+				new Computer(
+						resultSet.getLong("computer.id"),
+						resultSet.getString("computer.name"),
+						MapUtil.convertTimeStampToLocal(resultSet.getTimestamp("computer.introduced")),
+						MapUtil.convertTimeStampToLocal(resultSet.getTimestamp("computer.discontinued")),
+						company));
+		return computer;
 	}
 
-	
-	
+
+
 }

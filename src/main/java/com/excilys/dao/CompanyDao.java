@@ -1,37 +1,65 @@
 package main.java.com.excilys.dao;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
+import java.util.logging.Logger;
 
 import main.java.com.excilys.model.Company;
 
 public class CompanyDao extends Dao<Company> {
+	
+	private static final String FIND_ONE_COMPANY = "SELECT company.id, company.name FROM company where company.id = ?;";
+	private static final String FIND_ALL_COMPANY = "SELECT company.id, company.name FROM company";
+
+	private static final Logger LOGGER = Logger.getLogger(ComputerDao.class.getName());
+
 
 	public CompanyDao(Connection conn) {
 		super(conn);
 	}
 
-	public boolean create(final Company obj) {
-		return false;
-	}
-
-	public boolean delete(final Company obj) {
-		return false;
-	}
-
-	public boolean update(final Company obj) {
-		return false;
-	}
 
 	@Override
-	public Company find(final Long id) {
-		return null;
+	public Optional<Company> find(final Long id) {
+		Optional<Company> company = Optional.empty();
+		PreparedStatement preparedStatement;
+		try {
+			preparedStatement = this.getConnection().prepareStatement(
+					FIND_ONE_COMPANY,
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			preparedStatement.setInt(1,id.intValue());
+			final ResultSet resultSet = preparedStatement.executeQuery();
+			if(resultSet.next()) {
+				company = Optional.ofNullable(new Company(resultSet.getLong("id"),resultSet.getString("name")));
+			}
+		} catch (SQLException e) {
+			LOGGER.info(e.getMessage());
+		}
+		return company;
 	}
 
 	@Override
 	public Collection<Company> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		final Collection<Company> companys = new ArrayList<>();
+		try {
+			final PreparedStatement preparedStatement = this.getConnection().prepareStatement(
+					FIND_ALL_COMPANY,
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			final ResultSet resultSet = preparedStatement.executeQuery();
+			while(resultSet.next()){
+					companys.add(new Company(resultSet.getLong("id"),resultSet.getString("name")));
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return companys;
 	}
-
 }
