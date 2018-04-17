@@ -10,12 +10,12 @@ public class DaoFactory {
 	private static DaoFactory factory;
 	
 	//fixme remove and put it to file properties
-	private final String url = "jdbc:mysql://";
-	private final String host = "localhost";
-	private final String port = "3306";
-	private final String database = "computer-database-db";
-	private final String user = "admincdb";
-	private final String password = "qwerty1234";
+	private final static String url = "jdbc:mysql://";
+	private final static String host = "localhost";
+	private final static String port = "3306";
+	private final static String database = "computer-database-db";
+	private final static String user = "admincdb";
+	private final static String password = "qwerty1234";
 	
 	private DaoFactory() {
 		//default singleton
@@ -28,7 +28,7 @@ public class DaoFactory {
 	 * @throws SQLException
 	 * @throws DaoNotInitializeException Une DAO non géré a été demandé
 	 */
-	public Dao<?> getDao(DaoType type) throws SQLException, DaoNotInitializeException {
+	public static Dao<?> getDao(DaoType type) throws SQLException, DaoNotInitializeException {
 
 		switch(type) {
 			case COMPUTER_DAO :
@@ -45,7 +45,7 @@ public class DaoFactory {
 	 * @throws SQLException La connexion n'a pas pu s'effectuer
 	 * @return ComputerDao
 	 */
-	private ComputerDao getComputerDao() throws SQLException {
+	private static ComputerDao getComputerDao() throws SQLException {
 		final Connection conn = initConnexion();
 		return new ComputerDao(conn);
 	}
@@ -55,7 +55,7 @@ public class DaoFactory {
 	 * @throws SQLException La connexion n'a pas pu s'effectuer
 	 * @return CompanyDao
 	 */
-	private CompanyDao getCompanyDao() throws SQLException {
+	private static CompanyDao getCompanyDao() throws SQLException {
 		final Connection conn = initConnexion();
 		return new CompanyDao(conn);
 	}
@@ -77,7 +77,7 @@ public class DaoFactory {
 	 * @return Connection
 	 * @throws SQLException La connexion n'a pas pu s'effectuer
 	 */
-	private Connection initConnexion() throws SQLException {
+	private static Connection initConnexion() throws SQLException {
 		final StringBuilder sb = new StringBuilder(url);
 		sb.append(host);
 		sb.append(":");

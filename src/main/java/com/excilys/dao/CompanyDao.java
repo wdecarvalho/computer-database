@@ -7,7 +7,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import main.java.com.excilys.model.Company;
 
@@ -16,7 +18,7 @@ public class CompanyDao extends Dao<Company> {
 	private static final String FIND_ONE_COMPANY = "SELECT company.id, company.name FROM company where company.id = ?;";
 	private static final String FIND_ALL_COMPANY = "SELECT company.id, company.name FROM company";
 
-	private static final Logger LOGGER = Logger.getLogger(ComputerDao.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(CompanyDao.class);
 
 
 	public CompanyDao(Connection conn) {
@@ -39,7 +41,8 @@ public class CompanyDao extends Dao<Company> {
 				company = Optional.ofNullable(new Company(resultSet.getLong("id"),resultSet.getString("name")));
 			}
 		} catch (SQLException e) {
-			LOGGER.info(e.getMessage());
+			LOGGER.debug(e.getMessage());
+			// FIXME Retour client necessaire ? 
 		}
 		return company;
 	}
@@ -57,8 +60,7 @@ public class CompanyDao extends Dao<Company> {
 					companys.add(new Company(resultSet.getLong("id"),resultSet.getString("name")));
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.debug(e.getMessage());
 		}
 		return companys;
 	}

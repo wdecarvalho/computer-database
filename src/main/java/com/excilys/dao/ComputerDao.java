@@ -7,7 +7,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import main.java.com.excilys.mapper.MapUtil;
 import main.java.com.excilys.model.Company;
@@ -24,7 +26,7 @@ public class ComputerDao extends Dao<Computer> {
 	private static final String FIND_ALL_COMPUTER = "SELECT computer.id, computer.name, computer.introduced, computer.discontinued, company.id, company.name "
 			+ "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id";
 
-	private static final Logger LOGGER = Logger.getLogger(ComputerDao.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(ComputerDao.class);
 
 	public ComputerDao(Connection conn) {
 		super(conn);
@@ -49,7 +51,8 @@ public class ComputerDao extends Dao<Computer> {
 			ps.executeUpdate();
 			res = true;
 		} catch (SQLException e) {
-			LOGGER.severe(e.getMessage());
+			LOGGER.error(e.getMessage());
+			// FIXME notify user ?
 		}
 		return res;
 	}
@@ -70,7 +73,7 @@ public class ComputerDao extends Dao<Computer> {
 			ps.executeUpdate();
 			res = true;
 		} catch (SQLException e) {
-			LOGGER.severe(e.getMessage());
+			LOGGER.debug(e.getMessage());
 		}
 		return res;
 	}
@@ -95,7 +98,7 @@ public class ComputerDao extends Dao<Computer> {
 			ps.executeUpdate();
 			res = true;
 		} catch (SQLException e) {
-			LOGGER.severe(e.getMessage());
+			LOGGER.debug(e.getMessage());
 		}
 		return res;
 	}
@@ -115,8 +118,7 @@ public class ComputerDao extends Dao<Computer> {
 				computer = createComputerWithcompany(computer, resultSet);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.debug(e.getMessage());
 		}
 
 		return computer;
@@ -135,8 +137,7 @@ public class ComputerDao extends Dao<Computer> {
 					computers.add(createComputerWithcompany(null, resultSet).get());
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.debug(e.getMessage());
 		}
 		return computers;
 	}
