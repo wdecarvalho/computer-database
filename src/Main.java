@@ -1,9 +1,12 @@
 import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.logging.Logger;
 
 import main.java.com.excilys.dao.ComputerDao;
 import main.java.com.excilys.dao.DaoFactory;
+import main.java.com.excilys.dao.DaoType;
+import main.java.com.excilys.exception.ComputerNotFoundException;
+import main.java.com.excilys.exception.DaoNotInitializeException;
 import main.java.com.excilys.model.Computer;
 
 public class Main {
@@ -14,16 +17,23 @@ public class Main {
 		final DaoFactory dFactory = DaoFactory.getInstance();
 		final ComputerDao computerDao;
 		try {
-			computerDao = dFactory.getComputerDao();
-			LOGGER.info(computerDao.find(1L).getName());
-			LOGGER.info(computerDao.find(2L).getName());
-			computerDao.create(new Computer("name",new Timestamp(System.currentTimeMillis()),null,null));
-			if(computerDao.find(900L) != null) {
-				LOGGER.fine("error");
+			computerDao = (ComputerDao) dFactory.getDao(DaoType.COMPUTER_DAO);
+			computerDao.find(1L).ifPresent(c -> LOGGER.info(c.toString()));
+			computerDao.find(2L).ifPresent(c -> LOGGER.info(c.toString()));
+			computerDao.create(new Computer("name",LocalDate.now(),null,null));
+			try {
+				computerDao.find(900L).orElseThrow(() -> new ComputerNotFoundException("900L")).getName();
+		
+			} catch (ComputerNotFoundException e) {
+				LOGGER.severe(e.getMessage());
 			}
+			LOGGER.info(computerDao.findAll().size()+"");
 		} catch (SQLException e) {
 			LOGGER.severe(e.getMessage());
+		} catch (DaoNotInitializeException e1) {
+			LOGGER.severe(e1.getMessage());
 		}
+		
 	}
 
 }
