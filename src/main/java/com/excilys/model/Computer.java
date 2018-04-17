@@ -1,6 +1,5 @@
 package main.java.com.excilys.model;
 
-import java.sql.Timestamp;
 import java.time.LocalDate;
 
 public class Computer {
@@ -19,14 +18,14 @@ public class Computer {
 		this.name = name;
 	}
 	
-	public Computer(String name,Timestamp introduced, Timestamp discon,Company company) {
+	public Computer(String name,LocalDate introduced, LocalDate discon,Company company) {
 		this.name = name;
-		this.introduced = introduced == null ? null : introduced.toLocalDateTime().toLocalDate();
-		this.discontinued = discontinued == null ? null : discon.toLocalDateTime().toLocalDate();
+		this.introduced = introduced;
+		this.discontinued = discon;
 		this.company = company;
 	}
 	
-	public Computer(Long id,String name,Timestamp introduced, Timestamp discon,Company company) {
+	public Computer(Long id,String name,LocalDate introduced, LocalDate discon,Company company) {
 		this(name,introduced,discon,company);
 		this.id = id;
 	}
@@ -74,7 +73,49 @@ public class Computer {
 	public void setId(Long id) {
 		this.id = id;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof Computer))
+			return false;
+		Computer other = (Computer) obj;
+		if (id == null) {
+			if (other.id != null)
+				return false;
+		} else if (!id.equals(other.id))
+			return false;
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Computer [id=" + id + ", name=" + name + ", introduced=" + introduced + ", discontinued=" + discontinued
+				+ ", company=" + company + "]";
+	}
 	
+	
+
 	
 	
 	
