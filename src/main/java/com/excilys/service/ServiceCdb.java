@@ -1,7 +1,10 @@
 package main.java.com.excilys.service;
 
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.chrono.ChronoLocalDate;
 import java.util.Collection;
+import java.util.Comparator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +18,7 @@ import main.java.com.excilys.exception.ComputerNotFoundException;
 import main.java.com.excilys.exception.DaoNotInitializeException;
 import main.java.com.excilys.model.Company;
 import main.java.com.excilys.model.Computer;
+import main.java.com.excilys.util.Pages;
 
 public class ServiceCdb {
 
@@ -38,7 +42,6 @@ public class ServiceCdb {
 		}
 		
 	}
-
 	
 	/**
 	 * Recupere la liste des computers
@@ -72,7 +75,10 @@ public class ServiceCdb {
 	 * @return True si réussi
 	 */
 	public boolean createComputer(final Computer c) {
-		return computerDao.create(c);
+		if(c.getIntroduced() == null || c.getIntroduced().compareTo(c.getDiscontinued()) <= 0){
+			return computerDao.create(c);
+		}
+		return false;
 	}
 	
 	/**
@@ -82,7 +88,11 @@ public class ServiceCdb {
 	 * @throws CompanyNotFoundException 
 	 */
 	public boolean updateComputer(final Computer c) {
-		return computerDao.update(c);
+		if(c.getIntroduced() == null || c.getIntroduced().compareTo(c.getDiscontinued()) <= 0){
+			return computerDao.update(c);
+		}
+		return false;
+		
 	}
 	
 	/**
@@ -94,7 +104,30 @@ public class ServiceCdb {
 		return computerDao.delete(c);
 	}
 	
+	/**
+	 * Verofoe l'existence d'une company en BD
+	 * @param id ID de la company a verifier
+	 * @return true si elle existe
+	 */
 	public boolean isExistCompany(final Long id) {
 		return companyDao.find(id).isPresent();
+	}
+	
+	/**
+	 * Retourne les computer par pages
+	 * @param page Page de resultat
+	 * @return
+	 */
+	public Pages<Computer> findByPagesComputer(int page){
+		return computerDao.findPerPage(page);
+	}
+	
+	/**
+	 * Retourne les computers par pages
+	 * @param page Page de resultat
+	 * @return
+	 */
+	public Pages<Company> findByPagesCompany(int page){
+		return companyDao.findPerPage(page);
 	}
 }

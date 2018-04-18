@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import main.java.com.excilys.mapper.MapUtil;
 import main.java.com.excilys.model.Company;
 import main.java.com.excilys.model.Computer;
+import main.java.com.excilys.util.Pages;
 
 public class ComputerDao extends Dao<Computer> {
 
@@ -25,6 +26,9 @@ public class ComputerDao extends Dao<Computer> {
 			+ "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id where computer.id = ?;";
 	private static final String FIND_ALL_COMPUTER = "SELECT computer.id, computer.name, computer.introduced, computer.discontinued, company.id, company.name "
 			+ "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id";
+	private static final String FIND_COMPUTER_PAGE = "SELECT computer.id, computer.name, computer.introduced, computer.discontinued, company.id, company.name "
+			+ "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id ORDER BY computer.id ASC LIMIT ? OFFSET ? ";
+	private static final String NUMBER_PAGE_MAX = "SELECT COUNT(computer.id) FROM computer ORDER BY computer.id";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ComputerDao.class);
 
@@ -52,7 +56,6 @@ public class ComputerDao extends Dao<Computer> {
 			res = true;
 		} catch (SQLException e) {
 			LOGGER.error(e.getMessage());
-			// FIXME notify user ?
 		}
 		return res;
 	}
@@ -93,7 +96,12 @@ public class ComputerDao extends Dao<Computer> {
 			ps.setString(1, obj.getName());
 			ps.setTimestamp(2, obj.getIntroduced() == null ? null : MapUtil.convertLocalDateToTimeStamp(obj.getIntroduced()));
 			ps.setTimestamp(3, obj.getDiscontinued() == null ? null : MapUtil.convertLocalDateToTimeStamp(obj.getDiscontinued()));
-			ps.setLong(4, obj.getCompany() == null ? null : obj.getCompany().getId());
+			if(obj.getCompany() != null) {
+				ps.setLong(4, obj.getCompany().getId());
+			}
+			else {
+				ps.setNull(4, java.sql.Types.BIGINT);
+			}
 			ps.setLong(5, obj.getId());
 			ps.executeUpdate();
 			res = true;
@@ -104,7 +112,7 @@ public class ComputerDao extends Dao<Computer> {
 	}
 
 	@Override
-	public Optional<Computer> find(final Long id) {  // FIXME Si company = null;
+	public Optional<Computer> find(final Long id) {  
 		Optional<Computer> computer = Optional.empty();
 		PreparedStatement preparedStatement;
 		try {
@@ -144,8 +152,8 @@ public class ComputerDao extends Dao<Computer> {
 	
 	/**
 	 * Permet de creer un computer si il existe. (La company est spécifiée si elle existe)
-	 * @param computer
-	 * @param resultSet
+	 * @param computer : Computer optionel
+	 * @param resultSet : Resultat de la requete SQL
 	 * @return Un computer si il existe
 	 * @throws SQLException
 	 */
@@ -162,6 +170,46 @@ public class ComputerDao extends Dao<Computer> {
 						MapUtil.convertTimeStampToLocal(resultSet.getTimestamp("computer.discontinued")),
 						company));
 		return computer;
+	}
+	
+	/**
+	 * Recupere le nombre d'ordinateur en BD
+	 * @return Nombre d'ordinateur
+	 * @throws SQLException
+	 */
+	public int numberOfElement() throws SQLException { 
+			final PreparedStatement preparedStatement = this.getConnection().prepareStatement(
+					NUMBER_PAGE_MAX,
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			ResultSet rSet = preparedStatement.executeQuery();
+			rSet.next();
+			return rSet.getInt(1);
+	}
+	
+	@Override
+	public Pages<Computer> findPerPage(int page){
+		if(page <= 1) {
+			page = 1;
+		}
+		Pages<Computer> pages = new Pages<Computer>(page);
+		try {
+			pages.setPage_max(numberOfElement());
+			final PreparedStatement preparedStatement = this.getConnection().prepareStatement(
+					FIND_COMPUTER_PAGE,
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			preparedStatement.setInt(1, Pages.getNUMBER_PER_PAGE_RESULT());
+			preparedStatement.setInt(2, pages.startResult());
+			final ResultSet resultSet = preparedStatement.executeQuery();
+			while(resultSet.next()){
+				pages.getEntities().add(createComputerWithcompany(null, resultSet).get());
+					
+			}
+		} catch (SQLException e) {
+			LOGGER.debug(e.getMessage());
+		}
+		return pages;
 	}
 
 

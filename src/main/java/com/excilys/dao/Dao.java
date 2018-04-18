@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.util.Collection;
 import java.util.Optional;
 
+import main.java.com.excilys.util.Pages;
+
 public abstract class Dao<T> {
 
 	private Connection connection;
@@ -25,6 +27,13 @@ public abstract class Dao<T> {
 	 * @return objet T
 	 */
 	public abstract Optional<T> find(Long id);
+	
+	/**
+	 * Creer une page de resultat pour l'objet passé en parametre
+	 * @param page Page courante
+	 * @return Page de résultat
+	 */
+	public abstract Pages<T> findPerPage(int page);
 
 	public Connection getConnection() {
 		return connection;

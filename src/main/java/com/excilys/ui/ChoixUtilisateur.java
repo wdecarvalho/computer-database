@@ -3,6 +3,7 @@ package main.java.com.excilys.ui;
 import java.util.Arrays;
 
 public enum ChoixUtilisateur {
+	PAGE_OR_QUIT ("Veuillez choisir le numero de page ou tapez 'quit' ",0),
 	CHOIX_USER ("Veuillez entrez le numéro de l'action souhaitez : ",0),
 	MESSAGE_USER_COMPUTER ("Veuillez entrez les informations demandées ci-dessous (entrée pour passer) : ",0),
 	NUMBER_COMPUTER ("Quel est le numero de l'ordinateur ? : [0-9] ",0),

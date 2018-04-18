@@ -1,26 +1,28 @@
 package main.java.com.excilys.dao;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import main.java.com.excilys.exception.DaoNotInitializeException;
 
 public class DaoFactory {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DaoFactory.class);
 	
 	private static DaoFactory factory;
-	
-	//fixme remove and put it to file properties
-	private final static String url = "jdbc:mysql://";
-	private final static String host = "localhost";
-	private final static String port = "3306";
-	private final static String database = "computer-database-db";
-	private final static String user = "admincdb";
-	private final static String password = "qwerty1234";
-	
+
 	private DaoFactory() {
 		//default singleton
 	}
-	
+
 	/**
 	 * La factory fourni la DAO demandé et si on lui demande une DAO qu'elle ne possede pas throw une exception
 	 * @param type Type de la DAO demandé
@@ -31,15 +33,15 @@ public class DaoFactory {
 	public static Dao<?> getDao(DaoType type) throws SQLException, DaoNotInitializeException {
 
 		switch(type) {
-			case COMPUTER_DAO :
-				return getComputerDao();
-			case COMPANY_DAO :
-				return getCompanyDao();
-			default :
-				throw new DaoNotInitializeException("");
+		case COMPUTER_DAO :
+			return getComputerDao();
+		case COMPANY_DAO :
+			return getCompanyDao();
+		default :
+			throw new DaoNotInitializeException("");
 		}
 	}
-	
+
 	/**
 	 * Crée une ComputerDao en initialisant sa connexion
 	 * @throws SQLException La connexion n'a pas pu s'effectuer
@@ -49,7 +51,7 @@ public class DaoFactory {
 		final Connection conn = initConnexion();
 		return new ComputerDao(conn);
 	}
-	
+
 	/**
 	 * Crée une CompanyDao en initialisation sa connexion
 	 * @throws SQLException La connexion n'a pas pu s'effectuer
@@ -59,7 +61,7 @@ public class DaoFactory {
 		final Connection conn = initConnexion();
 		return new CompanyDao(conn);
 	}
-	
+
 	/**
 	 * Retourne la factory et la crée si elle n'existe pas
 	 * @return
@@ -69,23 +71,30 @@ public class DaoFactory {
 			factory = new DaoFactory();
 		}
 		return factory;
-		
+
 	}
-	
+
 	/**
 	 * Initiliase la connexion a la base de donnée
 	 * @return Connection
 	 * @throws SQLException La connexion n'a pas pu s'effectuer
+	 * @throws IOException 
 	 */
 	private static Connection initConnexion() throws SQLException {
-		final StringBuilder sb = new StringBuilder(url);
-		sb.append(host);
-		sb.append(":");
-		sb.append(port);
-		sb.append("/");
-		sb.append(database);
-		final Connection conn = DriverManager.getConnection(sb.toString(), user, password);
+		final Properties aProperties = new Properties();
+		final InputStream path = ClassLoader.getSystemResourceAsStream("main/resources/app.properties");
+		try {
+			aProperties.load(path);
+		} catch (FileNotFoundException e) {
+			LOGGER.error(e.getMessage());
+		} catch (IOException e) {
+			LOGGER.error(e.getMessage());
+		}
+		final Connection conn = DriverManager.getConnection(
+				aProperties.getProperty("url"),
+				aProperties.getProperty("user"),
+				aProperties.getProperty("password"));
 		return conn;
+
 	}
-	
 }

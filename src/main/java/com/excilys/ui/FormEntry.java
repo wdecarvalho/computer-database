@@ -11,7 +11,7 @@ public enum FormEntry {
 	private String name;
 	
 	private FormEntry(String name) {
-		this.name = name();
+		this.name = name;
 	}
 	
 	@Override

@@ -15,8 +15,13 @@ import main.java.com.excilys.model.Computer;
 import static main.java.com.excilys.ui.ChoixUtilisateur.*;
 import static main.java.com.excilys.ui.FormEntry.*;
 import main.java.com.excilys.service.ServiceCdb;
+import main.java.com.excilys.util.Pages;
 
 public class ControleurCdb {
+
+	private static final String COMPUTER_NOT_SAVE = "L'ordinateur n'a pas pu être sauvegardé car la date discontinued est inferieur a la date introduced";
+
+	private static final String COMPUTER_NAME_MANDATORY = "Le nom de l'ordinateur est obligatoire ";
 
 	private static final String COMPANY_NOT_FOUND = "Cette companie n'existe pas : ";
 
@@ -25,6 +30,10 @@ public class ControleurCdb {
 	private static final String ID_COMPUTER_NUMBER_ONLY = "L'ID de l'ordinateur doit être composé uniquement de nombre [0-9] ";
 	
 	private static final String ID_COMPUTER_NUM_ONLY = "L'action n'a pas pu être réalisé car "+ID_COMPUTER_NUMBER_ONLY;
+	
+	private static final String PAGE_NUMBER_ONLY = "Le numero de page doit être composé uniquement de nombre [0-9] ";
+	
+	private static final String PAGE_NUM_ONLY = "L'action n'a pas pu être réalisé car "+PAGE_NUMBER_ONLY;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ControleurCdb.class);
 
@@ -68,7 +77,7 @@ public class ControleurCdb {
 				printListComputers();
 				break;
 			case LIST_COMPANIES :
-				printListCompanies();
+				printListCompanys();
 				break;
 			case FIND_ONE_COMPUTER :
 				findOneComputer();
@@ -119,7 +128,10 @@ public class ControleurCdb {
 			final Computer current = serviceCdb.getComputerDaoDetails(l);
 			final Computer computer2 = creation_computer(current);
 			computer2.setId(l);
-			serviceCdb.updateComputer(computer2);
+			if(!serviceCdb.updateComputer(computer2)) {
+				System.out.println(COMPUTER_NOT_SAVE);
+			}
+		
 		} catch(NumberFormatException e) {
 			LOGGER.debug(ID_COMPUTER_NUMBER_ONLY);
 			System.out.println(ID_COMPUTER_NUM_ONLY);
@@ -168,7 +180,12 @@ public class ControleurCdb {
 		else {
 			System.out.print(COMPUTER_NAME);
 		}
-		final String computer_name = scanner.nextLine();
+		
+		String computer_name = scanner.nextLine();
+		while(computer_name.isEmpty()) {
+			System.out.println(COMPUTER_NAME_MANDATORY);
+			computer_name = scanner.nextLine();
+		}
 		
 		if(current_date_intro != null) {
 			final StringBuilder sBuilder = new StringBuilder(DATE_INTRODUCED.toString());
@@ -254,7 +271,9 @@ public class ControleurCdb {
 	 * @param computer
 	 */
 	private void insert_computer(final Computer computer) {
-		serviceCdb.createComputer(computer);
+		if(!serviceCdb.createComputer(computer)) {
+			System.out.println(COMPUTER_NOT_SAVE);
+		}
 	}
 
 	/**
@@ -272,21 +291,81 @@ public class ControleurCdb {
 	}
 
 	/**
-	 * Affichage de la liste des computers
+	 * Affichage de la liste des computers par pages
 	 */
 	private void printListComputers() {
-		for(Computer computer : serviceCdb.getListComputers()) {
+		printListComputersByPage(1);
+		boolean run = true;
+		while(run) {
+			System.out.print(PAGE_OR_QUIT);
+			final String choix = scanner.nextLine();
+			if(choix.equals("quit")) {
+				run = false;
+			}
+			else {
+				try {
+					int page = Integer.parseInt(choix);
+					printListComputersByPage(page);
+				}
+				catch(NumberFormatException e) {
+					LOGGER.debug(PAGE_NUMBER_ONLY);
+					System.out.println(PAGE_NUM_ONLY);
+				}
+				
+				
+			}
+		}
+		
+	}
+	
+	/**
+	 * Affichage de la liste des computers
+	 */
+	private void printListComputersByPage(int page) {
+		final Pages<Computer> pages = serviceCdb.findByPagesComputer(page);
+		for(Computer computer : pages.getEntities()) {
 			System.out.println(computer);
 		}
+		printPageInformation(pages);
 	}
 
 	/**
+	 * Affichage de la liste des companys par pages
+	 */
+	private void printListCompanys() {
+		printListCompaniesByPage(1);
+		boolean run = true;
+		while(run) {
+			System.out.print(PAGE_OR_QUIT);
+			final String choix = scanner.nextLine();
+			if(choix.equals("quit")) {
+				run = false;
+			}
+			else {
+				try {
+					int page = Integer.parseInt(choix);
+					printListCompaniesByPage(page);
+				}
+				catch(NumberFormatException e) {
+					LOGGER.debug(PAGE_NUMBER_ONLY);
+					System.out.println(PAGE_NUM_ONLY);
+				}
+				
+				
+			}
+		}
+		
+	}
+	
+	/**
 	 * Affichage de la liste des companies
 	 */
-	private void printListCompanies() {
-		for(Company companies : serviceCdb.getListCompanies()) {
-			System.out.println(companies);
+	private void printListCompaniesByPage(int page) {
+		final Pages<Company> pages = serviceCdb.findByPagesCompany(page);
+		for(Company company : pages.getEntities()) {
+			System.out.println(company);
 		}
+		printPageInformation(pages);
 	}
 
 	/**
@@ -300,6 +379,16 @@ public class ControleurCdb {
 			LOGGER.info(e.getMessage());
 		}
 	}
+	
+	/**
+	 * Affiche des informations sur l'objet page
+	 * @param pages Pagination
+	 */
+	private void printPageInformation(final Pages<?> pages) {
+		final StringBuilder sBuilder = new StringBuilder("Page actuelle : ");
+		sBuilder.append(pages.getPage_courante()).append(" / ").append(pages.getPage_max());
+		System.out.println(sBuilder.toString());
+	}	
 
 
 }

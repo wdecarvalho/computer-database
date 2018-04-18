@@ -112,13 +112,5 @@ public class Computer {
 	public String toString() {
 		return "Computer [id=" + id + ", name=" + name + ", introduced=" + introduced + ", discontinued=" + discontinued
 				+ ", company=" + company + "]";
-	}
-	
-	
-
-	
-	
-	
-	
-
+	}	
 }
