@@ -1,11 +1,13 @@
 package main.java.com.excilys.ui;
 
 import java.util.Arrays;
-import java.util.Collection;
-
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
 public enum ChoixUtilisateur {
+	CHOIX_USER ("Veuillez entrez le numéro de l'action souhaitez : ",0),
+	MESSAGE_USER_COMPUTER ("Veuillez entrez les informations demandées ci-dessous (entrée pour passer) : ",0),
+	NUMBER_COMPUTER ("Quel est le numero de l'ordinateur ? : [0-9] ",0),
+	AJOUTER_COMPANIE_TO_COMPUTER ("Voulez vous ajouter une companie à l'ordinateur ? : [y/n] ",0),
+	//-------------------------------------------------
 	DELETE_COMPUTER ("6. Delete a computer ",6),
 	UPDATE_COMPUTER ("5. Modify a computer ",5),
 	ADD_COMPUTER ("4. Add a computer ",4),

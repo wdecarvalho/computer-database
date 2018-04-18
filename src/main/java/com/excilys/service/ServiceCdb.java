@@ -2,27 +2,39 @@ package main.java.com.excilys.service;
 
 import java.sql.SQLException;
 import java.util.Collection;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import main.java.com.excilys.dao.CompanyDao;
 import main.java.com.excilys.dao.ComputerDao;
 import main.java.com.excilys.dao.DaoFactory;
 import main.java.com.excilys.dao.DaoType;
+import main.java.com.excilys.exception.CompanyNotFoundException;
 import main.java.com.excilys.exception.ComputerNotFoundException;
 import main.java.com.excilys.exception.DaoNotInitializeException;
 import main.java.com.excilys.model.Company;
 import main.java.com.excilys.model.Computer;
 
 public class ServiceCdb {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCdb.class);
 	
 	private CompanyDao companyDao;
 	private ComputerDao computerDao;
+
 	
-	public ServiceCdb() {
+	public ServiceCdb() throws DaoNotInitializeException {
 		DaoFactory.getInstance();
 		try {
 			companyDao = (CompanyDao) DaoFactory.getDao(DaoType.COMPANY_DAO);
 			computerDao = (ComputerDao) DaoFactory.getDao(DaoType.COMPUTER_DAO);
-		} catch (SQLException | DaoNotInitializeException e) {
-			e.getMessage();
+		} catch (SQLException e) {
+			LOGGER.debug(e.getMessage());
+			throw new DaoNotInitializeException();
+			
+		} catch (DaoNotInitializeException e1) {
+			LOGGER.error(e1.getMessage());
 		}
 		
 	}
@@ -67,6 +79,7 @@ public class ServiceCdb {
 	 * Demande a la DAO de mettre a jour un computer
 	 * @param c Computer à mettre a jour
 	 * @return True si réussi
+	 * @throws CompanyNotFoundException 
 	 */
 	public boolean updateComputer(final Computer c) {
 		return computerDao.update(c);
@@ -79,5 +92,9 @@ public class ServiceCdb {
 	 */
 	public boolean deleteComputer(final Computer c) {
 		return computerDao.delete(c);
+	}
+	
+	public boolean isExistCompany(final Long id) {
+		return companyDao.find(id).isPresent();
 	}
 }

@@ -8,38 +8,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import main.java.com.excilys.exception.ComputerNotFoundException;
+import main.java.com.excilys.exception.DaoNotInitializeException;
 import main.java.com.excilys.model.Company;
 import main.java.com.excilys.model.Computer;
 
+import static main.java.com.excilys.ui.ChoixUtilisateur.*;
+import static main.java.com.excilys.ui.FormEntry.*;
 import main.java.com.excilys.service.ServiceCdb;
 
 public class ControleurCdb {
 
-	private static final String ID_COMPUTER_NUMBER_ONLY = "L'ID de l'ordinateur doit être composé uniquement de nombre [0-9] ";
-	
-	private static final String ID_COMPUTER_NUM_ONLY = "L'action n'a pas pu être réalisé car un nombre n'a pas été renseignée";
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(ControleurCdb.class);
-
-	private static final String NUMBER_COMPUTER = "Quel est le numero de l'ordinateur ? : ";
-
-	private static final String DATE_DISCONTINUED = "[date discontinued] : ";
-
-	private static final String DATE_INTRODUCED = "[date introduced] :";
-
-	private static final String COMPUTER_NAME = "[name] : ";
-
-	private static final String MESSAGE_USER_COMPUTER = "Veuillez entrez les informations demandées ci-dessous (entrée pour passer) : ";
+	private static final String COMPANY_NOT_FOUND = "Cette companie n'existe pas : ";
 
 	private static final String DATE_INCORECTE = "Date incorrecte veuillez recommencer :";
+	
+	private static final String ID_COMPUTER_NUMBER_ONLY = "L'ID de l'ordinateur doit être composé uniquement de nombre [0-9] ";
+	
+	private static final String ID_COMPUTER_NUM_ONLY = "L'action n'a pas pu être réalisé car "+ID_COMPUTER_NUMBER_ONLY;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ControleurCdb.class);
 
 	private static final String DATE_REGEX = "^((18|19|20|21)\\d\\d)-(0?[1-9]|1[012])-(0?[1-9]|[12][0-9]|3[01])";
 
 	private static final String DECORATE = "============== Gestion CDB ==============";
 
-	private static final String CHOIX_USER = "Veuillez entrez le numéro de l'action souhaitez : ";
-
-	private ServiceCdb serviceCdb = new ServiceCdb();
+	private ServiceCdb serviceCdb;
 
 	private Scanner scanner;
 
@@ -48,9 +41,17 @@ public class ControleurCdb {
 	}
 
 	/**
-	 * Le coeur de l'interface utilisateur
+	 * Le coeur de l'interface utilisateur 
+	 * Initiliase le service puis affiche le menu a l'utilisateur
+	 * Pour chaque choix, effectue une fonctionnalité disponible dans la couche de service
 	 */
 	public void core() {
+		try {
+			serviceCdb = new ServiceCdb();
+		} catch (DaoNotInitializeException e1) { 
+			LOGGER.error(e1.getMessage());
+			return;
+		}
 		boolean run = true;
 		while(run) {
 			menu();
@@ -73,7 +74,7 @@ public class ControleurCdb {
 				findOneComputer();
 				break;
 			case ADD_COMPUTER :
-				final Computer computer = creation_computer();
+				final Computer computer = creation_computer(null);
 				insert_computer(computer);
 				break;
 			case UPDATE_COMPUTER :
@@ -87,7 +88,12 @@ public class ControleurCdb {
 			}
 		}
 	}
-
+	/**
+	 * Supprime le computer ayant l'ID renseignée par l'utilisateur
+	 * On recupere l'ordinateur ayant le bonne ID en base de donnée
+	 * Enfin on supprime l'ordinateur
+	 * 
+	 */
 	private void delete_computer() {
 		System.out.println(NUMBER_COMPUTER);
 		try {
@@ -101,23 +107,31 @@ public class ControleurCdb {
 			LOGGER.info(e.getMessage());
 		}
 	}
-
+	/**
+	 * Met a jour le computer ayant l'ID renseignée par l'utilisateur
+	 * On appele le formulaire pour renseigner les champs d'un computer
+	 * Et on demande au service de mettre a jour le computer
+	 */
 	private void update_computer() {
 		System.out.println(NUMBER_COMPUTER);
 		try {
 			final Long l = Long.valueOf(scanner.nextLine());
-			final Computer computer2 = creation_computer();
+			final Computer current = serviceCdb.getComputerDaoDetails(l);
+			final Computer computer2 = creation_computer(current);
 			computer2.setId(l);
-			// FIXME ID pas présent dans computer
 			serviceCdb.updateComputer(computer2);
-		}
-		catch(NumberFormatException e) {
+		} catch(NumberFormatException e) {
 			LOGGER.debug(ID_COMPUTER_NUMBER_ONLY);
 			System.out.println(ID_COMPUTER_NUM_ONLY);
 	
+		} catch (ComputerNotFoundException e) {
+			LOGGER.info(e.getMessage());
 		}
 	}
-
+	/**
+	 * On recupere le computer ayant l'ID renseignée par l'utilisateur
+	 * Et on l'affiche a l'utilisateur
+	 */
 	private void findOneComputer() {
 		System.out.println(NUMBER_COMPUTER);
 		try {
@@ -130,15 +144,40 @@ public class ControleurCdb {
 		}
 	}
 	/**
-	 * Permet de creer un computer à l'aide des choix et des informatiosn renseignées par l'utilisateur
+	 * Permet de renseignées les informations d'un ordinateur
 	 */
-	private Computer creation_computer() {
-		Company company = null;
+	private Computer creation_computer(Computer computer) {
+		String current_name = null;
+		LocalDate current_date_intro = null;
+		LocalDate current_date_discon = null;
+		Company current_company = null;
+		if(computer != null) {
+			current_name = computer.getName();
+			current_date_intro = computer.getIntroduced();
+			current_date_discon = computer.getDiscontinued();
+			current_company = computer.getCompany();
+		}
+		Company company;
 		System.out.println(MESSAGE_USER_COMPUTER);
-		System.out.print(COMPUTER_NAME);
+		
+		if(current_name != null) {
+			final StringBuilder sBuilder = new StringBuilder(COMPUTER_NAME.toString());
+			sBuilder.append("[current :] ").append(current_name).append(" ");
+			System.out.print(sBuilder.toString());
+		}
+		else {
+			System.out.print(COMPUTER_NAME);
+		}
 		final String computer_name = scanner.nextLine();
-
-		System.out.print(DATE_INTRODUCED);
+		
+		if(current_date_intro != null) {
+			final StringBuilder sBuilder = new StringBuilder(DATE_INTRODUCED.toString());
+			sBuilder.append("[current :] ").append(current_date_intro.toString()).append(" ");
+			System.out.print(sBuilder.toString());
+		}
+		else {
+			System.out.print(DATE_INTRODUCED);
+		}
 		String string_date_intro = scanner.nextLine();
 		if(!string_date_intro.isEmpty()) {
 			while(!string_date_intro.matches(DATE_REGEX)) {
@@ -146,8 +185,14 @@ public class ControleurCdb {
 				string_date_intro = scanner.nextLine();
 			}
 		}
-		
-		System.out.print(DATE_DISCONTINUED);
+		if(current_date_discon != null) {
+			final StringBuilder sBuilder = new StringBuilder(DATE_DISCONTINUED.toString());
+			sBuilder.append("[current :] ").append(current_date_discon.toString()).append(" ");
+			System.out.print(sBuilder.toString());
+		}
+		else {
+			System.out.print(DATE_DISCONTINUED);
+		}
 		String string_date_discon = scanner.nextLine();
 		if(!string_date_discon.isEmpty()) {
 			while(!string_date_discon.matches(DATE_REGEX)) {
@@ -155,29 +200,53 @@ public class ControleurCdb {
 				string_date_discon = scanner.nextLine();
 			}
 		}
-		System.out.print("Voulez vous ajouter une companie à l'ordinateur ? : [y/n] ");
+		company = askforAddCompanieToComputer(current_company);
+
+		return new Computer(computer_name.length() == 0 ? null : computer_name,
+				string_date_intro.isEmpty() ? null : LocalDate.parse(string_date_intro, DateTimeFormatter.ISO_LOCAL_DATE),
+				string_date_discon.isEmpty() ? null : LocalDate.parse(string_date_discon, DateTimeFormatter.ISO_LOCAL_DATE), 
+				company);
+	}
+
+	/**
+	 * Formulaire de remplissage des données d'une companie
+	 * @param company
+	 * @return Null ou Company
+	 */
+	private Company askforAddCompanieToComputer(Company company_current) {
+		Company company = null;
+		System.out.print(AJOUTER_COMPANIE_TO_COMPUTER);
 		switch (scanner.nextLine()) {
 		case "y":
 			company = new Company();
-			System.out.print(COMPUTER_NAME);
+			if(company_current != null) {
+				final StringBuilder sBuilder = new StringBuilder(COMPANY_ID.toString());
+				sBuilder.append("[current :] ").append(company_current.getId()).append(" ");
+				System.out.print(sBuilder.toString());
+			}
+			else {
+				System.out.print(COMPANY_ID);
+			}
+			
 			try {
-				final Long company_id = Long.valueOf(scanner.nextLine());
+				Long company_id = Long.valueOf(scanner.nextLine());
+				while(!serviceCdb.isExistCompany(company_id)) {
+					System.out.println(COMPANY_NOT_FOUND+company_id);
+					company_id = Long.valueOf(scanner.nextLine());
+				}
 				company.setId(company_id);
 			}
 			catch(NumberFormatException e) {
 				LOGGER.debug(ID_COMPUTER_NUMBER_ONLY);
 				System.out.println(ID_COMPUTER_NUM_ONLY);
+				company = null;
 			}
 			
 			break;
 		default:
 			break;
 		}
-
-		return new Computer(computer_name.length() == 0 ? null : computer_name,
-				string_date_intro.isEmpty() ? null : LocalDate.parse(string_date_intro, DateTimeFormatter.ISO_LOCAL_DATE),
-				string_date_discon.isEmpty() ? null : LocalDate.parse(string_date_discon, DateTimeFormatter.ISO_LOCAL_DATE), 
-				company);
+		return company;
 	}
 
 	/**
@@ -188,6 +257,9 @@ public class ControleurCdb {
 		serviceCdb.createComputer(computer);
 	}
 
+	/**
+	 * Menu choix des fonctionnalité de l'utilisateur
+	 */
 	private void menu() {
 		System.out.println(DECORATE);
 		System.out.println(ChoixUtilisateur.LIST_COMPUTERS);
@@ -199,18 +271,28 @@ public class ControleurCdb {
 		System.out.print(CHOIX_USER);
 	}
 
+	/**
+	 * Affichage de la liste des computers
+	 */
 	private void printListComputers() {
 		for(Computer computer : serviceCdb.getListComputers()) {
 			System.out.println(computer);
 		}
 	}
 
+	/**
+	 * Affichage de la liste des companies
+	 */
 	private void printListCompanies() {
 		for(Company companies : serviceCdb.getListCompanies()) {
 			System.out.println(companies);
 		}
 	}
 
+	/**
+	 * Affichage des informations d'un computer
+	 * @param id ID de l'ordinateur a afficher
+	 */
 	private void printComputer(final Long id) {
 		try {
 			System.out.println(serviceCdb.getComputerDaoDetails(id));
