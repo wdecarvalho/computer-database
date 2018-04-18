@@ -75,7 +75,7 @@ public class ServiceCdb {
 	 * @return True si réussi
 	 */
 	public boolean createComputer(final Computer c) {
-		if(c.getIntroduced() == null || c.getIntroduced().compareTo(c.getDiscontinued()) <= 0){
+		if(c.getIntroduced() == null || c.getDiscontinued() == null || c.getIntroduced().compareTo(c.getDiscontinued()) <= 0){
 			return computerDao.create(c);
 		}
 		return false;
@@ -88,7 +88,7 @@ public class ServiceCdb {
 	 * @throws CompanyNotFoundException 
 	 */
 	public boolean updateComputer(final Computer c) {
-		if(c.getIntroduced() == null || c.getIntroduced().compareTo(c.getDiscontinued()) <= 0){
+		if(c.getIntroduced() == null || c.getDiscontinued() == null || c.getIntroduced().compareTo(c.getDiscontinued()) <= 0){
 			return computerDao.update(c);
 		}
 		return false;
