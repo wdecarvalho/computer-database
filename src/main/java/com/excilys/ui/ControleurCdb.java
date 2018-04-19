@@ -7,6 +7,8 @@ import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.istack.internal.FinalArrayList;
+
 import main.java.com.excilys.exception.ComputerNotFoundException;
 import main.java.com.excilys.exception.DaoNotInitializeException;
 import main.java.com.excilys.model.Company;
@@ -18,6 +20,8 @@ import main.java.com.excilys.service.ServiceCdb;
 import main.java.com.excilys.util.Pages;
 
 public class ControleurCdb {
+
+	private static final String AU_REVOIR = "Au revoir ! ";
 
 	private static final String COMPUTER_NOT_SAVE = "L'ordinateur n'a pas pu être sauvegardé car la date discontinued est inferieur a la date introduced";
 
@@ -76,8 +80,9 @@ public class ControleurCdb {
 				e.getMessage();
 				continue;
 			}
-			executeChoixUtilisateur(choixUtilisateur);
+			run = executeChoixUtilisateur(choixUtilisateur);
 		}
+		System.out.println(AU_REVOIR);
 	}
 
 	/**
@@ -86,7 +91,8 @@ public class ControleurCdb {
 	 * @param choixUtilisateur
 	 *            Choix possible
 	 */
-	private void executeChoixUtilisateur(ChoixUtilisateur choixUtilisateur) {
+	private boolean executeChoixUtilisateur(final ChoixUtilisateur choixUtilisateur) {
+		boolean run = true;
 		switch (choixUtilisateur) {
 		case LIST_COMPUTERS:
 			printListComputers();
@@ -107,9 +113,12 @@ public class ControleurCdb {
 		case DELETE_COMPUTER:
 			delete_computer();
 			break;
+		case QUIT:
+			run = false;
 		default:
 			break;
 		}
+		return run;
 	}
 
 	/**
@@ -318,6 +327,7 @@ public class ControleurCdb {
 		System.out.println(ChoixUtilisateur.ADD_COMPUTER);
 		System.out.println(ChoixUtilisateur.UPDATE_COMPUTER);
 		System.out.println(ChoixUtilisateur.DELETE_COMPUTER);
+		System.out.println(ChoixUtilisateur.QUIT);
 		System.out.print(CHOIX_USER);
 	}
 
