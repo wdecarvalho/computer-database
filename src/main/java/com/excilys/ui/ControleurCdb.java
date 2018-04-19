@@ -132,6 +132,40 @@ public class ControleurCdb {
 	 * l'ordinateur ayant le bonne ID en base de donnée Enfin on supprime
 	 * l'ordinateur
 	 * 
+	 * @param choixUtilisateur
+	 *            Choix possible
+	 */
+	private void executeChoixUtilisateur(ChoixUtilisateur choixUtilisateur) {
+		switch (choixUtilisateur) {
+		case LIST_COMPUTERS:
+			printListComputers();
+			break;
+		case LIST_COMPANIES:
+			printListCompanys();
+			break;
+		case FIND_ONE_COMPUTER:
+			findOneComputer();
+			break;
+		case ADD_COMPUTER:
+			final Computer computer = creation_computer(null);
+			insert_computer(computer);
+			break;
+		case UPDATE_COMPUTER:
+			update_computer();
+			break;
+		case DELETE_COMPUTER:
+			delete_computer();
+			break;
+		default:
+			break;
+		}
+	}
+
+	/**
+	 * Supprime le computer ayant l'ID renseignée par l'utilisateur On recupere
+	 * l'ordinateur ayant le bonne ID en base de donnée Enfin on supprime
+	 * l'ordinateur
+	 * 
 	 */
 	private void delete_computer() {
 		System.out.println(NUMBER_COMPUTER);
