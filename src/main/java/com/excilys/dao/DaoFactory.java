@@ -38,7 +38,7 @@ public class DaoFactory {
 		case COMPANY_DAO :
 			return getCompanyDao();
 		default :
-			throw new DaoNotInitializeException("");
+			throw new DaoNotInitializeException();
 		}
 	}
 
