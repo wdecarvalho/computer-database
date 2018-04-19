@@ -8,7 +8,6 @@ import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.excilys.dao.DaoFactory;
 import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.ComputerNotFoundException;
 import com.excilys.exception.DaoNotInitializeException;
@@ -115,50 +114,10 @@ public class ControleurCdb {
 			break;
 		case QUIT:
 			run = false;
-			try {
-				DaoFactory.endConnexion();
-			} catch (SQLException e) {
-				LOGGER.debug(e.getMessage());
-			}
-			break;
 		default:
 			break;
 		}
 		return run;
-	}
-
-	/**
-	 * Supprime le computer ayant l'ID renseignée par l'utilisateur On recupere
-	 * l'ordinateur ayant le bonne ID en base de donnée Enfin on supprime
-	 * l'ordinateur
-	 * 
-	 * @param choixUtilisateur
-	 *            Choix possible
-	 */
-	private void executeChoixUtilisateur(ChoixUtilisateur choixUtilisateur) {
-		switch (choixUtilisateur) {
-		case LIST_COMPUTERS:
-			printListComputers();
-			break;
-		case LIST_COMPANIES:
-			printListCompanys();
-			break;
-		case FIND_ONE_COMPUTER:
-			findOneComputer();
-			break;
-		case ADD_COMPUTER:
-			final Computer computer = creation_computer(null);
-			insert_computer(computer);
-			break;
-		case UPDATE_COMPUTER:
-			update_computer();
-			break;
-		case DELETE_COMPUTER:
-			delete_computer();
-			break;
-		default:
-			break;
-		}
 	}
 
 	/**
