@@ -114,6 +114,7 @@ public class ControleurCdb {
 			break;
 		case QUIT:
 			run = false;
+			break;
 		default:
 			break;
 		}
