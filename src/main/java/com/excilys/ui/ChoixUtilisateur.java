@@ -26,7 +26,7 @@ public enum ChoixUtilisateur {
 	}
 	
 	public static ChoixUtilisateur getChoix(int indice) {
-		return Arrays.stream(ChoixUtilisateur.values()).filter((c) -> c.indice == indice).findFirst().get();
+		return Arrays.stream(ChoixUtilisateur.values()).filter((c) -> c.indice == indice).findFirst().orElse(null);
 	}
 	
 	@Override

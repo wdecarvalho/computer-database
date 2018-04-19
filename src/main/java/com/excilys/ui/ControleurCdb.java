@@ -67,6 +67,10 @@ public class ControleurCdb {
 			ChoixUtilisateur choixUtilisateur = null;
 			try {
 				choixUtilisateur =  ChoixUtilisateur.getChoix(Integer.parseInt(scanner.nextLine()));
+				if(choixUtilisateur == null) {
+					System.out.println("Choix incorrecte !\n");
+					continue;
+				}
 			}
 			catch(NumberFormatException e) {
 				e.getMessage();
