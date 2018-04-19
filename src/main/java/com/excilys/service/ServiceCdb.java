@@ -1,11 +1,7 @@
 package main.java.com.excilys.service;
 
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.chrono.ChronoLocalDate;
 import java.util.Collection;
-import java.util.Comparator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -7,8 +7,6 @@ import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.istack.internal.FinalArrayList;
-
 import main.java.com.excilys.exception.ComputerNotFoundException;
 import main.java.com.excilys.exception.DaoNotInitializeException;
 import main.java.com.excilys.model.Company;
@@ -77,7 +75,6 @@ public class ControleurCdb {
 					continue;
 				}
 			} catch (NumberFormatException e) {
-				e.getMessage();
 				continue;
 			}
 			run = executeChoixUtilisateur(choixUtilisateur);
@@ -115,6 +112,7 @@ public class ControleurCdb {
 			break;
 		case QUIT:
 			run = false;
+			break;
 		default:
 			break;
 		}
@@ -226,7 +224,7 @@ public class ControleurCdb {
 	private String formAndInputDateComputer(final LocalDate current_date, final FormEntry date_msg) {
 		if (current_date != null) {
 			final StringBuilder sBuilder = new StringBuilder(date_msg.toString());
-			sBuilder.append("[current :] ").append(current_date.toString()).append(" ");
+			sBuilder.append(CURRENT).append(current_date.toString()).append(" ");
 			System.out.print(sBuilder.toString());
 		} else {
 			System.out.print(date_msg);
@@ -251,7 +249,7 @@ public class ControleurCdb {
 	private String formAndInputNameComputer(final String current_name) {
 		if (current_name != null) {
 			final StringBuilder sBuilder = new StringBuilder(COMPUTER_NAME.toString());
-			sBuilder.append("[current :] ").append(current_name).append(" ");
+			sBuilder.append(CURRENT).append(current_name).append(" ");
 			System.out.print(sBuilder.toString());
 		} else {
 			System.out.print(COMPUTER_NAME);

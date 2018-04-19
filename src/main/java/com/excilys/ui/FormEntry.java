@@ -5,6 +5,7 @@ public enum FormEntry {
 	DATE_DISCONTINUED ("[date discontinued - YYYY-MM-DD] : "),
 	DATE_INTRODUCED ("[date introduced - YYYY-MM-DD] : "),
 	COMPUTER_NAME ("[name] : "),
+	CURRENT ("[current :] "),
 	COMPANY_ID ("[id - 0-9] : ");
 	
 	
