@@ -1,9 +1,10 @@
-package main.java.com.excilys.dao;
+package com.excilys.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
@@ -11,10 +12,10 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import main.java.com.excilys.mapper.MapUtil;
-import main.java.com.excilys.model.Company;
-import main.java.com.excilys.model.Computer;
-import main.java.com.excilys.util.Pages;
+import com.excilys.mapper.MapUtil;
+import com.excilys.model.Company;
+import com.excilys.model.Computer;
+import com.excilys.util.Pages;
 
 public class ComputerDao extends Dao<Computer> {
 
@@ -32,47 +33,58 @@ public class ComputerDao extends Dao<Computer> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ComputerDao.class);
 
-	public ComputerDao(Connection conn) {
+	private static ComputerDao computerDao;
+
+	private ComputerDao(Connection conn) {
 		super(conn);
+	}
+
+	public static ComputerDao getInstance(final Connection conn) {
+		if (computerDao == null) {
+			computerDao = new ComputerDao(conn);
+		}
+		return computerDao;
 	}
 
 	/**
 	 * Ajouter un computer dans la base de donnée
-	 * @param obj Computer
+	 * 
+	 * @param obj
+	 *            Computer
 	 * @return true si l'objet est ajouté sinon false
 	 */
-	public boolean create(final Computer obj) {
-		boolean res = false;
-		try {
-			final PreparedStatement ps = this.getConnection().prepareStatement(
-					CREATE_ONE_COMPUTER,
-					ResultSet.TYPE_SCROLL_SENSITIVE,
-					ResultSet.CONCUR_UPDATABLE);
-			ps.setString(1, obj.getName());
-			ps.setTimestamp(2, MapUtil.convertLocalDateToTimeStamp(obj.getIntroduced()));
-			ps.setTimestamp(3, MapUtil.convertLocalDateToTimeStamp(obj.getDiscontinued()));
-			ps.setString(4, obj.getCompany() == null ? null : obj.getCompany().getId()+"");
-			ps.executeUpdate();
-			res = true;
-		} catch (SQLException e) {
-			LOGGER.error(e.getMessage());
+	public Long create(final Computer obj) {
+		Long id = -1L;
+		try (final PreparedStatement pStatement = this.getConnection().prepareStatement(CREATE_ONE_COMPUTER,
+				Statement.RETURN_GENERATED_KEYS)) {
+			pStatement.setString(1, obj.getName());
+			pStatement.setTimestamp(2, MapUtil.convertLocalDateToTimeStamp(obj.getIntroduced()));
+			pStatement.setTimestamp(3, MapUtil.convertLocalDateToTimeStamp(obj.getDiscontinued()));
+			pStatement.setString(4, obj.getCompany() == null ? null : obj.getCompany().getId() + "");
+			pStatement.executeUpdate();
+			try (final ResultSet rSet = pStatement.getGeneratedKeys()) {
+				rSet.next();
+				id = rSet.getLong(1);
+			}
+		} catch (SQLException e1) {
+			LOGGER.error(e1.getMessage());
 		}
-		return res;
+		return id;
 	}
 
-
 	/**
-	 * Supprime un computer de la base de donnée 
-	 * @param obj Computer
+	 * Supprime un computer de la base de donnée
+	 * 
+	 * @param obj
+	 *            Computer
 	 * @return true si l'objet est supprimé sinon false
 	 */
 
-	public boolean delete(final Computer obj) {
+	public boolean delete(final Long ID) {
 		boolean res = false;
-		try {
-			final PreparedStatement ps = this.getConnection().prepareStatement(
-					DELETE_ONE_COMPUTER,ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
-			ps.setLong(1, obj.getId());
+		try (final PreparedStatement ps = this.getConnection().prepareStatement(DELETE_ONE_COMPUTER,
+				ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+			ps.setLong(1, ID);
 			ps.executeUpdate();
 			res = true;
 		} catch (SQLException e) {
@@ -81,49 +93,47 @@ public class ComputerDao extends Dao<Computer> {
 		return res;
 	}
 
-
 	/**
 	 * Met a jour le computer en base de donnée
-	 * @param obj Computer
+	 * 
+	 * @param obj
+	 *            Computer
 	 * @return true si l'objet est mit a jour sinon false
 	 */
 
-	public boolean update(final Computer obj) {
-		boolean res = false;
-		try {
-			final PreparedStatement ps = this.getConnection().prepareStatement(
-					UPDATE_ONE_COMPUTER,ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
+	public Computer update(final Computer obj) {
+		Computer computer = null;
+		try (final PreparedStatement ps = this.getConnection().prepareStatement(UPDATE_ONE_COMPUTER,
+				ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 			ps.setString(1, obj.getName());
-			ps.setTimestamp(2, obj.getIntroduced() == null ? null : MapUtil.convertLocalDateToTimeStamp(obj.getIntroduced()));
-			ps.setTimestamp(3, obj.getDiscontinued() == null ? null : MapUtil.convertLocalDateToTimeStamp(obj.getDiscontinued()));
-			if(obj.getCompany() != null) {
+			ps.setTimestamp(2,
+					obj.getIntroduced() == null ? null : MapUtil.convertLocalDateToTimeStamp(obj.getIntroduced()));
+			ps.setTimestamp(3,
+					obj.getDiscontinued() == null ? null : MapUtil.convertLocalDateToTimeStamp(obj.getDiscontinued()));
+			if (obj.getCompany() != null) {
 				ps.setLong(4, obj.getCompany().getId());
-			}
-			else {
+			} else {
 				ps.setNull(4, java.sql.Types.BIGINT);
 			}
 			ps.setLong(5, obj.getId());
 			ps.executeUpdate();
-			res = true;
+			computer = obj;
 		} catch (SQLException e) {
 			LOGGER.debug(e.getMessage());
 		}
-		return res;
+		return computer;
 	}
 
 	@Override
-	public Optional<Computer> find(final Long id) {  
+	public Optional<Computer> find(final Long id) {
 		Optional<Computer> computer = Optional.empty();
-		PreparedStatement preparedStatement;
-		try {
-			preparedStatement = this.getConnection().prepareStatement(
-					FIND_ONE_COMPUTER,
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			preparedStatement.setInt(1,id.intValue());
-			final ResultSet resultSet = preparedStatement.executeQuery();
-			if(resultSet.next()) {
-				computer = createComputerWithcompany(computer, resultSet);
+		try (final PreparedStatement preparedStatement = this.getConnection().prepareStatement(FIND_ONE_COMPUTER,
+				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+			preparedStatement.setInt(1, id.intValue());
+			try (final ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					computer = createComputerWithcompany(computer, resultSet);
+				}
 			}
 		} catch (SQLException e) {
 			LOGGER.debug(e.getMessage());
@@ -135,83 +145,86 @@ public class ComputerDao extends Dao<Computer> {
 	@Override
 	public Collection<Computer> findAll() {
 		final Collection<Computer> computers = new ArrayList<>();
-		try {
-			final PreparedStatement preparedStatement = this.getConnection().prepareStatement(
-					FIND_ALL_COMPUTER,
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			final ResultSet resultSet = preparedStatement.executeQuery();
-			while(resultSet.next()){
-					computers.add(createComputerWithcompany(null, resultSet).get());
+		try (final PreparedStatement preparedStatement = this.getConnection().prepareStatement(FIND_ALL_COMPUTER,
+				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+				final ResultSet resultSet = preparedStatement.executeQuery()) {
+			while (resultSet.next()) {
+				computers.add(createComputerWithcompany(null, resultSet).get());
 			}
 		} catch (SQLException e) {
 			LOGGER.debug(e.getMessage());
 		}
 		return computers;
 	}
-	
+
 	/**
-	 * Permet de creer un computer si il existe. (La company est spécifiée si elle existe)
-	 * @param computer : Computer optionel
-	 * @param resultSet : Resultat de la requete SQL
+	 * Permet de creer un computer si il existe. (La company est spécifiée si elle
+	 * existe)
+	 * 
+	 * @param computer
+	 *            : Computer optionel
+	 * @param resultSet
+	 *            : Resultat de la requete SQL
 	 * @return Un computer si il existe
 	 * @throws SQLException
 	 */
-	private Optional<Computer> createComputerWithcompany(Optional<Computer> computer, final ResultSet resultSet) throws SQLException {
+	private Optional<Computer> createComputerWithcompany(Optional<Computer> computer, final ResultSet resultSet)
+			throws SQLException {
 		Company company = null;
-		if(resultSet.getString("company.id") != null){
-			company = new Company(resultSet.getLong("company.id"),resultSet.getString("company.name"));
+		if (resultSet.getString("company.id") != null) {
+
+			company = new Company.Builder(resultSet.getLong("company.id")).name(resultSet.getString("company.name"))
+					.build();
 		}
-		computer = Optional.ofNullable(
-				new Computer(
-						resultSet.getLong("computer.id"),
-						resultSet.getString("computer.name"),
-						MapUtil.convertTimeStampToLocal(resultSet.getTimestamp("computer.introduced")),
-						MapUtil.convertTimeStampToLocal(resultSet.getTimestamp("computer.discontinued")),
-						company));
+		final String computerName = resultSet.getString("computer.name");
+		final Long computerId = resultSet.getLong("computer.id");
+
+		computer = Optional.ofNullable(new Computer.Builder(computerName).id(computerId)
+				.introduced(MapUtil.convertTimeStampToLocal(resultSet.getTimestamp("computer.introduced")))
+				.discontinued(MapUtil.convertTimeStampToLocal(resultSet.getTimestamp("computer.discontinued")))
+				.company(company).build());
 		return computer;
 	}
-	
+
 	/**
 	 * Recupere le nombre d'ordinateur en BD
+	 * 
 	 * @return Nombre d'ordinateur
 	 * @throws SQLException
 	 */
-	public int numberOfElement() throws SQLException { 
-			final PreparedStatement preparedStatement = this.getConnection().prepareStatement(
-					NUMBER_PAGE_MAX,
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			ResultSet rSet = preparedStatement.executeQuery();
-			rSet.next();
-			return rSet.getInt(1);
+	public int numberOfElement() throws SQLException {
+		final PreparedStatement preparedStatement = this.getConnection().prepareStatement(NUMBER_PAGE_MAX,
+				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+		ResultSet rSet = preparedStatement.executeQuery();
+		rSet.next();
+		int numberElement = rSet.getInt(1);
+		preparedStatement.close();
+		rSet.close();
+		return numberElement;
 	}
-	
+
 	@Override
-	public Pages<Computer> findPerPage(int page){
-		if(page <= 1) {
+	public Pages<Computer> findPerPage(int page) {
+		if (page <= 1) {
 			page = 1;
 		}
 		Pages<Computer> pages = new Pages<Computer>(page);
 		try {
 			pages.setPage_max(numberOfElement());
-			final PreparedStatement preparedStatement = this.getConnection().prepareStatement(
-					FIND_COMPUTER_PAGE,
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			preparedStatement.setInt(1, Pages.getNUMBER_PER_PAGE_RESULT());
-			preparedStatement.setInt(2, pages.startResult());
-			final ResultSet resultSet = preparedStatement.executeQuery();
-			while(resultSet.next()){
-				pages.getEntities().add(createComputerWithcompany(null, resultSet).get());
-					
+			try (final PreparedStatement preparedStatement = this.getConnection().prepareStatement(FIND_COMPUTER_PAGE,
+					ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+				preparedStatement.setInt(1, Pages.getNUMBER_PER_PAGE_RESULT());
+				preparedStatement.setInt(2, pages.startResult());
+				try (final ResultSet resultSet = preparedStatement.executeQuery()) {
+					while (resultSet.next()) {
+						pages.getEntities().add(createComputerWithcompany(null, resultSet).get());
+					}
+				}
 			}
 		} catch (SQLException e) {
 			LOGGER.debug(e.getMessage());
 		}
 		return pages;
 	}
-
-
 
 }

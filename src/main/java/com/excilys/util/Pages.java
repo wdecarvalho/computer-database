@@ -1,4 +1,4 @@
-package main.java.com.excilys.util;
+package com.excilys.util;
 
 import java.util.ArrayList;
 import java.util.Collection;

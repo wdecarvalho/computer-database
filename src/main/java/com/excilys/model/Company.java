@@ -1,17 +1,13 @@
-package main.java.com.excilys.model;
+package com.excilys.model;
 
 public class Company {
 
 	private Long id;
 	private String name;
 	
-	public Company() {
-		//default constructor
-	}
-	
-	public Company(Long id, String name) {
-		this.id = id;
-		this.name = name;
+	private Company(Builder builder) {
+		this.id = builder.ID;
+		this.name = builder.name;
 	}
 	
 	public Long getId() {
@@ -64,6 +60,24 @@ public class Company {
 	@Override
 	public String toString() {
 		return "Company [id=" + id + ", name=" + name + "]";
+	}
+	
+	public static class Builder{
+		private final Long ID;
+		private String name;
+		
+		public Builder (Long ID) {
+			this.ID = ID;
+		}
+		
+		public Builder name (String name) {
+			this.name = name;
+			return this;
+		}
+		
+		public Company build() {
+			return new Company(this);
+		}
 	}
 
 	

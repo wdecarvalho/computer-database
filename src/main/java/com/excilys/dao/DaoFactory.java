@@ -1,4 +1,4 @@
-package main.java.com.excilys.dao;
+package com.excilys.dao;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -11,13 +11,15 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import main.java.com.excilys.exception.DaoNotInitializeException;
+import com.excilys.exception.DaoNotInitializeException;
 
 public class DaoFactory {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DaoFactory.class);
 	
 	private static DaoFactory factory;
+	
+	private static Connection connection;
 
 	private DaoFactory() {
 		//default singleton
@@ -30,7 +32,7 @@ public class DaoFactory {
 	 * @throws SQLException
 	 * @throws DaoNotInitializeException Une DAO non géré a été demandé
 	 */
-	public static Dao<?> getDao(DaoType type) throws SQLException, DaoNotInitializeException {
+	public Dao<?> getDao(DaoType type) throws SQLException, DaoNotInitializeException {
 
 		switch(type) {
 		case COMPUTER_DAO :
@@ -43,32 +45,32 @@ public class DaoFactory {
 	}
 
 	/**
-	 * Crée une ComputerDao en initialisant sa connexion
+	 * Recupere l'instance de computerDAO en lui passant la connection
 	 * @throws SQLException La connexion n'a pas pu s'effectuer
 	 * @return ComputerDao
 	 */
 	private static ComputerDao getComputerDao() throws SQLException {
-		final Connection conn = initConnexion();
-		return new ComputerDao(conn);
+		return ComputerDao.getInstance(connection);
 	}
 
 	/**
-	 * Crée une CompanyDao en initialisation sa connexion
+	 * Recupere l'instance de companyDAO en lui passant la connection
 	 * @throws SQLException La connexion n'a pas pu s'effectuer
 	 * @return CompanyDao
 	 */
 	private static CompanyDao getCompanyDao() throws SQLException {
-		final Connection conn = initConnexion();
-		return new CompanyDao(conn);
+		return CompanyDao.getInstance(connection);
 	}
 
 	/**
 	 * Retourne la factory et la crée si elle n'existe pas
 	 * @return
+	 * @throws SQLException 
 	 */
-	public static DaoFactory getInstance() {
+	public static DaoFactory getInstance() throws SQLException {
 		if(factory == null) {
 			factory = new DaoFactory();
+			initConnexion();
 		}
 		return factory;
 
@@ -82,7 +84,7 @@ public class DaoFactory {
 	 */
 	private static Connection initConnexion() throws SQLException {
 		final Properties aProperties = new Properties();
-		final InputStream path = ClassLoader.getSystemResourceAsStream("main/resources/app.properties");
+		final InputStream path = ClassLoader.getSystemResourceAsStream("app.properties");
 		try {
 			aProperties.load(path);
 		} catch (FileNotFoundException e) {
@@ -90,11 +92,14 @@ public class DaoFactory {
 		} catch (IOException e) {
 			LOGGER.error(e.getMessage());
 		}
-		final Connection conn = DriverManager.getConnection(
+		connection = DriverManager.getConnection(
 				aProperties.getProperty("url"),
 				aProperties.getProperty("user"),
 				aProperties.getProperty("password"));
-		return conn;
-
+		return connection;
+	}
+	
+	public static void endConnexion() throws SQLException {
+		connection.close();
 	}
 }

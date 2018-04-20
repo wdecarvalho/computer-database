@@ -1,129 +1,168 @@
-package main.java.com.excilys.service;
+package com.excilys.service;
 
 import java.sql.SQLException;
 import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import main.java.com.excilys.dao.CompanyDao;
-import main.java.com.excilys.dao.ComputerDao;
-import main.java.com.excilys.dao.DaoFactory;
-import main.java.com.excilys.dao.DaoType;
-import main.java.com.excilys.exception.CompanyNotFoundException;
-import main.java.com.excilys.exception.ComputerNotFoundException;
-import main.java.com.excilys.exception.DaoNotInitializeException;
-import main.java.com.excilys.model.Company;
-import main.java.com.excilys.model.Computer;
-import main.java.com.excilys.util.Pages;
+import com.excilys.dao.CompanyDao;
+import com.excilys.dao.ComputerDao;
+import com.excilys.dao.DaoFactory;
+import com.excilys.dao.DaoType;
+import com.excilys.exception.ComputerNameNotPresentException;
+import com.excilys.exception.ComputerNotFoundException;
+import com.excilys.exception.DaoNotInitializeException;
+import com.excilys.model.Company;
+import com.excilys.model.Computer;
+import com.excilys.util.Pages;
+
 
 public class ServiceCdb {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCdb.class);
-	
+
+	private static ServiceCdb serviceCdb;
+
 	private CompanyDao companyDao;
 	private ComputerDao computerDao;
 
-	
-	public ServiceCdb() throws DaoNotInitializeException {
-		DaoFactory.getInstance();
+	private ServiceCdb() throws DaoNotInitializeException {
 		try {
-			companyDao = (CompanyDao) DaoFactory.getDao(DaoType.COMPANY_DAO);
-			computerDao = (ComputerDao) DaoFactory.getDao(DaoType.COMPUTER_DAO);
+			final DaoFactory daoFactory = DaoFactory.getInstance();
+			companyDao = (CompanyDao) daoFactory.getDao(DaoType.COMPANY_DAO);
+			computerDao = (ComputerDao) daoFactory.getDao(DaoType.COMPUTER_DAO);
 		} catch (SQLException e) {
 			LOGGER.debug(e.getMessage());
 			throw new DaoNotInitializeException();
-			
+
 		} catch (DaoNotInitializeException e1) {
 			LOGGER.error(e1.getMessage());
 		}
-		
+
 	}
-	
+
+	public static ServiceCdb getInstance() throws DaoNotInitializeException {
+		if (serviceCdb == null) {
+			serviceCdb = new ServiceCdb();
+		}
+		return serviceCdb;
+	}
+
 	/**
 	 * Recupere la liste des computers
+	 * 
 	 * @return Collection de computer
 	 */
 	public Collection<Computer> getListComputers() {
-		return computerDao.findAll(); 
+		return computerDao.findAll();
 	}
-	
+
 	/**
 	 * Recupere la liste des compagnies
+	 * 
 	 * @return Colleciton de company
 	 */
-	public Collection<Company> getListCompanies(){
+	public Collection<Company> getListCompanies() {
 		return companyDao.findAll();
 	}
 
 	/**
 	 * Recupere les information d'un computer
-	 * @param id ID du computer recherché
-	 * @return Computer 
+	 * 
+	 * @param id
+	 *            ID du computer recherché
+	 * @return Computer
 	 */
 	public Computer getComputerDaoDetails(final Long id) throws ComputerNotFoundException {
-		return computerDao.find(id).orElseThrow(() -> new ComputerNotFoundException(""+id));
-		
+		return computerDao.find(id).orElseThrow(() -> new ComputerNotFoundException("" + id));
+
 	}
-	
+
 	/**
 	 * Demande a la DAO de crée un computer
-	 * @param c Computer à sauvegarder
+	 * 
+	 * @param c
+	 *            Computer à sauvegarder
 	 * @return True si réussi
+	 * @throws ComputerNameNotPresentException
 	 */
-	public boolean createComputer(final Computer c) {
-		if(c.getIntroduced() == null || c.getDiscontinued() == null || c.getIntroduced().compareTo(c.getDiscontinued()) <= 0){
+	public Long createComputer(final Computer c) throws ComputerNameNotPresentException {
+		if (c.getName() != null && !c.getName().isEmpty()) {
+			throw new ComputerNameNotPresentException();
+		}
+		boolean dateIntroMinorThanDateDisco = c.getIntroduced() == null || c.getDiscontinued() == null
+				|| c.getIntroduced().compareTo(c.getDiscontinued()) <= 0;
+		if (dateIntroMinorThanDateDisco) {
 			return computerDao.create(c);
 		}
-		return false;
+		return -1L;
+
 	}
-	
+
 	/**
 	 * Demande a la DAO de mettre a jour un computer
-	 * @param c Computer à mettre a jour
+	 * 
+	 * @param c
+	 *            Computer à mettre a jour
 	 * @return True si réussi
-	 * @throws CompanyNotFoundException 
+	 * @throws ComputerNameNotPresentException
+	 * @throws CompanyNotFoundException
 	 */
-	public boolean updateComputer(final Computer c) {
-		if(c.getIntroduced() == null || c.getDiscontinued() == null || c.getIntroduced().compareTo(c.getDiscontinued()) <= 0){
+	public Computer updateComputer(final Computer c) throws ComputerNameNotPresentException {
+		if (c.getName() != null && !c.getName().isEmpty()) {
+			throw new ComputerNameNotPresentException();
+		}
+		boolean dateIntroMinorThanDateDisco = c.getIntroduced() == null || c.getDiscontinued() == null
+				|| c.getIntroduced().compareTo(c.getDiscontinued()) <= 0;
+		if (dateIntroMinorThanDateDisco) {
 			return computerDao.update(c);
 		}
-		return false;
-		
+		return null;
+
 	}
-	
+
 	/**
 	 * Demande a la DAO de supprimer un computer
-	 * @param c Computer à supprimer
+	 * 
+	 * @param c
+	 *            Computer à supprimer
 	 * @return True si réussi
 	 */
-	public boolean deleteComputer(final Computer c) {
-		return computerDao.delete(c);
+	public boolean deleteComputer(final Long ID) {
+		return computerDao.delete(ID);
 	}
-	
+
 	/**
 	 * Verofoe l'existence d'une company en BD
-	 * @param id ID de la company a verifier
+	 * 
+	 * @param id
+	 *            ID de la company a verifier
 	 * @return true si elle existe
 	 */
 	public boolean isExistCompany(final Long id) {
 		return companyDao.find(id).isPresent();
 	}
-	
+
 	/**
 	 * Retourne les computer par pages
-	 * @param page Page de resultat
+	 * 
+	 * @param page
+	 *            Page de resultat
 	 * @return
 	 */
-	public Pages<Computer> findByPagesComputer(int page){
+	public Pages<Computer> findByPagesComputer(int page) {
 		return computerDao.findPerPage(page);
 	}
-	
+
 	/**
 	 * Retourne les computers par pages
-	 * @param page Page de resultat
+	 * 
+	 * @param page
+	 *            Page de resultat
 	 * @return
 	 */
-	public Pages<Company> findByPagesCompany(int page){
+	public Pages<Company> findByPagesCompany(int page) {
 		return companyDao.findPerPage(page);
 	}
+
 }

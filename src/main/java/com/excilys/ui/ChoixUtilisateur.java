@@ -1,4 +1,4 @@
-package main.java.com.excilys.ui;
+package com.excilys.ui;
 
 import java.util.Arrays;
 

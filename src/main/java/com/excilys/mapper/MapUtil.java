@@ -1,4 +1,4 @@
-package main.java.com.excilys.mapper;
+package com.excilys.mapper;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;

@@ -18,17 +18,8 @@ local.properties
 # Locally stored "Eclipse launch configurations"
 *.launch
 
-# PyDev specific (Python IDE for Eclipse)
-*.pydevproject
-
-# CDT-specific (C/C++ Development Tooling)
-.cproject
-
 # Java annotation processor (APT)
 .factorypath
-
-# PDT-specific (PHP Development Tools)
-.buildpath
 
 # sbteclipse plugin
 .target
@@ -44,11 +35,6 @@ local.properties
 
 # Code Recommenders
 .recommenders/
-
-# Scala IDE specific (Scala & Java development for Eclipse)
-.cache-main
-.scala_dependencies
-.worksheet
 
 ### Eclipse Patch ###
 # Eclipse Core		
@@ -81,8 +67,25 @@ local.properties
 *.tar.gz
 *.rar
 
+# Properties File #
+*.properties
+
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+### Maven ###
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
+!/.mvn/wrapper/maven-wrapper.jar
 
 
 # End of https://www.gitignore.io/api/java,eclipse

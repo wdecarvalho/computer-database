@@ -1,33 +1,21 @@
-package main.java.com.excilys.model;
+package com.excilys.model;
 
 import java.time.LocalDate;
 
 public class Computer {
-	
+
 	private Long id;
 	private String name;
 	private LocalDate introduced;
 	private LocalDate discontinued;
 	private Company company;
-	
-	public Computer() {
-		// default
-	}
-	
-	public Computer(String name) {
-		this.name = name;
-	}
-	
-	public Computer(String name,LocalDate introduced, LocalDate discon,Company company) {
-		this.name = name;
-		this.introduced = introduced;
-		this.discontinued = discon;
-		this.company = company;
-	}
-	
-	public Computer(Long id,String name,LocalDate introduced, LocalDate discon,Company company) {
-		this(name,introduced,discon,company);
-		this.id = id;
+
+	private Computer(Builder b) {
+		id = b.id;
+		name = b.name;
+		introduced = b.introduced;
+		discontinued = b.discontinued;
+		company = b.company;
 	}
 
 	public long getId() {
@@ -74,7 +62,9 @@ public class Computer {
 		this.id = id;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -85,7 +75,9 @@ public class Computer {
 		return result;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -105,12 +97,50 @@ public class Computer {
 		return true;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		return "Computer [id=" + id + ", name=" + name + ", introduced=" + introduced + ", discontinued=" + discontinued
 				+ ", company=" + company + "]";
-	}	
+	}
+
+	public static class Builder {
+		private Long id;
+		private final String name;
+		private LocalDate introduced;
+		private LocalDate discontinued;
+		private Company company;
+
+		public Builder(String name) {
+			this.name = name;
+		}
+
+		public Builder id(Long id) {
+			this.id = id;
+			return this;
+		}
+
+		public Builder introduced(LocalDate introduced) {
+			this.introduced = introduced;
+			return this;
+		}
+
+		public Builder discontinued(LocalDate discontinued) {
+			this.discontinued = discontinued;
+			return this;
+		}
+
+		public Builder company(Company company) {
+			this.company = company;
+			return this;
+		}
+
+		public Computer build() {
+			return new Computer(this);
+		}
+	}
 }
