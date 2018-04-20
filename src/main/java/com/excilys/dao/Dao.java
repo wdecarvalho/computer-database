@@ -1,15 +1,14 @@
-package main.java.com.excilys.dao;
+package com.excilys.dao;
 
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.Optional;
 
-import main.java.com.excilys.util.Pages;
+import com.excilys.util.Pages;
 
 public abstract class Dao<T> {
-
-	private Connection connection;
 	
+	private Connection connection;
 	
 	public Dao(Connection conn) {
 		this.connection = conn;

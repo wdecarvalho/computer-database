@@ -1,4 +1,4 @@
-package main.java.com.excilys.dao;
+package com.excilys.dao;
 
 
 public enum DaoType {

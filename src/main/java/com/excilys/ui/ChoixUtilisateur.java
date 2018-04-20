@@ -1,4 +1,4 @@
-package main.java.com.excilys.ui;
+package com.excilys.ui;
 
 import java.util.Arrays;
 
@@ -9,6 +9,7 @@ public enum ChoixUtilisateur {
 	NUMBER_COMPUTER ("Quel est le numero de l'ordinateur ? : [0-9] ",0),
 	AJOUTER_COMPANIE_TO_COMPUTER ("Voulez vous ajouter une companie à l'ordinateur ? : [y/n] ",0),
 	//-------------------------------------------------
+	QUIT ("7. Quit program ",7),
 	DELETE_COMPUTER ("6. Delete a computer ",6),
 	UPDATE_COMPUTER ("5. Modify a computer ",5),
 	ADD_COMPUTER ("4. Add a computer ",4),
@@ -26,7 +27,7 @@ public enum ChoixUtilisateur {
 	}
 	
 	public static ChoixUtilisateur getChoix(int indice) {
-		return Arrays.stream(ChoixUtilisateur.values()).filter((c) -> c.indice == indice).findFirst().get();
+		return Arrays.stream(ChoixUtilisateur.values()).filter((c) -> c.indice == indice).findFirst().orElse(null);
 	}
 	
 	@Override
