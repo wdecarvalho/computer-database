@@ -50,7 +50,7 @@ public class ControleurCdb {
 	private ServiceCdb serviceCdb;
 
 	private Scanner scanner;
-
+	
 	public ControleurCdb() {
 		scanner = new Scanner(System.in);
 	}
