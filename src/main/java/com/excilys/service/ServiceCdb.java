@@ -2,6 +2,7 @@ package com.excilys.service;
 
 import java.sql.SQLException;
 import java.util.Collection;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +24,7 @@ public class ServiceCdb {
     private static ServiceCdb serviceCdb;
 
     private CompanyDao companyDao;
+
     private ComputerDao computerDao;
 
     /**
@@ -96,7 +98,7 @@ public class ServiceCdb {
      *             Si le nom de l'ordinateur n'est pas présent
      */
     public Long createComputer(final Computer c) throws ComputerNameNotPresentException {
-        if (c.getName() != null && !c.getName().isEmpty()) {
+        if (c.getName() == null || c.getName().isEmpty()) {
             throw new ComputerNameNotPresentException();
         }
         boolean dateIntroMinorThanDateDisco = c.getIntroduced() == null || c.getDiscontinued() == null
@@ -120,7 +122,7 @@ public class ServiceCdb {
      */
     public Computer updateComputer(final Computer c)
             throws ComputerNameNotPresentException, ComputerNeedIdToBeUpdateException {
-        if (c.getName() != null && !c.getName().isEmpty()) {
+        if (c.getName() == null || c.getName().isEmpty()) {
             throw new ComputerNameNotPresentException();
         }
         boolean dateIntroMinorThanDateDisco = c.getIntroduced() == null || c.getDiscontinued() == null

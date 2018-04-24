@@ -129,8 +129,9 @@ public class ComputerDao extends Dao<Computer> {
                 ps.setNull(4, java.sql.Types.BIGINT);
             }
             ps.setLong(5, obj.getId());
-            ps.executeUpdate();
-            computer = obj;
+            if (ps.executeUpdate() != 0) {
+                computer = obj;
+            }
         } catch (SQLException e) {
             LOGGER.debug(e.getMessage());
         }

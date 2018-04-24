@@ -16,9 +16,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.excilys.exception.DaoNotInitializeException;
-import com.excilys.extensions.MockitoExtension;
 import com.excilys.model.Company;
 
 @ExtendWith(MockitoExtension.class) // RunWith
@@ -91,7 +91,7 @@ public class CompanyDaoTest {
      */
     @Test
     @DisplayName("Test find companys by page")
-    public void findcomputerByPage() {
+    public void findcomputerByPageTest() {
         assertEquals(1, companyDao.findPerPage(1).getPageCourante());
         assertEquals(1, companyDao.findPerPage(2).getPageCourante());
     }
@@ -101,7 +101,7 @@ public class CompanyDaoTest {
      */
     @Test
     @DisplayName("Test find company by impossible pages")
-    public void findComputerByPageNotPossible() {
+    public void findComputerByPageNotPossibleTest() {
         assertEquals(1, companyDao.findPerPage(0).getPageCourante());
         assertEquals(1, companyDao.findPerPage(-1).getPageCourante());
     }
