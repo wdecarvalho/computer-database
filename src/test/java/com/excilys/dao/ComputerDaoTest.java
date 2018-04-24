@@ -23,10 +23,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.excilys.exception.ComputerNeedIdToBeUpdateException;
 import com.excilys.exception.DaoNotInitializeException;
-import com.excilys.extensions.MockitoExtension;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
 
@@ -102,7 +102,7 @@ public class ComputerDaoTest {
      */
     @Test
     @DisplayName("Test to get computers by page result")
-    public void findcomputerByPage() {
+    public void findcomputerByPageTest() {
         assertEquals(1, computerDao.findPerPage(1).getPageCourante());
         assertEquals(1, computerDao.findPerPage(2).getPageCourante());
     }
@@ -112,7 +112,7 @@ public class ComputerDaoTest {
      */
     @Test
     @DisplayName("Test to get computers by impossible page result")
-    public void findComputerByPageNotPossible() {
+    public void findComputerByPageNotPossibleTest() {
         assertEquals(1, computerDao.findPerPage(0).getPageCourante());
         assertEquals(1, computerDao.findPerPage(-1).getPageCourante());
     }
@@ -175,12 +175,15 @@ public class ComputerDaoTest {
     /**
      * Verifie que la mise a jour d'un ordinateur qui n'est pas en BD deleche une
      * ComputerNeedIdToBeUpdateException.
+     * @throws ComputerNeedIdToBeUpdateException  Si l'ID n'est pas présent
      */
     @Test
-    @DisplayName("Test update a computer not existing in BD")
-    public void updateComputerTransientTest() {
+    @DisplayName("Test update computers not existing in BD")
+    public void updateComputerTransientTest() throws ComputerNeedIdToBeUpdateException {
         final Computer computer = new Computer.Builder(null).build();
         assertThrows(ComputerNeedIdToBeUpdateException.class, () -> computerDao.update(computer));
+        final Computer computer2 = new Computer.Builder("name").id(1111L).build();
+        assertNull(computerDao.update(computer2));
     }
 
     /**
@@ -191,13 +194,13 @@ public class ComputerDaoTest {
     @Test
     @DisplayName("Test update a computer existing in BD")
     public void updateComputerExistingTest() throws ComputerNeedIdToBeUpdateException {
-        final Computer computer = new Computer.Builder("rename").id(12L).introduced(LocalDate.now())
+        final Computer computer = new Computer.Builder("rename").id(9L).introduced(LocalDate.now())
                 .discontinued(LocalDate.parse("2015-02-02", DateTimeFormatter.ISO_LOCAL_DATE))
                 .company(new Company.Builder(1L).build()).build();
         computerDao.update(computer);
         final Computer updated = computerDao.update(computer);
         assertEquals("rename", updated.getName());
-        assertSame(12L, updated.getId());
+        assertSame(9L, updated.getId());
         assertEquals(LocalDate.parse("2015-02-02", DateTimeFormatter.ISO_LOCAL_DATE), updated.getDiscontinued());
     }
 
@@ -206,10 +209,10 @@ public class ComputerDaoTest {
      */
 
     /**
-     * Test la suppresion d'un computer qui existe.
+     * Test la suppresion d'un computer qui existe et d'un qui n'existe pas.
      */
     @Test
-    @DisplayName("Test delete a computer that exist")
+    @DisplayName("Test delete computers that exist and not exist")
     public void suppresionComputerExisting() {
         assertFalse(computerDao.delete(111L));
         assertTrue(computerDao.delete(12L));
