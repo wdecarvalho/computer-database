@@ -95,7 +95,7 @@ public class DaoFactory {
      */
     private static Connection initConnexion() throws SQLException {
         final Properties aProperties = new Properties();
-        final InputStream path = ClassLoader.getSystemResourceAsStream("app.properties");
+        final InputStream path = ClassLoader.getSystemClassLoader().getResourceAsStream("app.properties");
         try {
             aProperties.load(path);
         } catch (FileNotFoundException e) {
@@ -103,6 +103,13 @@ public class DaoFactory {
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
         }
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        LOGGER.info("Base de donnée utilisée : " + aProperties.getProperty("url"));
         connection = DriverManager.getConnection(aProperties.getProperty("url"), aProperties.getProperty("user"),
                 aProperties.getProperty("password"));
         return connection;
