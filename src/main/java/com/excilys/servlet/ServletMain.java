@@ -1,6 +1,8 @@
 package com.excilys.servlet;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -11,12 +13,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.excilys.dto.ComputerDTO;
 import com.excilys.exception.DaoNotInitializeException;
+import com.excilys.mapper.MapUtil;
+import com.excilys.model.Computer;
 import com.excilys.service.ServiceCdb;
+import com.excilys.util.Pages;
 
 @WebServlet("/dashboard")
 public class ServletMain extends HttpServlet {
-
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(Logger.class);
 
@@ -42,7 +47,6 @@ public class ServletMain extends HttpServlet {
      *            Response
      */
     public void doPost(HttpServletRequest req, HttpServletResponse res) {
-
     }
 
     /**
@@ -57,7 +61,19 @@ public class ServletMain extends HttpServlet {
      *             Exception généré par la servlet
      */
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        req.setAttribute("computers", serviceCdb.findByPagesComputer(1).getEntities());
+        int page = 1;
+        try {
+            page = Integer.parseInt(req.getParameter("page"));
+        } catch (NumberFormatException e) {
+            // Nothing to do especially
+        }
+        Pages<Computer> pagesComputer = serviceCdb.findByPagesComputer(page);
+        List<ComputerDTO> computerDTOs = pagesComputer.getEntities().stream().map(c -> MapUtil.computerToComputerDTO(c))
+                .collect(Collectors.toList());
+        req.setAttribute("computers", computerDTOs);
+        req.setAttribute("nbComputers", pagesComputer.getMaxComputers());
+        req.setAttribute("limit", pagesComputer.getPageMax());
+        req.setAttribute("pageCourante", pagesComputer.getPageCourante());
         req.getRequestDispatcher("jsp/dashboard.jsp").forward(req, res);
     }
 }

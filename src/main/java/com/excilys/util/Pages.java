@@ -8,6 +8,7 @@ public class Pages<T> {
     private Collection<T> entities;
     private int pageCourante;
     private int pageMax;
+    private int maxComputers;
     private static final int NUMBER_PER_PAGE_RESULT = 20;
 
     /**
@@ -27,6 +28,7 @@ public class Pages<T> {
     private int firstResult() {
         return (this.pageCourante - 1) * NUMBER_PER_PAGE_RESULT;
     }
+
     /**
      * Recupere le nombre de resultat par page.
      * @return Nombre de resultat par page.
@@ -51,8 +53,15 @@ public class Pages<T> {
         return entities;
     }
 
-    public void setPageMax(int pageMax) {
-        this.pageMax = (int) Math.ceil((double) pageMax / NUMBER_PER_PAGE_RESULT);
+    /**
+     * Recupere le nombre de computer trouvée et calcule le nombre de page maximum
+     * possible.
+     * @param maxComputers
+     *            Nombre de computers
+     */
+    public void setPageMax(int maxComputers) {
+        this.maxComputers = maxComputers;
+        this.pageMax = (int) Math.ceil((double) maxComputers / NUMBER_PER_PAGE_RESULT);
     }
 
     /**
@@ -69,4 +78,13 @@ public class Pages<T> {
     public int getPageMax() {
         return pageMax;
     }
+
+    public int getMaxComputers() {
+        return maxComputers;
+    }
+
+    public void setMaxComputers(int maxComputers) {
+        this.maxComputers = maxComputers;
+    }
+
 }

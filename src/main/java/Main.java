@@ -1,4 +1,4 @@
-import com.excilys.ui.ControleurCdb;
+//import com.excilys
 
 public class Main {
 
@@ -7,6 +7,6 @@ public class Main {
      * @param args Argument entrée du programme
      */
     public static void main(String... args) {
-        new ControleurCdb().core();
+     //   new ControleurCdb().core();
     }
 }

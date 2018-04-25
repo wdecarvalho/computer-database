@@ -3,6 +3,9 @@ package com.excilys.mapper;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 
+import com.excilys.dto.ComputerDTO;
+import com.excilys.model.Computer;
+
 public abstract class MapUtil {
 
     /**
@@ -30,7 +33,14 @@ public abstract class MapUtil {
             return Timestamp.valueOf(date.atStartOfDay());
         }
         return null;
-
+    }
+    /**
+     * Creer un DTO a partir d'une entité.
+     * @param computer Computer a transformé.
+     * @return ComputerDTO
+     */
+    public static ComputerDTO computerToComputerDTO(Computer computer) {
+        return new ComputerDTO(computer);
     }
 
 }
