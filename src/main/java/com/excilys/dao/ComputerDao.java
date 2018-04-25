@@ -85,7 +85,8 @@ public class ComputerDao extends Dao<Computer> {
 
     /**
      * Supprime un computer de la base de donnée.
-     * @param iD ID du computer
+     * @param iD
+     *            ID du computer
      * @return true si l'objet est supprimé sinon false
      */
 
@@ -108,7 +109,8 @@ public class ComputerDao extends Dao<Computer> {
      * @param obj
      *            Computer
      * @return true si l'objet est mit a jour sinon false
-     * @throws ComputerNeedIdToBeUpdateException Si l'ID du computer n'est pas présent
+     * @throws ComputerNeedIdToBeUpdateException
+     *             Si l'ID du computer n'est pas présent
      */
 
     public Computer update(final Computer obj) throws ComputerNeedIdToBeUpdateException {
@@ -179,7 +181,8 @@ public class ComputerDao extends Dao<Computer> {
      * @param resultSet
      *            : Resultat de la requete SQL
      * @return Un computer si il existe
-     * @throws SQLException Si une erreur SQL intervient
+     * @throws SQLException
+     *             Si une erreur SQL intervient
      */
     private Optional<Computer> createComputerWithcompany(Optional<Computer> computer, final ResultSet resultSet)
             throws SQLException {
@@ -202,7 +205,8 @@ public class ComputerDao extends Dao<Computer> {
     /**
      * Recupere le nombre d'ordinateur en BD.
      * @return Nombre d'ordinateur
-     * @throws SQLException Si une erreur SQL intervient
+     * @throws SQLException
+     *             Si une erreur SQL intervient
      */
     public int numberOfElement() throws SQLException {
         final PreparedStatement preparedStatement = this.getConnection().prepareStatement(NUMBER_PAGE_MAX,

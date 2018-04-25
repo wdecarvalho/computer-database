@@ -111,7 +111,6 @@ public class CompanyDao extends Dao<Company> {
                     while (resultSet.next()) {
                         pages.getEntities().add(
                                 new Company.Builder(resultSet.getLong("id")).name(resultSet.getString("name")).build());
-
                     }
                 }
             }
