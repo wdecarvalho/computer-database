@@ -6,6 +6,8 @@ import com.excilys.model.Computer;
 
 public class ComputerDTO {
 
+    private Long id;
+
     private String name;
 
     private LocalDate introDate;
@@ -20,10 +22,21 @@ public class ComputerDTO {
      *            Computer to print
      */
     public ComputerDTO(Computer c) {
-        this.name = c.getName();
-        this.introDate = c.getIntroduced();
-        this.disconDate = c.getDiscontinued();
-        this.companyName = c.getCompany().getName();
+        if (c != null) {
+            this.id = c.getId();
+            this.name = c.getName();
+            this.introDate = c.getIntroduced();
+            this.disconDate = c.getDiscontinued();
+            this.companyName = c.getCompany() == null ? null : c.getCompany().getName();
+        }
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {

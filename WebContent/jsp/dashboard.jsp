@@ -20,7 +20,6 @@
 				Computer Database </a>
 		</div>
 	</header>
-
 	<section id="main">
 		<div class="container">
 			<h1 id="homeTitle">121 Computers found</h1>
@@ -76,6 +75,9 @@
 							<td class="editMode"><input type="checkbox" name="cb"
 								class="cb" value="0"></td>
 							<td>${computer.name}</td>
+							<td>${computer.introDate}</td>
+							<td>${computer.disconDate}</td>
+							<td>${computer.companyName}</td>
 						</tr>
 					</c:forEach>
 					<tr>
