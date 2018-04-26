@@ -61,19 +61,7 @@ public class ServletMain extends HttpServlet {
      *             Exception généré par la servlet
      */
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        if (req.getSession().getAttribute("numberResult") == null) {
-            req.getSession().setAttribute("numberResult", 10);
-        }
-        int numberResult = (int) req.getSession().getAttribute("numberResult");
-        try {
-            int tmpNumberResult = Integer.parseInt(req.getParameter("numberResult"));
-            if (tmpNumberResult == 10 || tmpNumberResult == 50 || tmpNumberResult == 100) {
-                req.getSession().setAttribute("numberResult", tmpNumberResult);
-                numberResult = tmpNumberResult;
-            }
-        } catch (NumberFormatException e) {
-            // nothing to do especially
-        }
+        int numberResult = numberResultForThisRequest(req);
         int page = 1;
         try {
             page = Integer.parseInt(req.getParameter("page"));
@@ -88,5 +76,30 @@ public class ServletMain extends HttpServlet {
         req.setAttribute("limit", pagesComputer.getPageMax());
         req.setAttribute("pageCourante", pagesComputer.getPageCourante());
         req.getRequestDispatcher("jsp/dashboard.jsp").forward(req, res);
+    }
+
+    /**
+     * Si le nombre de resultat n'est pas défini, alors on retourne 10. Sinon si
+     * l'utilisateur demande 10, 50 ou 100 resultat alors on met a jour le nombre de
+     * resultat a retourner.
+     * @param req
+     *            Requete pagination dashboard
+     * @return Nombre de resultat a afficher
+     */
+    private int numberResultForThisRequest(HttpServletRequest req) {
+        if (req.getSession().getAttribute("numberResult") == null) {
+            req.getSession().setAttribute("numberResult", 10);
+        }
+        int numberResult = (int) req.getSession().getAttribute("numberResult");
+        try {
+            int tmpNumberResult = Integer.parseInt(req.getParameter("numberResult"));
+            if (tmpNumberResult == 10 || tmpNumberResult == 50 || tmpNumberResult == 100) {
+                req.getSession().setAttribute("numberResult", tmpNumberResult);
+                numberResult = tmpNumberResult;
+            }
+        } catch (NumberFormatException e) {
+            // nothing to do especially
+        }
+        return numberResult;
     }
 }
