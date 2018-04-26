@@ -8,10 +8,18 @@
 		<servlet-name>ServletMain</servlet-name>
 		<servlet-class>com.excilys.servlet.ServletMain</servlet-class>
 	</servlet>
-	<!-- <servlet-mapping>
-		<servlet-name>ServletMain</servlet-name>
-		<url-pattern>/dashboard</url-pattern>
-	</servlet-mapping> -->
+	<error-page>
+		<error-code>404</error-code>
+		<location>/static/views/404.html</location>
+	</error-page>
+	<error-page>
+        <error-code>500</error-code>
+        <location>/static/views/500.html</location>
+    </error-page>
+    <error-page>
+        <error-code>403</error-code>
+        <location>/static/views/403.html</location>
+    </error-page>
 	<welcome-file-list>
 		<welcome-file>dashboard</welcome-file>
 	</welcome-file-list>
