@@ -61,15 +61,28 @@ public class ServletMain extends HttpServlet {
      *             Exception généré par la servlet
      */
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        if (req.getSession().getAttribute("numberResult") == null) {
+            req.getSession().setAttribute("numberResult", 10);
+        }
+        int numberResult = (int) req.getSession().getAttribute("numberResult");
+        try {
+            int tmpNumberResult = Integer.parseInt(req.getParameter("numberResult"));
+            if (tmpNumberResult == 10 || tmpNumberResult == 50 || tmpNumberResult == 100) {
+                req.getSession().setAttribute("numberResult", tmpNumberResult);
+                numberResult = tmpNumberResult;
+            }
+        } catch (NumberFormatException e) {
+            // nothing to do especially
+        }
         int page = 1;
         try {
             page = Integer.parseInt(req.getParameter("page"));
         } catch (NumberFormatException e) {
             // Nothing to do especially
         }
-        Pages<Computer> pagesComputer = serviceCdb.findByPagesComputer(page);
-        List<ComputerDTO> computerDTOs = pagesComputer.getEntities().stream().map(c -> MapUtil.computerToComputerDTO(c))
-                .collect(Collectors.toList());
+        final Pages<Computer> pagesComputer = serviceCdb.findByPagesComputer(page, numberResult);
+        final List<ComputerDTO> computerDTOs = pagesComputer.getEntities().stream()
+                .map(c -> MapUtil.computerToComputerDTO(c)).collect(Collectors.toList());
         req.setAttribute("computers", computerDTOs);
         req.setAttribute("nbComputers", pagesComputer.getMaxComputers());
         req.setAttribute("limit", pagesComputer.getPageMax());
