@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -24,18 +26,37 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.excilys.exception.ComputerNeedIdToBeUpdateException;
 import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
+import com.mysql.cj.protocol.Resultset;
 
 @ExtendWith(MockitoExtension.class) // RunWith
 @TestInstance(Lifecycle.PER_CLASS)
 public class ComputerDaoTest {
 
+    @Mock
+    private Connection connection;
+
+    @Mock
+    private PreparedStatement ps;
+
+    @Mock
+    private Resultset rs;
+
+    @InjectMocks
+    private ComputerDao mockComputerDao;
+
     private ComputerDao computerDao;
+
+    private Computer computer;
 
     /**
      * SetUp la classe de test en initialisant la computerDao et en preparant la
@@ -49,8 +70,10 @@ public class ComputerDaoTest {
      */
     @BeforeAll
     public void setUp() throws SQLException, DaoNotInitializeException, FileNotFoundException {
+        MockitoAnnotations.initMocks(this);
         computerDao = (ComputerDao) DaoFactory.getInstance().getDao(DaoType.COMPUTER_DAO);
         RunScript.execute(computerDao.getConnection(), new FileReader("src/test/resources/test_db.sql"));
+        computer = new Computer.Builder("aa").id(12L).build();
     }
 
     /*
@@ -116,6 +139,56 @@ public class ComputerDaoTest {
     public void findComputerByPageNotPossibleTest() {
         assertEquals(1, computerDao.findPerPage(0).getPageCourante());
         assertEquals(1, computerDao.findPerPage(-1).getPageCourante());
+    }
+
+    /**
+     * Verifie que si l'on demande la page 0 avec 20 resultat, on obtient la page 1
+     * et 12 elements (nombre max d'element en BD).
+     */
+    @Test
+    @DisplayName("Should return the numbers of computers requested for the page (Page 1 and more than 10 elements are return)")
+    public void findPerPageWithNumberResultTest() {
+        assertTrue(computerDao.findPerPage(0, 20).getEntities().size() > 10);
+    }
+
+    /**
+     * Lorsque une SQLException intervient un optional vide doit etre retournée.
+     * @throws SQLException
+     *             SQLException
+     */
+    @Test
+    @DisplayName("Should return an empty optional for find method when SQLException occures")
+    public void findComputerWhenSQLExceptionIsCatched() throws SQLException {
+        scenariseConnectionAndPreparedStatement(false);
+        assertEquals(Optional.empty(), mockComputerDao.find(1L));
+        verifyConnectionAndPreparedStatement(false);
+    }
+
+    /**
+     * Lorsque une SQLException intervient une liste vide doit être retournée.
+     * @throws SQLException
+     *             SQLException
+     */
+    @Test
+    @DisplayName("Should return an empty collection for findAll method when SQLException occures")
+    public void findAllComputersWhenSQLExceptionIsCatched() throws SQLException {
+        scenariseConnectionAndPreparedStatement(false);
+        assertEquals(0, mockComputerDao.findAll().size());
+        verifyConnectionAndPreparedStatement(false);
+    }
+
+    /**
+     * Lorsque une SQLException intervient une page sans elements doit être
+     * retournée.
+     * @throws SQLException
+     *             SQLException
+     */
+    @Test
+    @DisplayName("Should return an empty page for findPerPage method when SQLException occures")
+    public void findPerPageComputerWhenSQLExceptionIsCatched() throws SQLException {
+        scenariseConnectionAndPreparedStatement(false);
+        assertSame(0, mockComputerDao.findPerPage(1).getEntities().size());
+        verifyConnectionAndPreparedStatement(false);
     }
 
     /*
@@ -184,8 +257,8 @@ public class ComputerDaoTest {
     public void updateComputerTransientTest() throws ComputerNeedIdToBeUpdateException {
         final Computer computer = new Computer.Builder(null).build();
         assertThrows(ComputerNeedIdToBeUpdateException.class, () -> computerDao.update(computer));
-        final Computer computer2 = new Computer.Builder("name").id(1111L).build();
-        assertNull(computerDao.update(computer2));
+        final Computer computer3 = new Computer.Builder("name").id(1111L).build();
+        assertNull(computerDao.update(computer3));
     }
 
     /**
@@ -206,6 +279,21 @@ public class ComputerDaoTest {
         assertEquals(LocalDate.parse("2015-02-02", DateTimeFormatter.ISO_LOCAL_DATE), updated.getDiscontinued());
     }
 
+    /**
+     * Test la mise a jour d'un computer quand une SQLException intervient.
+     * @throws SQLException
+     *             SQLException
+     * @throws ComputerNeedIdToBeUpdateException
+     *             Quand l'ID du computer n'est pas donnée
+     */
+    @Test
+    @DisplayName("Update should return null when a SQLException is thrown")
+    public void updateComputerWhenSQLExceptionIsCatched() throws SQLException, ComputerNeedIdToBeUpdateException {
+        scenariseConnectionAndPreparedStatement(true);
+        assertNull(mockComputerDao.update(computer));
+        verifyConnectionAndPreparedStatement(true);
+    }
+
     /*
      * Test de suppression
      */
@@ -218,5 +306,51 @@ public class ComputerDaoTest {
     public void suppresionComputerExisting() {
         assertFalse(computerDao.delete(111L));
         assertTrue(computerDao.delete(12L));
+    }
+
+    /**
+     * Test la supression d'un computer quand une SQLException intervient.
+     * @throws SQLException
+     *             SQLException
+     */
+    @Test
+    @DisplayName("Should return false when a SQLException is thrown")
+    public void deleteComputerWhenSQLExceptionIsCatched() throws SQLException {
+        scenariseConnectionAndPreparedStatement(true);
+        assertFalse(mockComputerDao.delete(1L));
+        verifyConnectionAndPreparedStatement(true);
+    }
+
+    /**
+     * @param update
+     *            false si c'est un find, true sinon
+     * @throws SQLException
+     *             When SQLException occures.
+     */
+    private void verifyConnectionAndPreparedStatement(final boolean update) throws SQLException {
+        Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt());
+        if (update) {
+            Mockito.verify(ps).executeUpdate();
+        } else {
+            Mockito.verify(ps).executeQuery();
+        }
+
+    }
+
+    /**
+     * @param update
+     *            false si c'est un find, true sinon
+     * @throws SQLException
+     *             When SQLException occures.
+     */
+    private void scenariseConnectionAndPreparedStatement(final boolean update) throws SQLException {
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
+                .thenReturn(ps);
+        if (update) {
+            Mockito.when(ps.executeUpdate()).thenThrow(SQLException.class);
+        } else {
+            Mockito.when(ps.executeQuery()).thenThrow(SQLException.class);
+        }
+
     }
 }

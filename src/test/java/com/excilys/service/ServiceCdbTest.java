@@ -152,6 +152,12 @@ public class ServiceCdbTest {
         Mockito.when(computerDao.findPerPage(3)).thenReturn(pagesDeux);
         assertEquals(pagesDeux, servicecdb.findByPagesComputer(3));
         Mockito.verify(computerDao).findPerPage(3);
+
+        pages = new Pages<>(0);
+        pages.getEntities().addAll(computers.subList(0, 2));
+        Mockito.when(computerDao.findPerPage(3, 2)).thenReturn(pages);
+        assertEquals(pages, servicecdb.findByPagesComputer(3, 2));
+        Mockito.verify(computerDao).findPerPage(0);
     }
 
     /**
@@ -312,8 +318,12 @@ public class ServiceCdbTest {
         assertEquals(computer, servicecdb.updateComputer(computer));
     }
 
+    /*
+     * Delete Computers
+     */
+
     /**
-     * Demaned a la DAO de supprimer un ordinateur qui n'existe pas.
+     * Demande a la DAO de supprimer un ordinateur qui n'existe pas.
      */
     @Test
     @DisplayName("Test delete a computer that not exist")
