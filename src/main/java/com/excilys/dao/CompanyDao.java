@@ -96,7 +96,8 @@ public class CompanyDao extends Dao<Company> {
     }
 
     @Override
-    public Pages<Company> findPerPage(int page) {
+    public Pages<Company> findPerPage(int... pageWithoutNumberResult) {
+        int page = pageWithoutNumberResult[0];
         if (page <= 1) {
             page = 1;
         }
@@ -105,7 +106,7 @@ public class CompanyDao extends Dao<Company> {
             pages.setPageMax(numberOfElement());
             try (PreparedStatement preparedStatement = this.getConnection().prepareStatement(FIND_COMPUTER_PAGE,
                     ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-                preparedStatement.setInt(1, Pages.getNumberPageResult());
+                preparedStatement.setInt(1, pages.getNumberPerPageResult());
                 preparedStatement.setInt(2, pages.startResult());
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     while (resultSet.next()) {

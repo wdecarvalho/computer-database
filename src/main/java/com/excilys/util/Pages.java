@@ -9,7 +9,7 @@ public class Pages<T> {
     private int pageCourante;
     private int pageMax;
     private int maxComputers;
-    private static final int NUMBER_PER_PAGE_RESULT = 20;
+    private int numberPerPageResult = 10;
 
     /**
      * Constructeur de Pages.
@@ -26,15 +26,7 @@ public class Pages<T> {
      * @return indice du premier indice
      */
     private int firstResult() {
-        return (this.pageCourante - 1) * NUMBER_PER_PAGE_RESULT;
-    }
-
-    /**
-     * Recupere le nombre de resultat par page.
-     * @return Nombre de resultat par page.
-     */
-    public static int getNumberPageResult() {
-        return NUMBER_PER_PAGE_RESULT;
+        return (this.pageCourante - 1) * numberPerPageResult;
     }
 
     /**
@@ -43,7 +35,7 @@ public class Pages<T> {
      */
     public int startResult() {
         if (pageCourante > pageMax) {
-            return (pageMax - 1) * NUMBER_PER_PAGE_RESULT;
+            return (pageMax - 1) * numberPerPageResult;
         } else {
             return firstResult();
         }
@@ -61,7 +53,7 @@ public class Pages<T> {
      */
     public void setPageMax(int maxComputers) {
         this.maxComputers = maxComputers;
-        this.pageMax = (int) Math.ceil((double) maxComputers / NUMBER_PER_PAGE_RESULT);
+        this.pageMax = (int) Math.ceil((double) maxComputers / numberPerPageResult);
     }
 
     /**
@@ -85,6 +77,14 @@ public class Pages<T> {
 
     public void setMaxComputers(int maxComputers) {
         this.maxComputers = maxComputers;
+    }
+
+    public int getNumberPerPageResult() {
+        return numberPerPageResult;
+    }
+
+    public void setNumberPerPageResult(int numberPerPageResult) {
+        this.numberPerPageResult = numberPerPageResult;
     }
 
 }

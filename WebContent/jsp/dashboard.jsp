@@ -22,7 +22,7 @@
 	</header>
 	<section id="main">
 		<div class="container">
-			<h1 id="homeTitle">${requestScope.nbComputers} Computers found</h1>
+			<h1 id="homeTitle">${requestScope.nbComputers} Computersfound</h1>
 			<div id="actions" class="form-horizontal">
 				<div class="pull-left">
 					<form id="searchForm" action="#" method="GET" class="form-inline">
@@ -91,11 +91,19 @@
 			<pagination:pagination limit="${requestScope.limit}"
 				pageCourante="${requestScope.pageCourante}" />
 
-
 			<div class="btn-group btn-group-sm pull-right" role="group">
-				<button type="button" class="btn btn-default">10</button>
-				<button type="button" class="btn btn-default">50</button>
-				<button type="button" class="btn btn-default">100</button>
+				<form id="sendNumberResult" action="dashboard" method="get">
+					<input hidden name="page" value="${requestScope.pageCourante}" />
+				</form>
+				<button form="sendNumberResult" type="submit" name="numberResult"
+					value="10"
+					class="<c:if test="${sessionScope.numberResult == 10}">active</c:if> btn btn-default">10</button>
+				<button form="sendNumberResult" type="submit" name="numberResult"
+					value="50"
+					class="<c:if test="${sessionScope.numberResult == 50}">active</c:if> btn btn-default">50</button>
+				<button form="sendNumberResult" type="submit" name="numberResult"
+					value="100"
+					class="<c:if test="${sessionScope.numberResult == 100}">active</c:if> btn btn-default">100</button>
 			</div>
 		</div>
 	</footer>

@@ -220,16 +220,20 @@ public class ComputerDao extends Dao<Computer> {
     }
 
     @Override
-    public Pages<Computer> findPerPage(int page) {
+    public Pages<Computer> findPerPage(int... pageAndNumberResult) {
+        int page = pageAndNumberResult[0];
         if (page <= 1) {
             page = 1;
         }
         Pages<Computer> pages = new Pages<Computer>(page);
+        if (pageAndNumberResult.length > 1) {
+            pages.setNumberPerPageResult(pageAndNumberResult[1]);
+        }
         try {
             pages.setPageMax(numberOfElement());
             try (PreparedStatement preparedStatement = this.getConnection().prepareStatement(FIND_COMPUTER_PAGE,
                     ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-                preparedStatement.setInt(1, Pages.getNumberPageResult());
+                preparedStatement.setInt(1, pages.getNumberPerPageResult());
                 preparedStatement.setInt(2, pages.startResult());
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     while (resultSet.next()) {

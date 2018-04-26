@@ -34,11 +34,11 @@ public abstract class Dao<T> {
 
     /**
      * Creer une page de resultat pour l'objet passé en parametre.
-     * @param page
-     *            Page courante
+     * @param pageAndNumberResult
+     *            Page courante et nombre de resultat si besoin
      * @return Page de résultat
      */
-    public abstract Pages<T> findPerPage(int page);
+    public abstract Pages<T> findPerPage(int... pageAndNumberResult);
 
     public Connection getConnection() {
         return connection;
