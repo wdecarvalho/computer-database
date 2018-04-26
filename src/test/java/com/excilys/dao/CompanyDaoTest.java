@@ -1,13 +1,17 @@
 package com.excilys.dao;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import org.h2.tools.RunScript;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,14 +20,30 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.model.Company;
+import com.mysql.cj.protocol.Resultset;
 
 @ExtendWith(MockitoExtension.class) // RunWith
 @TestInstance(Lifecycle.PER_CLASS)
 public class CompanyDaoTest {
+
+    @Mock
+    private Connection connection;
+
+    @Mock
+    private PreparedStatement ps;
+
+    @Mock
+    private Resultset rs;
+
+    @InjectMocks
+    private CompanyDao mockCompanyDao;
 
     private CompanyDao companyDao;
 
@@ -104,6 +124,79 @@ public class CompanyDaoTest {
     public void findComputerByPageNotPossibleTest() {
         assertEquals(1, companyDao.findPerPage(0).getPageCourante());
         assertEquals(1, companyDao.findPerPage(-1).getPageCourante());
+    }
+
+    /**
+     * Lorsque une SQLException intervient un optional vide doit etre retournée.
+     * @throws SQLException
+     *             SQLException
+     */
+    @Test
+    @DisplayName("Should return an empty optional for find method when SQLException occures")
+    public void findComputerWhenSQLExceptionIsCatched() throws SQLException {
+        scenariseConnectionAndPreparedStatement(false);
+        assertEquals(Optional.empty(), mockCompanyDao.find(1L));
+        verifyConnectionAndPreparedStatement(false);
+    }
+
+    /**
+     * Lorsque une SQLException intervient une liste vide doit être retournée.
+     * @throws SQLException
+     *             SQLException
+     */
+    @Test
+    @DisplayName("Should return an empty collection for findAll method when SQLException occures")
+    public void findAllComputersWhenSQLExceptionIsCatched() throws SQLException {
+        scenariseConnectionAndPreparedStatement(false);
+        assertEquals(0, mockCompanyDao.findAll().size());
+        verifyConnectionAndPreparedStatement(false);
+    }
+
+    /**
+     * Lorsque une SQLException intervient une page sans elements doit être
+     * retournée.
+     * @throws SQLException
+     *             SQLException
+     */
+    @Test
+    @DisplayName("Should return an empty page for findPerPage method when SQLException occures")
+    public void findPerPageComputerWhenSQLExceptionIsCatched() throws SQLException {
+        scenariseConnectionAndPreparedStatement(false);
+        assertSame(0, mockCompanyDao.findPerPage(1).getEntities().size());
+        verifyConnectionAndPreparedStatement(false);
+    }
+
+    /**
+     * @param update
+     *            false si c'est un find, true sinon
+     * @throws SQLException
+     *             When SQLException occures.
+     */
+    private void verifyConnectionAndPreparedStatement(final boolean update) throws SQLException {
+        Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt());
+        if (update) {
+            Mockito.verify(ps).executeUpdate();
+        } else {
+            Mockito.verify(ps).executeQuery();
+        }
+
+    }
+
+    /**
+     * @param update
+     *            false si c'est un find, true sinon
+     * @throws SQLException
+     *             When SQLException occures.
+     */
+    private void scenariseConnectionAndPreparedStatement(final boolean update) throws SQLException {
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
+                .thenReturn(ps);
+        if (update) {
+            Mockito.when(ps.executeUpdate()).thenThrow(SQLException.class);
+        } else {
+            Mockito.when(ps.executeQuery()).thenThrow(SQLException.class);
+        }
+
     }
 
 }
