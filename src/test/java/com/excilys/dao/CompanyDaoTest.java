@@ -82,7 +82,7 @@ public class CompanyDaoTest {
     @Test
     @DisplayName("Test find to get all companys")
     public void findAllcomputerTest() {
-        assertTrue(companyDao.findAll().size() == 9);
+        assertTrue(companyDao.findAll().size() == 42);
     }
 
     /**
@@ -93,7 +93,7 @@ public class CompanyDaoTest {
     @DisplayName("Test find companys by page")
     public void findcomputerByPageTest() {
         assertEquals(1, companyDao.findPerPage(1).getPageCourante());
-        assertEquals(1, companyDao.findPerPage(2).getPageCourante());
+        assertEquals(2, companyDao.findPerPage(2).getPageCourante());
     }
 
     /**
