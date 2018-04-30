@@ -71,4 +71,10 @@ public class ComputerDTO {
         this.companyName = companyName;
     }
 
+    @Override
+    public String toString() {
+        return "ComputerDTO [id=" + id + ", name=" + name + ", introDate=" + introDate + ", disconDate=" + disconDate
+                + ", companyName=" + companyName + "]";
+    }
+
 }

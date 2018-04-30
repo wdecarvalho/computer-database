@@ -2,7 +2,6 @@ package com.excilys.servlet;
 
 import java.io.IOException;
 import java.time.LocalDate;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -12,8 +11,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.excilys.exception.CompanyNotFoundException;
 import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.DaoNotInitializeException;
+import com.excilys.exception.LocalDateExpectedException;
+import com.excilys.mapper.MapUtil;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
 import com.excilys.service.ServiceCdb;
@@ -72,31 +74,50 @@ public class ServletComputer extends HttpServlet {
                 req.setAttribute("companys", serviceCdb.getListCompanies());
                 req.getRequestDispatcher("jsp/addComputer.jsp").forward(req, res);
             } else if (req.getParameter("action").equals("add")) {
-                String computerName = req.getParameter("computerName");
-                String dateIntro = req.getParameter("introduced");
-                String dateDiscon = req.getParameter("discontinued");
-                LocalDate introduced = dateIntro.isEmpty() ? null : LocalDate.parse(dateIntro);
-                LocalDate discontinued = dateDiscon.isEmpty() ? null : LocalDate.parse(dateDiscon);
-                Long company = Long.valueOf(req.getParameter("companyId"));
+                final StringBuilder errors = new StringBuilder("<ul>");
+                final String computerName = req.getParameter("computerName");
+                final String dateIntro = req.getParameter("introduced");
+                final String dateDiscon = req.getParameter("discontinued");
+                LocalDate introduced = null;
+                LocalDate discontinued = null;
+                try {
+                    introduced = dateIntro.isEmpty() ? null : MapUtil.parseStringToLocalDate(dateIntro);
+                } catch (LocalDateExpectedException e) {
+                    errors.append("<li>");
+                    errors.append(e.getMessage());
+                }
+                try {
+                    discontinued = dateDiscon.isEmpty() ? null : MapUtil.parseStringToLocalDate(dateDiscon);
+                } catch (LocalDateExpectedException e) {
+                    errors.append("<li>");
+                    errors.append(e.getMessage());
+                    errors.append("</li>");
+                }
+                if (!errors.toString().equals("<ul>")) {
+                    errors.append("</ul>");
+                    sendErrorMessagetoUser(req, res, errors.toString());
+                    return;
+                }
+                Long companyId = Long.valueOf(req.getParameter("companyId")); //final
+                Company company = null;
+                if (companyId != 0L) {
+                    company = new Company.Builder(companyId).build();
+                }
                 Computer computer = new Computer.Builder(computerName).introduced(introduced).discontinued(discontinued)
-                        .company(new Company.Builder(company).build()).build();
+                        .company(company).build();
                 try {
                     if (serviceCdb.createComputer(computer) == -1L) {
-                        req.setAttribute("messageUser", "Une erreur a empeché la création de l'ordinateur");
-                        req.setAttribute("typeMessage", ERROR);
-                        req.setAttribute("action", "editForm");
-                        req.getRequestDispatcher("jsp/computer.jsp").forward(req, res);
+                        sendErrorMessagetoUser(req, res, "Une erreur a empeché la création de l'ordinateur");
                     } else {
                         req.setAttribute("messageUser", "L'ordinateur a été correctement sauvegardé");
                         req.setAttribute("typeMessage", SUCCESS);
+                        req.getRequestDispatcher("/dashboard").forward(req, res);
                     }
 
                 } catch (ComputerNameNotPresentException e) {
-                    req.setAttribute("messageUser", e.getMessage());
-                    req.setAttribute("typeMessage", ERROR);
-                    req.setAttribute("action", "editForm");
-                    req.setAttribute("companys", serviceCdb.getListCompanies());
-                    req.getRequestDispatcher("jsp/addComputer.jsp").forward(req, res);
+                    sendErrorMessagetoUser(req, res, e.getMessage());
+                } catch (CompanyNotFoundException e) {
+                    sendErrorMessagetoUser(req, res, e.getMessage());
                 }
             } else {
                 req.getRequestDispatcher("static/views/404.html").forward(req, res);
@@ -104,6 +125,27 @@ public class ServletComputer extends HttpServlet {
         } else {
             req.getRequestDispatcher("static/views/404.html").forward(req, res);
         }
+    }
+
+    /**
+     * @param req
+     *            Requete
+     * @param res
+     *            Reponse
+     * @param errors
+     *            Erreurs a afficher
+     * @throws ServletException
+     *             Exception liée a la servlet
+     * @throws IOException
+     *             IOExceptio
+     */
+    private void sendErrorMessagetoUser(HttpServletRequest req, HttpServletResponse res, final String errors)
+            throws ServletException, IOException {
+        req.setAttribute("messageUser", errors);
+        req.setAttribute("typeMessage", ERROR);
+        req.setAttribute("action", "editForm");
+        req.setAttribute("companys", serviceCdb.getListCompanies());
+        req.getRequestDispatcher("jsp/addComputer.jsp").forward(req, res);
     }
 
 }

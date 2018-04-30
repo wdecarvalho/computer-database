@@ -29,6 +29,7 @@ import org.mockito.quality.Strictness;
 
 import com.excilys.dao.CompanyDao;
 import com.excilys.dao.ComputerDao;
+import com.excilys.exception.CompanyNotFoundException;
 import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.ComputerNeedIdToBeUpdateException;
 import com.excilys.exception.ComputerNotFoundException;
@@ -195,10 +196,11 @@ public class ServiceCdbTest {
      * Demande a la DAO de crée un computer apres verification de sa validité.
      * @throws ComputerNameNotPresentException
      *             Si le nom du computer n'est pas présent
+     * @throws CompanyNotFoundException La companie n'existe pas
      */
     @Test
     @DisplayName("Test to create a valid computer")
-    public void createValidComputerTest() throws ComputerNameNotPresentException {
+    public void createValidComputerTest() throws ComputerNameNotPresentException, CompanyNotFoundException {
         Mockito.when(computerDao.create(computer)).thenReturn(1L);
         assertSame(1L, servicecdb.createComputer(computer));
         final Computer computer = new Computer.Builder("e").introduced(LocalDate.parse("2014-12-30"))
@@ -218,7 +220,6 @@ public class ServiceCdbTest {
         assertThrows(ComputerNameNotPresentException.class, () -> servicecdb.createComputer(computer));
         computer.setName("");
         assertThrows(ComputerNameNotPresentException.class, () -> servicecdb.createComputer(computer));
-
     }
 
     /**
@@ -226,10 +227,11 @@ public class ServiceCdbTest {
      * introduced.
      * @throws ComputerNameNotPresentException
      *             Si le nom du computer n'est pas renseignée
+     * @throws CompanyNotFoundException La company n'existe pas
      */
     @Test
     @DisplayName("Test dateIntroduced <= dateDiscontinued is false => Don't create computer ")
-    public void createComputerWithInvalideDateTest() throws ComputerNameNotPresentException {
+    public void createComputerWithInvalideDateTest() throws ComputerNameNotPresentException, CompanyNotFoundException {
         final Computer computer = new Computer.Builder("a").introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2015-12-30")).build();
         assertSame(-1L, servicecdb.createComputer(computer));

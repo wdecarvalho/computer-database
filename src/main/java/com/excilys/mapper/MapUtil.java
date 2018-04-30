@@ -2,8 +2,11 @@ package com.excilys.mapper;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 import com.excilys.dto.ComputerDTO;
+import com.excilys.exception.LocalDateExpectedException;
 import com.excilys.model.Computer;
 
 public abstract class MapUtil {
@@ -34,9 +37,28 @@ public abstract class MapUtil {
         }
         return null;
     }
+
+    /**
+     * Converti une String en LocalDate.
+     * @param date
+     *            Date sous forme de String
+     * @return LocalDate
+     * @throws LocalDateExpectedException
+     *             Si la string n'etait pas une date valide.
+     */
+    public static LocalDate parseStringToLocalDate(final String date) throws LocalDateExpectedException {
+        try {
+            return LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
+        } catch (DateTimeParseException e) {
+            throw new LocalDateExpectedException(date);
+        }
+
+    }
+
     /**
      * Creer un DTO a partir d'une entité.
-     * @param computer Computer a transformé.
+     * @param computer
+     *            Computer a transformé.
      * @return ComputerDTO
      */
     public static ComputerDTO computerToComputerDTO(Computer computer) {
