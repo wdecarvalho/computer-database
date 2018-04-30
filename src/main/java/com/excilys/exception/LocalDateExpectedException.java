@@ -2,7 +2,7 @@ package com.excilys.exception;
 
 public class LocalDateExpectedException extends Exception {
 
-    private static final String MESSAGE = "La date %s ne reste pas le format JJ-MM-AAAA";
+    private static final String MESSAGE = "La date %s ne respecte pas le format JJ-MM-AAAA";
 
     /**
      * Contructeur de l'exception.
