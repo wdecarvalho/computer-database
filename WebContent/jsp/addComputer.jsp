@@ -11,6 +11,7 @@
 	media="screen">
 <link href="static/css/font-awesome.css" rel="stylesheet" media="screen">
 <link href="static/css/main.css" rel="stylesheet" media="screen">
+<script src="static/js/jquery.min.js" type="text/javascript"></script>
 </head>
 <c:if test="${messageUser!=null}">
 	<div class="container">
@@ -21,8 +22,8 @@
 <body>
 	<header class="navbar navbar-inverse navbar-fixed-top">
 		<div class="container">
-			<a class="navbar-brand" href="dashboard"> Application -
-				Computer Database </a>
+			<a class="navbar-brand" href="dashboard"> Application - Computer
+				Database </a>
 		</div>
 	</header>
 	<section id="main">
@@ -30,12 +31,14 @@
 			<div class="row">
 				<div class="col-xs-8 col-xs-offset-2 box">
 					<h1>Add Computer</h1>
-					<form action="computer" method="POST">
+					<form id="addAComputer" action="computer" method="POST">
 						<fieldset>
-							<div class="form-group">
-								<label for="computerName">Computer name</label> <input
-									type="text" class="form-control" name="computerName"
+							<div id="divComputerName" class="form-group">
+								<label class="control-label" for="computerName">Computer
+									name</label> <input required type="text" class="form-control"
+									id="computerName" name="computerName"
 									placeholder="Computer name">
+									<span id='nomObligatoire' class='help-block hidden'>Le nom est obligatoire</span>
 							</div>
 							<div class="form-group">
 								<label for="introduced">Introduced date</label> <input
@@ -48,8 +51,8 @@
 									placeholder="Discontinued date">
 							</div>
 							<div class="form-group">
-								<label for="companyId">Company</label>
-								<select class="form-control" name="companyId">
+								<label for="companyId">Company</label> <select
+									class="form-control" name="companyId">
 									<option value="0"></option>
 									<c:forEach items="${requestScope['companys']}" var="company">
 										<option value="${company.id}">${company.name}</option>
@@ -68,4 +71,30 @@
 		</div>
 	</section>
 </body>
+<script type="text/javascript">
+	$(document).ready(function() {
+		$("#addAComputer").submit(function(e) {
+			if($("#computerName").val() == ""){
+				e.preventDefault();
+				$("#divComputerName").removeClass("has-success")
+                $("#divComputerName").addClass("has-error")
+                $("#nomObligatoire").removeClass("hidden")
+			}
+		});
+		
+		$("#computerName").focusout(function() {
+			if ($(this).val() == "") {
+				$("#divComputerName").removeClass("has-success")
+				$("#nomObligatoire").removeClass("hidden")
+				$("#divComputerName").addClass("has-error")
+			} else {
+				$("#divComputerName").removeClass("has-error")
+               $("#nomObligatoire").addClass("hidden")
+				$("#divComputerName").addClass("has-success")
+			}
+		}
+
+		)
+	});
+</script>
 </html>
