@@ -202,6 +202,7 @@ public class ServiceCdbTest {
     @DisplayName("Test to create a valid computer")
     public void createValidComputerTest() throws ComputerNameNotPresentException, CompanyNotFoundException {
         Mockito.when(computerDao.create(computer)).thenReturn(1L);
+        Mockito.when(companyDao.find(1L)).thenReturn(Optional.of(company));
         assertSame(1L, servicecdb.createComputer(computer));
         final Computer computer = new Computer.Builder("e").introduced(LocalDate.parse("2014-12-30"))
                 .discontinued(LocalDate.parse("2015-01-01")).build();
