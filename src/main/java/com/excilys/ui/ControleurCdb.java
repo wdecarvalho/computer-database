@@ -8,6 +8,7 @@ import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.excilys.exception.CompanyNotFoundException;
 import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.ComputerNeedIdToBeUpdateException;
 import com.excilys.exception.ComputerNotFoundException;
@@ -663,7 +664,8 @@ public class ControleurCdb {
 
     /**
      * Permet de renseignées les informations d'un ordinateur.
-     * @param computer Ancien computer ou null si nouveau
+     * @param computer
+     *            Ancien computer ou null si nouveau
      * @return Computer computer crée
      */
     private Computer creationComputer(final Computer computer) {
@@ -746,7 +748,8 @@ public class ControleurCdb {
 
     /**
      * Formulaire de remplissage des données d'une companie.
-     * @param companyCurrent Companie courante
+     * @param companyCurrent
+     *            Companie courante
      * @return Null ou Company
      */
     private Company askforAddCompanieToComputer(Company companyCurrent) {
@@ -784,7 +787,8 @@ public class ControleurCdb {
 
     /**
      * Demande à la DAO d'ajouter un computer à la base de donnée.
-     * @param computer computer a inserer
+     * @param computer
+     *            computer a inserer
      * @throws ComputerNameNotPresentException
      */
     private void insertComputer(final Computer computer) {
@@ -793,6 +797,8 @@ public class ControleurCdb {
                 System.out.println(COMPUTER_NOT_SAVE);
             }
         } catch (ComputerNameNotPresentException e) {
+            LOGGER.info(e.getMessage());
+        } catch (CompanyNotFoundException e) {
             LOGGER.info(e.getMessage());
         }
     }
@@ -839,7 +845,8 @@ public class ControleurCdb {
 
     /**
      * Affichage de la liste des computers.
-     * @param page : Numero de page a afficher
+     * @param page
+     *            : Numero de page a afficher
      */
     private void printListComputersByPage(int page) {
         final Pages<Computer> pages = serviceCdb.findByPagesComputer(page);
@@ -876,7 +883,8 @@ public class ControleurCdb {
 
     /**
      * Affichage de la liste des companies.
-     * @param page Numero de page a afficher
+     * @param page
+     *            Numero de page a afficher
      */
     private void printListCompaniesByPage(int page) {
         final Pages<Company> pages = serviceCdb.findByPagesCompany(page);

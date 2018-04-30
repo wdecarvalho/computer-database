@@ -20,7 +20,7 @@ import com.excilys.model.Computer;
 import com.excilys.service.ServiceCdb;
 import com.excilys.util.Pages;
 
-@WebServlet("/dashboard")
+@WebServlet(name = "dashboard", urlPatterns = { "/dashboard" })
 public class ServletMain extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(Logger.class);
@@ -45,8 +45,13 @@ public class ServletMain extends HttpServlet {
      *            Requete
      * @param res
      *            Response
+     * @throws IOException
+     *             Si un problem en entrée ou en sortie apparait
+     * @throws ServletException
+     *             Exception généré par la servlet
      */
-    public void doPost(HttpServletRequest req, HttpServletResponse res) {
+    public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        doGet(req, res);
     }
 
     /**

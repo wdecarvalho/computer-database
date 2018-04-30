@@ -10,6 +10,7 @@ import com.excilys.dao.CompanyDao;
 import com.excilys.dao.ComputerDao;
 import com.excilys.dao.DaoFactory;
 import com.excilys.dao.DaoType;
+import com.excilys.exception.CompanyNotFoundException;
 import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.ComputerNeedIdToBeUpdateException;
 import com.excilys.exception.ComputerNotFoundException;
@@ -96,8 +97,13 @@ public class ServiceCdb {
      * @return True si réussi
      * @throws ComputerNameNotPresentException
      *             Si le nom de l'ordinateur n'est pas présent
+     * @throws CompanyNotFoundException
+     *             La companie n'existe pas
      */
-    public Long createComputer(final Computer c) throws ComputerNameNotPresentException {
+    public Long createComputer(final Computer c) throws ComputerNameNotPresentException, CompanyNotFoundException {
+        if (c.getCompany() != null && !isExistCompany(c.getCompany().getId())) {
+            throw new CompanyNotFoundException(c.getCompany().getId().toString());
+        }
         if (c.getName() == null || c.getName().isEmpty()) {
             throw new ComputerNameNotPresentException();
         }

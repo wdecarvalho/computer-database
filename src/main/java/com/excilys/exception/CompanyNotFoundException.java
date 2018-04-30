@@ -3,7 +3,7 @@ package com.excilys.exception;
 public class CompanyNotFoundException extends Exception {
 
     private static final long serialVersionUID = 1L;
-    private static final String MESSAGE = "This computer not exist : ";
+    private static final String MESSAGE = "This company not exist : ";
 
     /**
      * Creer une CompanyNotFoundException.

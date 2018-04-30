@@ -4,6 +4,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="pagination" uri="/WEB-INF/taglibs/custom.tld"%>
+<%@ taglib prefix="infouser" uri="/WEB-INF/taglibs/tagInfoUser.tld"%>
 <title>Computer Database</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="utf-8">
@@ -13,6 +14,12 @@
 <link href="static/css/font-awesome.css" rel="stylesheet" media="screen">
 <link href="static/css/main.css" rel="stylesheet" media="screen">
 </head>
+<c:if test="${messageUser!=null}">
+	<div class="container">
+		<infouser:infouser typeAlerte="${typeMessage}"
+			message="${messageUser}" />
+	</div>
+</c:if>
 <body>
 	<header class="navbar navbar-inverse navbar-fixed-top">
 		<div class="container">
