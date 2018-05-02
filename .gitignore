@@ -13,6 +13,8 @@ local.properties
 .recommenders
 test-output/*
 
+test-output/*
+
 # External tool builders
 .externalToolBuilders/
 
