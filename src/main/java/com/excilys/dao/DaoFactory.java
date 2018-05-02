@@ -1,13 +1,17 @@
 package com.excilys.dao;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.h2.tools.RunScript;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,15 +100,18 @@ public class DaoFactory {
     private static Connection initConnexion() throws SQLException {
         final Properties aProperties = new Properties();
         final InputStream path = ClassLoader.getSystemClassLoader().getResourceAsStream("app.properties");
+        String driver = null;
         try {
             aProperties.load(path);
+            driver = aProperties.getProperty("driver");
         } catch (FileNotFoundException e) {
             LOGGER.error(e.getMessage());
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
         }
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName(aProperties.getProperty("driver"));
+
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -112,6 +119,20 @@ public class DaoFactory {
         LOGGER.info("Base de donnée utilisée : " + aProperties.getProperty("url"));
         connection = DriverManager.getConnection(aProperties.getProperty("url"), aProperties.getProperty("user"),
                 aProperties.getProperty("password"));
+        if (driver.equals("org.h2.Driver")) {
+            try {
+                FileReader fReader = new FileReader(
+                        new File(ClassLoader.getSystemClassLoader().getResource("test_db.sql").toURI()));
+                RunScript.execute(connection, new FileReader(
+                        new File(ClassLoader.getSystemClassLoader().getResource("test_db.sql").toURI())));
+            } catch (FileNotFoundException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (URISyntaxException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+        }
         return connection;
     }
 

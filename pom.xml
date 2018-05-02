@@ -7,9 +7,20 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>ComputerDatabase</name>
 
-	<properties> 
+	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<slf4J.version>1.7.25</slf4J.version>
+		<logback.version>1.0.9</logback.version>
+		<junit.platform.version>1.2.0-M1</junit.platform.version>
+		<junit.version>5.2.0-M1</junit.version>
+		<mockito.version>2.18.3</mockito.version>
+		<h2.version>1.4.196</h2.version>
+		<mysql.version>8.0.11</mysql.version>
+		<servlet.version>4.0.0</servlet.version>
+		<jstl.version>1.2</jstl.version>
+		<selenium.version>3.4.0</selenium.version>
+		<testng.version>6.8</testng.version>
 	</properties>
 
 	<dependencies>
@@ -18,88 +29,180 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.7.25</version>
+			<version>${slf4J.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.0.9</version>
+			<version>${logback.version}</version>
 		</dependency>
 
 		<!-- TEST -->
 		<dependency>
 			<groupId>org.junit.platform</groupId>
 			<artifactId>junit-platform-launcher</artifactId>
-			<version>1.2.0-M1</version>
+			<version>${junit.platform.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.2.0-M1</version>
+			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-junit-jupiter</artifactId>
-			<version>2.18.3</version>
+			<version>${mockito.version}</version>
 		</dependency>
 
 		<!-- Database -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.4.196</version>
-			<scope>test</scope>
+			<version>${h2.version}</version>
+			<!-- <scope>test</scope> -->
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.11</version>
+			<version>${mysql.version}</version>
 		</dependency>
-		<!-- <dependency> <groupId>javax.servlet</groupId> <artifactId>servlet-api</artifactId> 
-			<version>2.5</version> <scope>provided</scope> </dependency> -->
+
+		<!-- Servlet -->
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
-			<version>4.0.0</version>
+			<version>${servlet.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet.jsp.jstl</groupId>
 			<artifactId>jstl-api</artifactId>
-			<version>1.2</version>
+			<version>${jstl.version}</version>
+		</dependency>
+
+		<!-- Selenium -->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>${selenium.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-server</artifactId>
+			<version>${selenium.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-firefox-driver</artifactId>
+			<version>${selenium.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>${testng.version}</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
 	<build>
 		<plugins>
+			<!-- JUnit -->
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.19.1</version>
+				<version>2.21.0</version>
 				<executions>
 					<execution>
 						<id>test</id>
 						<phase>test</phase>
+						<configuration>
+							<includes>
+								<include>**/*Test.java</include>
+							</includes>
+							<excludedGroups>
+								com.excilys.selenium
+							</excludedGroups>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<includes>
-						<include>**/*Test.java</include>
-					</includes>
-				</configuration>
 				<dependencies>
 					<dependency>
 						<groupId>org.junit.platform</groupId>
 						<artifactId>junit-platform-surefire-provider</artifactId>
-						<version>1.0.1</version>
+						<version>1.2.0</version>
 					</dependency>
 				</dependencies>
 			</plugin>
+
+			<!-- Selenium -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.21.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+						<configuration>
+							<includes>
+								<include>**/selenium/*.java</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.surefire</groupId>
+						<artifactId>surefire-testng</artifactId>
+						<version>2.21.0</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+
+			<!-- Run tomcat before Selenium -->
+			<!-- <plugin> <groupId>org.apache.tomcat.maven</groupId> <artifactId>tomcat7-maven-plugin</artifactId> 
+				<version>2.2</version> <executions> <execution> <goals> <goal>run</goal> 
+				</goals> <phase>pre-integration-test</phase> <configuration> <fork>true</fork> 
+				</configuration> </execution> <execution> <id>tomcat7-shutdown</id> <goals> 
+				<goal>shutdown</goal> </goals> <phase>post-integration-test</phase> </execution> 
+				</executions> <configuration> <port>8081</port> <additionalClasspathDirs> 
+				<additionalClasspathDir>/src/test/resources</additionalClasspathDir> </additionalClasspathDirs> 
+				<additionalConfigFilesDir>src/test/resources/</additionalConfigFilesDir> 
+				</configuration> </plugin> -->
+
+			<!-- Selenium plugin -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>selenium-maven-plugin</artifactId>
+				<version>1.0.1</version>
+				<configuration>
+					<background>true</background>
+					<startURL>http://localhost:${tomcat.servlet.port}/${project.artifactId}/dashboard</startURL>
+				</configuration>
+				<executions>
+					<execution>
+						<id>start-selenium-server</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>start-server</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>stop-selenium-server</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop-server</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>
-
-<!-- <reporting> <plugins> <plugin> <groupId>org.apache.maven.plugins</groupId> 
-	<artifactId>maven-checkstyle-plugin</artifactId> <version>3.0.0</version> 
-	<configuration> <configLocation> src/main/config/checkstyle.xml </configLocation> 
-	</configuration> </plugin> </plugins> </reporting> -->
