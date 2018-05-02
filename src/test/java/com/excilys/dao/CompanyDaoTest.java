@@ -6,14 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import org.h2.tools.RunScript;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,7 +58,6 @@ public class CompanyDaoTest {
     @BeforeAll
     public void setUp() throws SQLException, DaoNotInitializeException, FileNotFoundException {
         companyDao = (CompanyDao) DaoFactory.getInstance().getDao(DaoType.COMPANY_DAO);
-        RunScript.execute(companyDao.getConnection(), new FileReader("src/test/resources/test_db.sql"));
     }
 
     /*

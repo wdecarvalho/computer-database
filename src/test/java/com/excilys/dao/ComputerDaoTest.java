@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -19,7 +18,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import org.h2.tools.RunScript;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,7 +70,6 @@ public class ComputerDaoTest {
     public void setUp() throws SQLException, DaoNotInitializeException, FileNotFoundException {
         MockitoAnnotations.initMocks(this);
         computerDao = (ComputerDao) DaoFactory.getInstance().getDao(DaoType.COMPUTER_DAO);
-        RunScript.execute(computerDao.getConnection(), new FileReader("src/test/resources/test_db.sql"));
         computer = new Computer.Builder("aa").id(12L).build();
     }
 
