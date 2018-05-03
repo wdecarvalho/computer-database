@@ -2,7 +2,6 @@ package com.excilys.selenium;
 
 import org.testng.annotations.Test;
 
-import com.excilys.dao.CompanyDao;
 import com.excilys.exception.DaoNotInitializeException;
 
 import org.testng.annotations.BeforeClass;
@@ -25,8 +24,6 @@ public class SeleniumTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(SeleniumTest.class);
 
     private WebDriver driver;
-
-    private CompanyDao companyDao;
 
     /**
      * @throws DaoNotInitializeException
@@ -53,7 +50,6 @@ public class SeleniumTest {
      */
     @Test
     public void verifySearchButton() {
-        LOGGER.error("Je passe ICICICICICI");
         driver.get("http://localhost:8080/william.cdb/dashboard");
         WebElement text = driver.findElement(By.id("addComputer"));
         assertTrue(text.getText().equals("Add Computer"));

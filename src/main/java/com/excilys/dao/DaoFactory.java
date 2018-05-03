@@ -113,8 +113,7 @@ public class DaoFactory {
             Class.forName(aProperties.getProperty("driver"));
 
         } catch (ClassNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
         LOGGER.info("Base de donnée utilisée : " + aProperties.getProperty("url"));
         connection = DriverManager.getConnection(aProperties.getProperty("url"), aProperties.getProperty("user"),
@@ -126,11 +125,9 @@ public class DaoFactory {
                 RunScript.execute(connection, new FileReader(
                         new File(ClassLoader.getSystemClassLoader().getResource("test_db.sql").toURI())));
             } catch (FileNotFoundException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
+                LOGGER.error(e1.getMessage());
             } catch (URISyntaxException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
+                LOGGER.error(e1.getMessage());
             }
         }
         return connection;
