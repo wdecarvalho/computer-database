@@ -11,7 +11,6 @@
 	media="screen">
 <link href="static/css/font-awesome.css" rel="stylesheet" media="screen">
 <link href="static/css/main.css" rel="stylesheet" media="screen">
-<script src="static/js/jquery.min.js" type="text/javascript"></script>
 </head>
 <c:if test="${messageUser!=null}">
 	<div class="container">
@@ -71,6 +70,7 @@
 		</div>
 	</section>
 </body>
+<script src="static/js/jquery.min.js" type="text/javascript"></script>
 <script type="text/javascript">
 	$(document).ready(function() {
 		$("#addAComputer").submit(function(e) {
@@ -81,7 +81,7 @@
                 $("#nomObligatoire").removeClass("hidden")
 			}
 		});
-		
+
 		$("#computerName").focusout(function() {
 			if ($(this).val() == "") {
 				$("#divComputerName").removeClass("has-success")

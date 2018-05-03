@@ -35,7 +35,7 @@ import com.excilys.model.Company;
 import com.excilys.model.Computer;
 import com.mysql.cj.protocol.Resultset;
 
-@ExtendWith(MockitoExtension.class) // RunWith
+@ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
 public class ComputerDaoTest {
 

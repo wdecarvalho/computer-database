@@ -111,7 +111,6 @@ public class DaoFactory {
         }
         try {
             Class.forName(aProperties.getProperty("driver"));
-
         } catch (ClassNotFoundException e) {
             LOGGER.error(e.getMessage());
         }
@@ -120,8 +119,6 @@ public class DaoFactory {
                 aProperties.getProperty("password"));
         if ("org.h2.Driver".equals(driver)) {
             try {
-                FileReader fReader = new FileReader(
-                        new File(ClassLoader.getSystemClassLoader().getResource("test_db.sql").toURI()));
                 RunScript.execute(connection, new FileReader(
                         new File(ClassLoader.getSystemClassLoader().getResource("test_db.sql").toURI())));
             } catch (FileNotFoundException e1) {

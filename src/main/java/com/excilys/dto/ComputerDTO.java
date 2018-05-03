@@ -14,6 +14,8 @@ public class ComputerDTO {
 
     private LocalDate disconDate;
 
+    private Long companyID;
+
     private String companyName;
 
     /**
@@ -28,6 +30,7 @@ public class ComputerDTO {
             this.introDate = c.getIntroduced();
             this.disconDate = c.getDiscontinued();
             this.companyName = c.getCompany() == null ? null : c.getCompany().getName();
+            this.companyID = c.getCompany() == null ? null : c.getCompany().getId();
         }
     }
 
@@ -69,6 +72,14 @@ public class ComputerDTO {
 
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
+    }
+
+    public Long getCompanyID() {
+        return companyID;
+    }
+
+    public void setCompanyID(Long companyID) {
+        this.companyID = companyID;
     }
 
     @Override

@@ -23,8 +23,8 @@
 <body>
 	<header class="navbar navbar-inverse navbar-fixed-top">
 		<div class="container">
-			<a class="navbar-brand" href="dashboard"> Application -
-				Computer Database </a>
+			<a class="navbar-brand" href="dashboard"> Application - Computer
+				Database </a>
 		</div>
 	</header>
 	<section id="main">
@@ -41,8 +41,9 @@
 					</form>
 				</div>
 				<div class="pull-right">
-					<a class="btn btn-success" id="addComputer" href="computer?action=editForm">Add
-						Computer</a> <a class="btn btn-default" id="editComputer" href="#"
+					<a class="btn btn-success" id="addComputer"
+						href="computer?action=addForm">Add Computer</a> <a
+						class="btn btn-default" id="editComputer" href="#"
 						onclick="$.fn.toggleEditMode();">Edit</a>
 				</div>
 			</div>
@@ -81,7 +82,8 @@
 						<tr>
 							<td class="editMode"><input type="checkbox" name="cb"
 								class="cb" value="0"></td>
-							<td><a href="editComputer.html" onclick="">${computer.name}</a></td>
+							<td><a href="computer?id=${computer.id}&action=editForm"
+								onclick="">${computer.name}</a></td>
 							<td>${computer.introDate}</td>
 							<td>${computer.disconDate}</td>
 							<td>${computer.companyName}</td>
@@ -114,9 +116,9 @@
 			</div>
 		</div>
 	</footer>
-	<script src="../js/jquery.min.js"></script>
-	<script src="../js/bootstrap.min.js"></script>
-	<script src="../js/dashboard.js"></script>
+	<script src="static/js/jquery.min.js"></script>
+	<script src="static/js/bootstrap.min.js"></script>
+	<script src="static/js/dashboard.js"></script>
 
 </body>
 </html>
