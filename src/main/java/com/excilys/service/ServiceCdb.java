@@ -11,13 +11,14 @@ import com.excilys.dao.ComputerDao;
 import com.excilys.dao.DaoFactory;
 import com.excilys.dao.DaoType;
 import com.excilys.exception.CompanyNotFoundException;
-import com.excilys.exception.ComputerNameNotPresentException;
-import com.excilys.exception.ComputerNeedIdToBeUpdateException;
+import com.excilys.exception.ComputerException;
 import com.excilys.exception.ComputerNotFoundException;
+import com.excilys.exception.ComputerNotUpdatedException;
 import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
 import com.excilys.util.Pages;
+import com.excilys.validation.ComputerValidation;
 
 public class ServiceCdb {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCdb.class);
@@ -94,50 +95,35 @@ public class ServiceCdb {
      * Demande a la DAO de crée un computer.
      * @param c
      *            Computer à sauvegarder
-     * @return True si réussi
-     * @throws ComputerNameNotPresentException
-     *             Si le nom de l'ordinateur n'est pas présent
+     * @return L'ID du computer crée ou -1L si a echoué
+     * @throws ComputerException
+     *             Si une regle propre au computer échoue
      * @throws CompanyNotFoundException
-     *             La companie n'existe pas
+     *             Si la company n'existe pas
      */
-    public Long createComputer(final Computer c) throws ComputerNameNotPresentException, CompanyNotFoundException {
+    public Long createComputer(final Computer c) throws ComputerException, CompanyNotFoundException {
         if (c.getCompany() != null && !isExistCompany(c.getCompany().getId())) {
             throw new CompanyNotFoundException(c.getCompany().getId().toString());
         }
-        if (c.getName() == null || c.getName().isEmpty()) {
-            throw new ComputerNameNotPresentException();
-        }
-        boolean dateIntroMinorThanDateDisco = c.getIntroduced() == null || c.getDiscontinued() == null
-                || c.getIntroduced().compareTo(c.getDiscontinued()) <= 0;
-        if (dateIntroMinorThanDateDisco) {
-            return computerDao.create(c);
-        }
-        return -1L;
+        ComputerValidation.nameIsRequiredForComputer(c.getName());
+        ComputerValidation.dateIntroMinorThanDateDiscon(c.getIntroduced(), c.getDiscontinued());
+        return computerDao.create(c);
 
     }
 
     /**
-     * Demande a la DAO de mettre a jour un computer.
+     * /** Demande a la DAO de mettre a jour un computer.
      * @param c
      *            Computer à mettre a jour
-     * @return True si réussi
-     * @throws ComputerNameNotPresentException
-     *             Si le nom de l'ordinateur n'est pas présent
-     * @throws ComputerNeedIdToBeUpdateException
-     *             L'ordinateur a besoin d'un ID pour etre mit a jour
+     * @return Le computer qui a été mit a jour.
+     * @throws ComputerException
+     *             Si une regle propre au computer échoue.
      */
-    public Computer updateComputer(final Computer c)
-            throws ComputerNameNotPresentException, ComputerNeedIdToBeUpdateException {
-        if (c.getName() == null || c.getName().isEmpty()) {
-            throw new ComputerNameNotPresentException();
-        }
-        boolean dateIntroMinorThanDateDisco = c.getIntroduced() == null || c.getDiscontinued() == null
-                || c.getIntroduced().compareTo(c.getDiscontinued()) <= 0;
-        if (dateIntroMinorThanDateDisco) {
-            return computerDao.update(c);
-        }
-        return null;
-
+    public Computer updateComputer(final Computer c) throws ComputerException {
+        ComputerValidation.idIsRequiredForComputerUpdate(c.getId());
+        ComputerValidation.nameIsRequiredForComputer(c.getName());
+        ComputerValidation.dateIntroMinorThanDateDiscon(c.getIntroduced(), c.getDiscontinued());
+        return computerDao.update(c).orElseThrow(() -> new ComputerNotUpdatedException(c.getId().toString()));
     }
 
     /**

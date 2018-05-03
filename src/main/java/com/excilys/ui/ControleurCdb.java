@@ -9,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.excilys.exception.CompanyNotFoundException;
+import com.excilys.exception.ComputerException;
 import com.excilys.exception.ComputerNameNotPresentException;
-import com.excilys.exception.ComputerNeedIdToBeUpdateException;
 import com.excilys.exception.ComputerNotFoundException;
 import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.model.Company;
@@ -170,19 +170,11 @@ public class ControleurCdb {
             final Computer current = serviceCdb.getComputerDaoDetails(l);
             final Computer computer2 = creationComputer(current);
             computer2.setId(l);
-            if (serviceCdb.updateComputer(computer2) == null) {
-                System.out.println(COMPUTER_NOT_SAVE);
-            }
-
+            serviceCdb.updateComputer(computer2);
         } catch (NumberFormatException e) {
             LOGGER.debug(String.format(ID_COMPUTER_NUMBER_ONLY, "computer"));
             System.out.printf(ID_COMPUTER_NUM_ONLY, "computer");
-
-        } catch (ComputerNotFoundException e) {
-            LOGGER.info(e.getMessage());
-        } catch (ComputerNameNotPresentException e) {
-            LOGGER.info(e.getMessage());
-        } catch (ComputerNeedIdToBeUpdateException e) {
+        } catch (ComputerException e) {
             LOGGER.info(e.getMessage());
         }
     }
@@ -336,9 +328,9 @@ public class ControleurCdb {
             if (serviceCdb.createComputer(computer).equals(-1L)) {
                 System.out.println(COMPUTER_NOT_SAVE);
             }
-        } catch (ComputerNameNotPresentException e) {
-            LOGGER.info(e.getMessage());
         } catch (CompanyNotFoundException e) {
+            LOGGER.info(e.getMessage());
+        } catch (ComputerException e) {
             LOGGER.info(e.getMessage());
         }
     }
