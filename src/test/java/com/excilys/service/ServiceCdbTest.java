@@ -1,8 +1,8 @@
 package com.excilys.service;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -30,10 +30,13 @@ import org.mockito.quality.Strictness;
 import com.excilys.dao.CompanyDao;
 import com.excilys.dao.ComputerDao;
 import com.excilys.exception.CompanyNotFoundException;
+import com.excilys.exception.ComputerException;
 import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.ComputerNeedIdToBeUpdateException;
 import com.excilys.exception.ComputerNotFoundException;
+import com.excilys.exception.ComputerNotUpdatedException;
 import com.excilys.exception.DaoNotInitializeException;
+import com.excilys.exception.DateIntroShouldBeMinorthanDisconException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
 import com.excilys.util.Pages;
@@ -188,19 +191,21 @@ public class ServiceCdbTest {
         assertEquals(pagesDeux, servicecdb.findByPagesCompany(3));
         Mockito.verify(companyDao).findPerPage(3);
     }
+
     /*
      * Test create computers
      */
 
     /**
      * Demande a la DAO de crée un computer apres verification de sa validité.
-     * @throws ComputerNameNotPresentException
-     *             Si le nom du computer n'est pas présent
-     * @throws CompanyNotFoundException La companie n'existe pas
+     * @throws CompanyNotFoundException
+     *             La companie n'existe pas
+     * @throws ComputerException
+     *             Si une regle de validation sur computer echoue
      */
     @Test
     @DisplayName("Test to create a valid computer")
-    public void createValidComputerTest() throws ComputerNameNotPresentException, CompanyNotFoundException {
+    public void createValidComputerTest() throws CompanyNotFoundException, ComputerException {
         Mockito.when(computerDao.create(computer)).thenReturn(1L);
         Mockito.when(companyDao.find(1L)).thenReturn(Optional.of(company));
         assertSame(1L, servicecdb.createComputer(computer));
@@ -226,16 +231,31 @@ public class ServiceCdbTest {
     /**
      * Essaye de creer un computer avec une date discontinued < a la date
      * introduced.
-     * @throws ComputerNameNotPresentException
-     *             Si le nom du computer n'est pas renseignée
-     * @throws CompanyNotFoundException La company n'existe pas
+     * @throws CompanyNotFoundException
+     *             La company n'existe pas
+     * @throws ComputerException
+     *             Si une regle de validation sur computer échoue
      */
     @Test
     @DisplayName("Test dateIntroduced <= dateDiscontinued is false => Don't create computer ")
-    public void createComputerWithInvalideDateTest() throws ComputerNameNotPresentException, CompanyNotFoundException {
+    public void createComputerWithInvalideDateTest() throws CompanyNotFoundException, ComputerException {
         final Computer computer = new Computer.Builder("a").introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2015-12-30")).build();
-        assertSame(-1L, servicecdb.createComputer(computer));
+        assertThrows(DateIntroShouldBeMinorthanDisconException.class, () -> servicecdb.createComputer(computer));
+    }
+
+    /**
+     * Retourne une CompanyNotFoundException pour des entrées invalides (-1) ou des
+     * entrées non existente (50L).
+     */
+    @Test
+    @DisplayName("Should throw a CompanyNotFoundException for -1 (invalid) and 50 (not exist)")
+    public void createComputerWithInvalidCompany() {
+        final Company company = new Company.Builder(-1L).build();
+        final Computer computer = new Computer.Builder("a").company(company).build();
+        assertThrows(CompanyNotFoundException.class, () -> servicecdb.createComputer(computer));
+        company.setId(50L);
+        assertThrows(CompanyNotFoundException.class, () -> servicecdb.createComputer(computer));
     }
 
     /*
@@ -249,26 +269,24 @@ public class ServiceCdbTest {
     @DisplayName("Test updating a computer without name because name is required")
     public void updateComputerWithoutNameTest() {
         final Computer computer = new Computer.Builder(null).build();
-        assertThrows(ComputerNameNotPresentException.class, () -> servicecdb.updateComputer(computer));
+        assertThrows(ComputerNeedIdToBeUpdateException.class, () -> servicecdb.updateComputer(computer));
         computer.setName("");
+        computer.setId(1L);
         assertThrows(ComputerNameNotPresentException.class, () -> servicecdb.updateComputer(computer));
     }
 
     /**
      * Essaye de mettre a jour un computer avec une date discontinued < a la date
      * introduced.
-     * @throws ComputerNameNotPresentException
-     *             Si le nom du computer n'est pas renseignée
-     * @throws ComputerNeedIdToBeUpdateException
-     *             Si l'ID n'est pas renseignée.
+     * @throws ComputerException
+     *             Si une regle de validation sur computer existe
      */
     @Test
     @DisplayName("Test dateIntroduced <= dateDiscontinued is false => Don't update computer ")
-    public void updateComputerWithInvalideDateTest()
-            throws ComputerNameNotPresentException, ComputerNeedIdToBeUpdateException {
-        final Computer computer = new Computer.Builder("a").introduced(LocalDate.parse("2016-01-01"))
+    public void updateComputerWithInvalideDateTest() throws ComputerException {
+        final Computer computer = new Computer.Builder("a").id(9L).introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2015-12-30")).build();
-        assertNull(servicecdb.updateComputer(computer));
+        assertThrows(DateIntroShouldBeMinorthanDisconException.class, () -> servicecdb.updateComputer(computer));
     }
 
     /**
@@ -283,9 +301,7 @@ public class ServiceCdbTest {
     public void updateComputerWithNoIdTest() throws ComputerNameNotPresentException, ComputerNeedIdToBeUpdateException {
         final Computer computer = new Computer.Builder("a").introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2016-12-30")).build();
-        Mockito.when(computerDao.update(computer)).thenCallRealMethod();
         assertThrows(ComputerNeedIdToBeUpdateException.class, () -> servicecdb.updateComputer(computer));
-        Mockito.verify(computerDao).update(computer);
     }
 
     /**
@@ -301,24 +317,24 @@ public class ServiceCdbTest {
             throws ComputerNeedIdToBeUpdateException, ComputerNameNotPresentException {
         final Computer computer = new Computer.Builder("a").introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2016-12-30")).id(-1L).build();
-        Mockito.when(computerDao.update(computer)).thenReturn(null);
-        assertNull(servicecdb.updateComputer(computer));
-        Mockito.verify(computerDao).update(computer);
+        assertThrows(ComputerNotUpdatedException.class, () -> servicecdb.updateComputer(computer));
     }
 
     /**
-     * Demande a la DAO de mettre a jour un ordianteur.
-     * @throws ComputerNeedIdToBeUpdateException
-     *             Si l'ID du computer n'est pas renseignée
-     * @throws ComputerNameNotPresentException
-     *             Si le nom du computer n'est pas renseignée
+     * Demande a la DAO de mettre a jour un ordinateur valide.
+     * @throws ComputerException
+     *             Si une regle de validation echoue sur un computer
      */
     @Test
     @DisplayName("Test updating a valid computer")
-    public void updateComputerTest() throws ComputerNeedIdToBeUpdateException, ComputerNameNotPresentException {
-        final Computer computer = new Computer.Builder("test").id(8L).build();
-        Mockito.when(computerDao.update(computer)).thenReturn(computer);
-        assertEquals(computer, servicecdb.updateComputer(computer));
+    public void updateComputerTest() throws ComputerException {
+        Optional<Computer> computer = Optional.ofNullable(new Computer.Builder("test").id(8L).build());
+        Mockito.when(computerDao.update(computer.get())).thenReturn(computer);
+        assertEquals(computer.get(), servicecdb.updateComputer(computer.get()));
+        computer = Optional.ofNullable(new Computer.Builder("test").id(8L).discontinued(null)
+                .introduced(LocalDate.parse("2015-12-30")).build());
+        Mockito.when(computerDao.update(computer.get())).thenReturn(computer);
+        assertEquals(computer.get(), servicecdb.updateComputer(computer.get()));
     }
 
     /*
@@ -360,5 +376,24 @@ public class ServiceCdbTest {
         Mockito.when(computerDao.delete(7L)).thenReturn(true);
         assertTrue(computerDao.delete(7L));
         Mockito.verify(computerDao).delete(7L);
+    }
+
+    /*
+     * Creation du service
+     */
+
+    /**
+     * Un appel sur getInstance doit retourner toujours la meme instance
+     * (singleton).
+     * @throws DaoNotInitializeException
+     *             Si une DAO n'a pas réussi a s'initiliaser
+     */
+    @Test
+    @DisplayName("Should return instance since is created")
+    public void getServiceInstance() throws DaoNotInitializeException {
+        ServiceCdb serviceCdb = ServiceCdb.getInstance();
+        ServiceCdb serviceCdb2 = ServiceCdb.getInstance();
+        assertNotNull(serviceCdb);
+        assertEquals(serviceCdb, serviceCdb2);
     }
 }

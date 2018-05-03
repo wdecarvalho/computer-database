@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,7 +13,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.Month;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -244,8 +243,9 @@ public class ComputerDaoTest {
      */
 
     /**
-     * Verifie que la mise a jour d'un ordinateur qui n'est pas en BD deleche une
-     * ComputerNeedIdToBeUpdateException.
+     * Verifie que la mise a jour d'un ordinateur qui n'est pas en BD deleche soit
+     * un NullPointerException car la presence de l'ID est gerer au niveau service.
+     * Soit un optional vide car l'ID est set mais n'existe pas.
      * @throws ComputerNeedIdToBeUpdateException
      *             Si l'ID n'est pas présent
      */
@@ -253,9 +253,9 @@ public class ComputerDaoTest {
     @DisplayName("Should not update computer with no ID and throw ComputerNeedIdToBeUpdateException and should not update computer with ID 1111L (no present in database)")
     public void updateComputerTransientTest() throws ComputerNeedIdToBeUpdateException {
         final Computer computer = new Computer.Builder(null).build();
-        assertThrows(ComputerNeedIdToBeUpdateException.class, () -> computerDao.update(computer));
+        assertThrows(NullPointerException.class, () -> computerDao.update(computer));
         final Computer computer3 = new Computer.Builder("name").id(1111L).build();
-        assertNull(computerDao.update(computer3));
+        assertEquals(Optional.empty(), computerDao.update(computer3));
     }
 
     /**
@@ -267,13 +267,12 @@ public class ComputerDaoTest {
     @DisplayName("Should update the computer 1L (existing in dtabase)")
     public void updateComputerExistingTest() throws ComputerNeedIdToBeUpdateException {
         final Computer computer = new Computer.Builder("rename").id(9L).introduced(LocalDate.now())
-                .discontinued(LocalDate.parse("2015-02-02", DateTimeFormatter.ISO_LOCAL_DATE))
-                .company(new Company.Builder(1L).build()).build();
+                .discontinued(LocalDate.of(2015, Month.FEBRUARY, 02)).company(new Company.Builder(1L).build()).build();
         computerDao.update(computer);
-        final Computer updated = computerDao.update(computer);
-        assertEquals("rename", updated.getName());
-        assertSame(9L, updated.getId());
-        assertEquals(LocalDate.parse("2015-02-02", DateTimeFormatter.ISO_LOCAL_DATE), updated.getDiscontinued());
+        final Optional<Computer> updated = computerDao.update(computer);
+        assertEquals("rename", updated.get().getName());
+        assertSame(9L, updated.get().getId());
+        assertEquals(LocalDate.of(2015, Month.FEBRUARY, 02), updated.get().getDiscontinued());
     }
 
     /**
@@ -287,7 +286,7 @@ public class ComputerDaoTest {
     @DisplayName("Update should return null when a SQLException is thrown")
     public void updateComputerWhenSQLExceptionIsCatched() throws SQLException, ComputerNeedIdToBeUpdateException {
         scenariseConnectionAndPreparedStatement(true);
-        assertNull(mockComputerDao.update(computer));
+        assertEquals(Optional.empty(), mockComputerDao.update(computer));
         verifyConnectionAndPreparedStatement(true);
     }
 
