@@ -12,7 +12,6 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.excilys.exception.ComputerNeedIdToBeUpdateException;
 import com.excilys.mapper.MapUtil;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
@@ -109,15 +108,10 @@ public class ComputerDao extends Dao<Computer> {
      * @param obj
      *            Computer
      * @return true si l'objet est mit a jour sinon false
-     * @throws ComputerNeedIdToBeUpdateException
-     *             Si l'ID du computer n'est pas présent
      */
 
-    public Computer update(final Computer obj) throws ComputerNeedIdToBeUpdateException {
-        if (obj == null || obj.getId() == null) {
-            throw new ComputerNeedIdToBeUpdateException();
-        }
-        Computer computer = null;
+    public Optional<Computer> update(final Computer obj) {
+        Optional<Computer> computer = Optional.empty();
         try (PreparedStatement ps = this.getConnection().prepareStatement(UPDATE_ONE_COMPUTER,
                 ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             ps.setString(1, obj.getName());
@@ -132,7 +126,7 @@ public class ComputerDao extends Dao<Computer> {
             }
             ps.setLong(5, obj.getId());
             if (ps.executeUpdate() != 0) {
-                computer = obj;
+                computer = Optional.ofNullable(obj);
             }
         } catch (SQLException e) {
             LOGGER.debug(e.getMessage());

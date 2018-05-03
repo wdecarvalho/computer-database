@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.excilys.exception.CompanyNotFoundException;
-import com.excilys.exception.ComputerNameNotPresentException;
+import com.excilys.exception.ComputerException;
 import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.exception.LocalDateExpectedException;
 import com.excilys.mapper.MapUtil;
@@ -114,7 +114,7 @@ public class ServletComputer extends HttpServlet {
                         req.getRequestDispatcher("/dashboard").forward(req, res);
                     }
 
-                } catch (ComputerNameNotPresentException e) {
+                } catch (ComputerException e) {
                     sendErrorMessagetoUser(req, res, e.getMessage());
                 } catch (CompanyNotFoundException e) {
                     sendErrorMessagetoUser(req, res, e.getMessage());
