@@ -118,7 +118,7 @@ public class DaoFactory {
         LOGGER.info("Base de donnée utilisée : " + aProperties.getProperty("url"));
         connection = DriverManager.getConnection(aProperties.getProperty("url"), aProperties.getProperty("user"),
                 aProperties.getProperty("password"));
-        if (driver.equals("org.h2.Driver")) {
+        if ("org.h2.Driver".equals(driver)) {
             try {
                 FileReader fReader = new FileReader(
                         new File(ClassLoader.getSystemClassLoader().getResource("test_db.sql").toURI()));
