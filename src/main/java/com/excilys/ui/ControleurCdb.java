@@ -1,6 +1,5 @@
 package com.excilys.ui;
 
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
@@ -13,6 +12,7 @@ import com.excilys.exception.ComputerException;
 import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.ComputerNotFoundException;
 import com.excilys.exception.DaoNotInitializeException;
+import com.excilys.exception.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
 import com.excilys.service.ServiceCdb;
@@ -127,11 +127,6 @@ public class ControleurCdb {
             break;
         case QUIT:
             run = false;
-            try {
-                DaoFactory.endConnexion();
-            } catch (SQLException e) {
-                LOGGER.debug(e.getMessage());
-            }
             break;
         default:
             break;
@@ -175,6 +170,10 @@ public class ControleurCdb {
             LOGGER.debug(String.format(ID_COMPUTER_NUMBER_ONLY, "computer"));
             System.out.printf(ID_COMPUTER_NUM_ONLY, "computer");
         } catch (ComputerException e) {
+            LOGGER.info(e.getMessage());
+        } catch (DateTruncationException e) {
+            LOGGER.error(e.getMessage());
+        } catch (CompanyNotFoundException e) {
             LOGGER.info(e.getMessage());
         }
     }
@@ -332,6 +331,8 @@ public class ControleurCdb {
             LOGGER.info(e.getMessage());
         } catch (ComputerException e) {
             LOGGER.info(e.getMessage());
+        } catch (DateTruncationException e) {
+            LOGGER.error(e.getMessage());
         }
     }
 
