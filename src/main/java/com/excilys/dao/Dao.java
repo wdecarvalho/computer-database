@@ -1,6 +1,5 @@
 package com.excilys.dao;
 
-import java.sql.Connection;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -8,14 +7,10 @@ import com.excilys.util.Pages;
 
 public abstract class Dao<T> {
 
-    private Connection connection;
-
     /**
      * Constructeur de Dao.
-     * @param conn Connection
-     */
-    public Dao(Connection conn) {
-        this.connection = conn;
+    */
+    public Dao() {
     }
 
     /**
@@ -39,9 +34,5 @@ public abstract class Dao<T> {
      * @return Page de résultat
      */
     public abstract Pages<T> findPerPage(int... pageAndNumberResult);
-
-    public Connection getConnection() {
-        return connection;
-    }
 
 }

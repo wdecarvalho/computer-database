@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -16,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.excilys.exception.DaoNotInitializeException;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 public class DaoFactory {
 
@@ -23,7 +24,8 @@ public class DaoFactory {
 
     private static DaoFactory factory;
 
-    private static Connection connection;
+    private static HikariConfig config = new HikariConfig();
+    private static HikariDataSource ds;
 
     /**
      * Constructeur de DaoFactory.
@@ -61,8 +63,8 @@ public class DaoFactory {
      *             La connexion n'a pas pu s'effectuer
      * @return ComputerDao
      */
-    private static ComputerDao getComputerDao() throws SQLException {
-        return ComputerDao.getInstance(connection);
+    private ComputerDao getComputerDao() throws SQLException {
+        return ComputerDao.getInstance(this);
     }
 
     /**
@@ -71,8 +73,8 @@ public class DaoFactory {
      *             La connexion n'a pas pu s'effectuer
      * @return CompanyDao
      */
-    private static CompanyDao getCompanyDao() throws SQLException {
-        return CompanyDao.getInstance(connection);
+    private CompanyDao getCompanyDao() throws SQLException {
+        return CompanyDao.getInstance(this);
     }
 
     /**
@@ -92,12 +94,11 @@ public class DaoFactory {
 
     /**
      * Initiliase la connexion a la base de donnée.
-     * @return Connection
      * @throws SQLException
      *             La connexion n'a pas pu s'effectuer
      * @throws IOException
      */
-    private static Connection initConnexion() throws SQLException {
+    private static void initConnexion() throws SQLException {
         final Properties aProperties = new Properties();
         final InputStream path = ClassLoader.getSystemClassLoader().getResourceAsStream("app.properties");
         String driver = null;
@@ -115,10 +116,9 @@ public class DaoFactory {
             LOGGER.error(e.getMessage());
         }
         LOGGER.info("Base de donnée utilisée : " + aProperties.getProperty("url"));
-        connection = DriverManager.getConnection(aProperties.getProperty("url"), aProperties.getProperty("user"),
-                aProperties.getProperty("password"));
+        hikariConnectionInit(aProperties);
         if ("org.h2.Driver".equals(driver)) {
-            try {
+            try (Connection connection = ds.getConnection()) {
                 RunScript.execute(connection, new FileReader(
                         new File(ClassLoader.getSystemClassLoader().getResource("test_db.sql").toURI())));
             } catch (FileNotFoundException e1) {
@@ -127,15 +127,30 @@ public class DaoFactory {
                 LOGGER.error(e1.getMessage());
             }
         }
-        return connection;
     }
 
     /**
-     * Permet de fermer la connection.
-     * @throws SQLException
-     *             Si une erreur SQL apparait
+     * Creer la premiere connexion avec la bonne config.
+     * @param aProperties
+     *            Propriété pour la connexion
      */
-    public static void endConnexion() throws SQLException {
-        connection.close();
+    private static void hikariConnectionInit(final Properties aProperties) {
+        config.setJdbcUrl(aProperties.getProperty("url"));
+        config.setUsername(aProperties.getProperty("user"));
+        config.setPassword(aProperties.getProperty("password"));
+        config.addDataSourceProperty("cachePrepStmts", true);
+        config.addDataSourceProperty("prepStmtCacheSize", 250);
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", 2048);
+        ds = new HikariDataSource(config);
+    }
+
+    /**
+     * Retourne une nouvelle connexion.
+     * @return Connection
+     * @throws SQLException
+     *             SQLException
+     */
+    public Connection getConnexion() throws SQLException {
+        return ds.getConnection();
     }
 }

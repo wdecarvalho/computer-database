@@ -12,6 +12,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.excilys.exception.DateTruncationException;
 import com.excilys.mapper.MapUtil;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
@@ -30,29 +31,30 @@ public class ComputerDao extends Dao<Computer> {
     private static final String FIND_COMPUTER_PAGE = "SELECT computer.id, computer.name, computer.introduced, computer.discontinued, company.id, company.name "
             + "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id ORDER BY computer.id ASC LIMIT ? OFFSET ? ";
     private static final String NUMBER_PAGE_MAX = "SELECT COUNT(*) FROM computer";
+    private static final String DATE_ERROR_TRUNCATION = "L'année doit être supérieur à 1970";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ComputerDao.class);
+
+    private DaoFactory daoFactory;
 
     private static ComputerDao computerDao;
 
     /**
      * Constructeur de ComputerDao.
-     * @param conn
-     *            Connection
      */
-    private ComputerDao(Connection conn) {
-        super(conn);
+    private ComputerDao() {
     }
 
     /**
      * Permet de recuperer l'instance d'un ComputerDao.
-     * @param conn
-     *            Connection
+     * @param factory
+     *            DaoFactory
      * @return ComputerDao
      */
-    public static ComputerDao getInstance(final Connection conn) {
+    public static ComputerDao getInstance(final DaoFactory factory) {
         if (computerDao == null) {
-            computerDao = new ComputerDao(conn);
+            computerDao = new ComputerDao();
+            computerDao.daoFactory = factory;
         }
         return computerDao;
     }
@@ -62,11 +64,14 @@ public class ComputerDao extends Dao<Computer> {
      * @param obj
      *            Computer
      * @return true si l'objet est ajouté sinon false
+     * @throws DateTruncationException
+     *             Lorsque une date invalide essaye de se stocker en BD
      */
-    public Long create(final Computer obj) {
+    public Long create(final Computer obj) throws DateTruncationException {
         Long id = -1L;
-        try (PreparedStatement pStatement = this.getConnection().prepareStatement(CREATE_ONE_COMPUTER,
-                Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection connection = daoFactory.getConnexion();
+                PreparedStatement pStatement = connection.prepareStatement(CREATE_ONE_COMPUTER,
+                        Statement.RETURN_GENERATED_KEYS)) {
             pStatement.setString(1, obj.getName());
             pStatement.setTimestamp(2, MapUtil.convertLocalDateToTimeStamp(obj.getIntroduced()));
             pStatement.setTimestamp(3, MapUtil.convertLocalDateToTimeStamp(obj.getDiscontinued()));
@@ -76,8 +81,12 @@ public class ComputerDao extends Dao<Computer> {
                 rSet.next();
                 id = rSet.getLong(1);
             }
-        } catch (SQLException e1) {
-            LOGGER.error(e1.getMessage());
+        } catch (SQLException e) {
+            if (e.getSQLState().equals("22001")) {
+                throw new DateTruncationException();
+            } else {
+                LOGGER.debug(e.getMessage());
+            }
         }
         return id;
     }
@@ -91,8 +100,9 @@ public class ComputerDao extends Dao<Computer> {
 
     public boolean delete(final Long iD) {
         boolean res = false;
-        try (PreparedStatement ps = this.getConnection().prepareStatement(DELETE_ONE_COMPUTER,
-                ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+        try (Connection connection = daoFactory.getConnexion();
+                PreparedStatement ps = connection.prepareStatement(DELETE_ONE_COMPUTER, ResultSet.TYPE_SCROLL_SENSITIVE,
+                        ResultSet.CONCUR_UPDATABLE)) {
             ps.setLong(1, iD);
             if (ps.executeUpdate() == 1) {
                 res = true;
@@ -108,12 +118,15 @@ public class ComputerDao extends Dao<Computer> {
      * @param obj
      *            Computer
      * @return true si l'objet est mit a jour sinon false
+     * @throws DateTruncationException
+     *             Lorsque une date invalide essaye de se stocker en BD
      */
 
-    public Optional<Computer> update(final Computer obj) {
+    public Optional<Computer> update(final Computer obj) throws DateTruncationException {
         Optional<Computer> computer = Optional.empty();
-        try (PreparedStatement ps = this.getConnection().prepareStatement(UPDATE_ONE_COMPUTER,
-                ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+        try (Connection connection = daoFactory.getConnexion();
+                PreparedStatement ps = connection.prepareStatement(UPDATE_ONE_COMPUTER, ResultSet.TYPE_SCROLL_SENSITIVE,
+                        ResultSet.CONCUR_UPDATABLE)) {
             ps.setString(1, obj.getName());
             ps.setTimestamp(2,
                     obj.getIntroduced() == null ? null : MapUtil.convertLocalDateToTimeStamp(obj.getIntroduced()));
@@ -129,7 +142,11 @@ public class ComputerDao extends Dao<Computer> {
                 computer = Optional.ofNullable(obj);
             }
         } catch (SQLException e) {
-            LOGGER.debug(e.getMessage());
+            if (e.getSQLState().equals("22001")) {
+                throw new DateTruncationException();
+            } else {
+                LOGGER.debug(e.getMessage());
+            }
         }
         return computer;
     }
@@ -137,8 +154,9 @@ public class ComputerDao extends Dao<Computer> {
     @Override
     public Optional<Computer> find(final Long id) {
         Optional<Computer> computer = Optional.empty();
-        try (PreparedStatement preparedStatement = this.getConnection().prepareStatement(FIND_ONE_COMPUTER,
-                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+        try (Connection connection = daoFactory.getConnexion();
+                PreparedStatement preparedStatement = connection.prepareStatement(FIND_ONE_COMPUTER,
+                        ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
             preparedStatement.setInt(1, id.intValue());
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
@@ -155,8 +173,9 @@ public class ComputerDao extends Dao<Computer> {
     @Override
     public Collection<Computer> findAll() {
         final Collection<Computer> computers = new ArrayList<>();
-        try (PreparedStatement preparedStatement = this.getConnection().prepareStatement(FIND_ALL_COMPUTER,
-                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        try (Connection connection = daoFactory.getConnexion();
+                PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_COMPUTER,
+                        ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
                 ResultSet resultSet = preparedStatement.executeQuery()) {
             while (resultSet.next()) {
                 computers.add(createComputerWithcompany(null, resultSet).get());
@@ -203,14 +222,14 @@ public class ComputerDao extends Dao<Computer> {
      *             Si une erreur SQL intervient
      */
     public int numberOfElement() throws SQLException {
-        final PreparedStatement preparedStatement = this.getConnection().prepareStatement(NUMBER_PAGE_MAX,
-                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-        ResultSet rSet = preparedStatement.executeQuery();
-        rSet.next();
-        int numberElement = rSet.getInt(1);
-        preparedStatement.close();
-        rSet.close();
-        return numberElement;
+        try (Connection connection = daoFactory.getConnexion();
+                PreparedStatement preparedStatement = connection.prepareStatement(NUMBER_PAGE_MAX,
+                        ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+                ResultSet rSet = preparedStatement.executeQuery()) {
+            rSet.next();
+            int numberElement = rSet.getInt(1);
+            return numberElement;
+        }
     }
 
     @Override
@@ -225,8 +244,9 @@ public class ComputerDao extends Dao<Computer> {
         }
         try {
             pages.setPageMax(numberOfElement());
-            try (PreparedStatement preparedStatement = this.getConnection().prepareStatement(FIND_COMPUTER_PAGE,
-                    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+            try (Connection connection = daoFactory.getConnexion();
+                    PreparedStatement preparedStatement = connection.prepareStatement(FIND_COMPUTER_PAGE,
+                            ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
                 preparedStatement.setInt(1, pages.getNumberPerPageResult());
                 preparedStatement.setInt(2, pages.startResult());
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
