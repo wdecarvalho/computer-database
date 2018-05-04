@@ -37,6 +37,7 @@ import com.excilys.exception.ComputerNotFoundException;
 import com.excilys.exception.ComputerNotUpdatedException;
 import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.exception.DateIntroShouldBeMinorthanDisconException;
+import com.excilys.exception.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
 import com.excilys.util.Pages;
@@ -202,10 +203,12 @@ public class ServiceCdbTest {
      *             La companie n'existe pas
      * @throws ComputerException
      *             Si une regle de validation sur computer echoue
+     * @throws DateTruncationException
+     *             Si une erreur de date apparait
      */
     @Test
     @DisplayName("Test to create a valid computer")
-    public void createValidComputerTest() throws CompanyNotFoundException, ComputerException {
+    public void createValidComputerTest() throws CompanyNotFoundException, ComputerException, DateTruncationException {
         Mockito.when(computerDao.create(computer)).thenReturn(1L);
         Mockito.when(companyDao.find(1L)).thenReturn(Optional.of(company));
         assertSame(1L, servicecdb.createComputer(computer));
@@ -259,7 +262,10 @@ public class ServiceCdbTest {
     }
 
     /*
-     * Update computers
+     * =============================================================================
+     * == Update computers
+     * =============================================================================
+     * ==
      */
 
     /**
@@ -324,10 +330,14 @@ public class ServiceCdbTest {
      * Demande a la DAO de mettre a jour un ordinateur valide.
      * @throws ComputerException
      *             Si une regle de validation echoue sur un computer
+     * @throws DateTruncationException
+     *             Si une erreur de date apparait
+     * @throws CompanyNotFoundException
+     *             Si la companie n'existe pas
      */
     @Test
     @DisplayName("Test updating a valid computer")
-    public void updateComputerTest() throws ComputerException {
+    public void updateComputerTest() throws ComputerException, DateTruncationException, CompanyNotFoundException {
         Optional<Computer> computer = Optional.ofNullable(new Computer.Builder("test").id(8L).build());
         Mockito.when(computerDao.update(computer.get())).thenReturn(computer);
         assertEquals(computer.get(), servicecdb.updateComputer(computer.get()));
@@ -335,6 +345,30 @@ public class ServiceCdbTest {
                 .introduced(LocalDate.parse("2015-12-30")).build());
         Mockito.when(computerDao.update(computer.get())).thenReturn(computer);
         assertEquals(computer.get(), servicecdb.updateComputer(computer.get()));
+    }
+
+    /**
+     * La mise a jour d'un computer possedant un companie invalide ou n'existant
+     * doit produire une exception.
+     * @throws CompanyNotFoundException
+     *             Si la companie n'existe pas
+     * @throws DateTruncationException
+     *             Si la date est avant 1970
+     * @throws ComputerException
+     *             Si une regle de validation sur computer n'est pas verifiée
+     */
+    @Test
+    @DisplayName("Should throw CompanyNotFoundException for company -1 and 50")
+    public void updateComputerWhenCompanyNotExist()
+            throws ComputerException, DateTruncationException, CompanyNotFoundException {
+        final Computer computer = new Computer.Builder("ee").company(new Company.Builder(-1L).build()).build();
+        assertThrows(CompanyNotFoundException.class, () -> servicecdb.updateComputer(computer));
+        computer.getCompany().setId(50L);
+        assertThrows(CompanyNotFoundException.class, () -> servicecdb.updateComputer(computer));
+        computer.getCompany().setId(5L);
+        Mockito.when(companyDao.find(5L)).thenReturn(Optional.ofNullable(new Company.Builder(5L).build()));
+        assertThrows(ComputerNeedIdToBeUpdateException.class, () -> servicecdb.updateComputer(computer));
+        Mockito.verify(companyDao).find(5L);
     }
 
     /*

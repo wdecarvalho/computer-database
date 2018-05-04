@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.FileNotFoundException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.Month;
@@ -26,18 +27,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.excilys.exception.ComputerNeedIdToBeUpdateException;
 import com.excilys.exception.DaoNotInitializeException;
+import com.excilys.exception.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
-import com.mysql.cj.protocol.Resultset;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
 public class ComputerDaoTest {
+
+    @Mock
+    private DaoFactory daoFactory;
 
     @Mock
     private Connection connection;
@@ -46,7 +49,7 @@ public class ComputerDaoTest {
     private PreparedStatement ps;
 
     @Mock
-    private Resultset rs;
+    private ResultSet rs;
 
     @InjectMocks
     private ComputerDao mockComputerDao;
@@ -67,7 +70,6 @@ public class ComputerDaoTest {
      */
     @BeforeAll
     public void setUp() throws SQLException, DaoNotInitializeException, FileNotFoundException {
-        MockitoAnnotations.initMocks(this);
         computerDao = (ComputerDao) DaoFactory.getInstance().getDao(DaoType.COMPUTER_DAO);
         computer = new Computer.Builder("aa").id(12L).build();
     }
@@ -155,7 +157,7 @@ public class ComputerDaoTest {
     @Test
     @DisplayName("Should return an empty optional for find method when SQLException occures")
     public void findComputerWhenSQLExceptionIsCatched() throws SQLException {
-        scenariseConnectionAndPreparedStatement(false);
+        scenariseConnectionAndPreparedStatement(false, false);
         assertEquals(Optional.empty(), mockComputerDao.find(1L));
         verifyConnectionAndPreparedStatement(false);
     }
@@ -168,7 +170,7 @@ public class ComputerDaoTest {
     @Test
     @DisplayName("Should return an empty collection for findAll method when SQLException occures")
     public void findAllComputersWhenSQLExceptionIsCatched() throws SQLException {
-        scenariseConnectionAndPreparedStatement(false);
+        scenariseConnectionAndPreparedStatement(false, false);
         assertEquals(0, mockComputerDao.findAll().size());
         verifyConnectionAndPreparedStatement(false);
     }
@@ -182,7 +184,7 @@ public class ComputerDaoTest {
     @Test
     @DisplayName("Should return an empty page for findPerPage method when SQLException occures")
     public void findPerPageComputerWhenSQLExceptionIsCatched() throws SQLException {
-        scenariseConnectionAndPreparedStatement(false);
+        scenariseConnectionAndPreparedStatement(false, false);
         assertSame(0, mockComputerDao.findPerPage(1).getEntities().size());
         verifyConnectionAndPreparedStatement(false);
     }
@@ -193,10 +195,12 @@ public class ComputerDaoTest {
 
     /**
      * Verifie que la creation d'un computer sans companie fonctionne.
+     * @throws DateTruncationException
+     *             Si une erreur de date apparait
      */
     @Test
     @DisplayName("Should create a computer when is correctly filled without company")
-    public void createValidComputerWithoutCompanyTest() {
+    public void createValidComputerWithoutCompanyTest() throws DateTruncationException {
         final Long id = computerDao.create(
                 new Computer.Builder("PC_NAME").introduced(LocalDate.now()).discontinued(LocalDate.now()).build());
         assertNotEquals(-1L, id);
@@ -205,10 +209,12 @@ public class ComputerDaoTest {
     /**
      * Verifie que la création d'un ordinateur avec un ID de companie qui n'existe
      * pas, met la companie a null.
+     * @throws DateTruncationException
+     *             Si une erreur de date apparait
      */
     @Test
     @DisplayName("Should not create a computer when ID 111L for a company is used (111L not exist)")
-    public void createValidComputerWithCompanyNotExistingTest() {
+    public void createValidComputerWithCompanyNotExistingTest() throws DateTruncationException {
         final Company company = new Company.Builder(111L).build();
         final Long id = computerDao.create(new Computer.Builder("PC_COMPANY_NOT").introduced(LocalDate.now())
                 .discontinued(LocalDate.now()).company(company).build());
@@ -218,10 +224,12 @@ public class ComputerDaoTest {
     /**
      * Verifie que la création d'un computer avec une companie qui existe
      * fonctionne.
+     * @throws DateTruncationException
+     *             Si une erreur de date apparait
      */
     @Test
     @DisplayName("Should create a computer when is correctly filled with a valid company")
-    public void createValidComputerWithCompanyExistingTest() {
+    public void createValidComputerWithCompanyExistingTest() throws DateTruncationException {
         final Company company = new Company.Builder(1L).build();
         final Long id = computerDao.create(new Computer.Builder("PC_COMPANY").introduced(LocalDate.now())
                 .discontinued(LocalDate.now()).company(company).build());
@@ -230,12 +238,37 @@ public class ComputerDaoTest {
 
     /**
      * Verifie que la création d'un computer "leger" fonctionne.
+     * @throws DateTruncationException
+     *             Si une erreur de date apparait
      */
     @Test
     @DisplayName("Should create a light computer (with minimum required)")
-    public void createValidLightComputerTest() {
+    public void createValidLightComputerTest() throws DateTruncationException {
         final Long id = computerDao.create(new Computer.Builder(null).build());
         assertNotEquals(-1L, id);
+    }
+
+    /**
+     * Verifie que la creation d'un computer avec une date invalide (avant 1970)
+     * declenche une exception.
+     * @throws SQLException
+     *             SQLException
+     * @throws ComputerNeedIdToBeUpdateException
+     *             ID obligatoire pour mettre a jour un computer
+     * @throws DateTruncationException
+     *             Exception quand la date non stockable en BD
+     */
+    @Test
+    @DisplayName("Create should throw a DateTruncationException for SQLState 22001 when date is before 1970")
+    public void createComputerWhenDateTruncationExceptionIsCatched()
+            throws SQLException, ComputerNeedIdToBeUpdateException, DateTruncationException {
+        Mockito.when(daoFactory.getConnexion()).thenReturn(connection);
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt())).thenReturn(ps);
+        Mockito.when(ps.getGeneratedKeys()).thenThrow(new SQLException("", "22001"));
+        assertThrows(DateTruncationException.class, () -> mockComputerDao.create(computer));
+        Mockito.verify(daoFactory).getConnexion();
+        Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt());
+        Mockito.verify(ps).getGeneratedKeys();
     }
 
     /*
@@ -248,10 +281,12 @@ public class ComputerDaoTest {
      * Soit un optional vide car l'ID est set mais n'existe pas.
      * @throws ComputerNeedIdToBeUpdateException
      *             Si l'ID n'est pas présent
+     * @throws DateTruncationException
+     *             Si une erreur de date apparait
      */
     @Test
     @DisplayName("Should not update computer with no ID and throw ComputerNeedIdToBeUpdateException and should not update computer with ID 1111L (no present in database)")
-    public void updateComputerTransientTest() throws ComputerNeedIdToBeUpdateException {
+    public void updateComputerTransientTest() throws ComputerNeedIdToBeUpdateException, DateTruncationException {
         final Computer computer = new Computer.Builder(null).build();
         assertThrows(NullPointerException.class, () -> computerDao.update(computer));
         final Computer computer3 = new Computer.Builder("name").id(1111L).build();
@@ -262,10 +297,12 @@ public class ComputerDaoTest {
      * Verifie que la mise a jour d'un ordinateur qui existe en BD fonctionne.
      * @throws ComputerNeedIdToBeUpdateException
      *             Si le computer n'a pas d'ID
+     * @throws DateTruncationException
+     *             Si une erreur de date apparait
      */
     @Test
     @DisplayName("Should update the computer 1L (existing in dtabase)")
-    public void updateComputerExistingTest() throws ComputerNeedIdToBeUpdateException {
+    public void updateComputerExistingTest() throws ComputerNeedIdToBeUpdateException, DateTruncationException {
         final Computer computer = new Computer.Builder("rename").id(9L).introduced(LocalDate.now())
                 .discontinued(LocalDate.of(2015, Month.FEBRUARY, 02)).company(new Company.Builder(1L).build()).build();
         computerDao.update(computer);
@@ -281,12 +318,33 @@ public class ComputerDaoTest {
      *             SQLException
      * @throws ComputerNeedIdToBeUpdateException
      *             Quand l'ID du computer n'est pas donnée
+     * @throws DateTruncationException
+     *             Si une erreur de date apparait
      */
     @Test
-    @DisplayName("Update should return null when a SQLException is thrown")
-    public void updateComputerWhenSQLExceptionIsCatched() throws SQLException, ComputerNeedIdToBeUpdateException {
-        scenariseConnectionAndPreparedStatement(true);
+    @DisplayName("Update should return null when a normal SQLException is thrown")
+    public void updateComputerWhenSQLExceptionIsCatched()
+            throws SQLException, ComputerNeedIdToBeUpdateException, DateTruncationException {
+        scenariseConnectionAndPreparedStatement(true, false);
         assertEquals(Optional.empty(), mockComputerDao.update(computer));
+        verifyConnectionAndPreparedStatement(true);
+    }
+
+    /**
+     * Test la mise a jour d'un computer quand une SQLException intervient.
+     * @throws SQLException
+     *             SQLException
+     * @throws ComputerNeedIdToBeUpdateException
+     *             Quand l'ID du computer n'est pas donnée
+     * @throws DateTruncationException
+     *             Si une erreur de date apparait
+     */
+    @Test
+    @DisplayName("Update should throw a DateTruncationException for SQLState 22001")
+    public void updateComputerWhenDateTruncationExceptionIsCatched()
+            throws SQLException, ComputerNeedIdToBeUpdateException, DateTruncationException {
+        scenariseConnectionAndPreparedStatement(true, true);
+        assertThrows(DateTruncationException.class, () -> mockComputerDao.update(computer));
         verifyConnectionAndPreparedStatement(true);
     }
 
@@ -312,7 +370,7 @@ public class ComputerDaoTest {
     @Test
     @DisplayName("Should return false when a SQLException is thrown")
     public void deleteComputerWhenSQLExceptionIsCatched() throws SQLException {
-        scenariseConnectionAndPreparedStatement(true);
+        scenariseConnectionAndPreparedStatement(true, false);
         assertFalse(mockComputerDao.delete(1L));
         verifyConnectionAndPreparedStatement(true);
     }
@@ -324,6 +382,7 @@ public class ComputerDaoTest {
      *             When SQLException occures.
      */
     private void verifyConnectionAndPreparedStatement(final boolean update) throws SQLException {
+        Mockito.verify(daoFactory).getConnexion();
         Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt());
         if (update) {
             Mockito.verify(ps).executeUpdate();
@@ -336,17 +395,27 @@ public class ComputerDaoTest {
     /**
      * @param update
      *            false si c'est un find, true sinon
+     * @param dateException
+     *            true si on veut ajouter un SQLState correspondant au probleme de
+     *            date, false sinon
      * @throws SQLException
      *             When SQLException occures.
      */
-    private void scenariseConnectionAndPreparedStatement(final boolean update) throws SQLException {
+    private void scenariseConnectionAndPreparedStatement(final boolean update, final boolean dateException)
+            throws SQLException {
+        Mockito.when(daoFactory.getConnexion()).thenReturn(connection);
         Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
                 .thenReturn(ps);
-        if (update) {
-            Mockito.when(ps.executeUpdate()).thenThrow(SQLException.class);
+        final SQLException sqlException;
+        if (dateException) {
+            sqlException = new SQLException("", "22001");
         } else {
-            Mockito.when(ps.executeQuery()).thenThrow(SQLException.class);
+            sqlException = new SQLException("", "");
         }
-
+        if (update) {
+            Mockito.when(ps.executeUpdate()).thenThrow(sqlException);
+        } else {
+            Mockito.when(ps.executeQuery()).thenThrow(sqlException);
+        }
     }
 }

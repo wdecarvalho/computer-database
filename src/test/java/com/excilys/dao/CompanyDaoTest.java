@@ -32,6 +32,9 @@ import com.mysql.cj.protocol.Resultset;
 public class CompanyDaoTest {
 
     @Mock
+    private DaoFactory daoFactory;
+
+    @Mock
     private Connection connection;
 
     @Mock
@@ -170,6 +173,7 @@ public class CompanyDaoTest {
      *             When SQLException occures.
      */
     private void verifyConnectionAndPreparedStatement(final boolean update) throws SQLException {
+        Mockito.verify(daoFactory).getConnexion();
         Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt());
         if (update) {
             Mockito.verify(ps).executeUpdate();
@@ -186,6 +190,7 @@ public class CompanyDaoTest {
      *             When SQLException occures.
      */
     private void scenariseConnectionAndPreparedStatement(final boolean update) throws SQLException {
+        Mockito.when(daoFactory.getConnexion()).thenReturn(connection);
         Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
                 .thenReturn(ps);
         if (update) {
