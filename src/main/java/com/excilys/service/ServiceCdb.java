@@ -101,9 +101,11 @@ public class ServiceCdb {
      *             Si une regle propre au computer échoue
      * @throws CompanyNotFoundException
      *             Si la company n'existe pas
-     * @throws DateTruncationException Lorsque une date invalide essaye de se stocker en BD
+     * @throws DateTruncationException
+     *             Lorsque une date invalide essaye de se stocker en BD
      */
-    public Long createComputer(final Computer c) throws ComputerException, CompanyNotFoundException, DateTruncationException {
+    public Long createComputer(final Computer c)
+            throws ComputerException, CompanyNotFoundException, DateTruncationException {
         if (c.getCompany() != null && !isExistCompany(c.getCompany().getId())) {
             throw new CompanyNotFoundException(c.getCompany().getId().toString());
         }
@@ -120,10 +122,13 @@ public class ServiceCdb {
      * @return Le computer qui a été mit a jour.
      * @throws ComputerException
      *             Si une regle propre au computer échoue.
-     * @throws DateTruncationException Lorsque une date invalide essaye de se stocker en BD
-     * @throws CompanyNotFoundException Si la companie n'existe pas
+     * @throws DateTruncationException
+     *             Lorsque une date invalide essaye de se stocker en BD
+     * @throws CompanyNotFoundException
+     *             Si la companie n'existe pas
      */
-    public Computer updateComputer(final Computer c) throws ComputerException, DateTruncationException, CompanyNotFoundException {
+    public Computer updateComputer(final Computer c)
+            throws ComputerException, DateTruncationException, CompanyNotFoundException {
         if (c.getCompany() != null && !isExistCompany(c.getCompany().getId())) {
             throw new CompanyNotFoundException(c.getCompany().getId().toString());
         }
@@ -141,6 +146,16 @@ public class ServiceCdb {
      */
     public boolean deleteComputer(final Long id) {
         return computerDao.delete(id);
+    }
+
+    /**
+     * Demande a la DAO de supprimer une liste de computer.
+     * @param ids
+     *            ID des computers à supprimer
+     * @return True si réussi
+     */
+    public boolean deleteComputer(final String ids) {
+        return computerDao.delete(ids);
     }
 
     /**

@@ -21,6 +21,7 @@ import com.excilys.util.Pages;
 public class ComputerDao extends Dao<Computer> {
 
     private static final String DELETE_ONE_COMPUTER = "DELETE FROM computer where id = ?;";
+    private static final String DELETE_LIST_COMPUTER = "DELETE FROM computer where id in %s ;";
     private static final String CREATE_ONE_COMPUTER = "INSERT INTO computer (name,introduced,discontinued,company_id) values (?,?,?,?);";
     private static final String UPDATE_ONE_COMPUTER = "UPDATE computer SET "
             + "name = ?, introduced = ?, discontinued = ?, company_id = ? where id = ?;";
@@ -105,6 +106,26 @@ public class ComputerDao extends Dao<Computer> {
                         ResultSet.CONCUR_UPDATABLE)) {
             ps.setLong(1, iD);
             if (ps.executeUpdate() == 1) {
+                res = true;
+            }
+        } catch (SQLException e) {
+            LOGGER.debug(e.getMessage());
+        }
+        return res;
+    }
+
+    /**
+     * Supprime une liste de computer.
+     * @param iDs
+     *            ID des computers a supprimer
+     * @return Vrai si fonctionne, faux sinon
+     */
+    public boolean delete(final String iDs) {
+        boolean res = false;
+        try (Connection connection = daoFactory.getConnexion();
+                PreparedStatement ps = connection.prepareStatement(String.format(DELETE_LIST_COMPUTER, iDs),
+                        ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            if (ps.executeUpdate() > 0) {
                 res = true;
             }
         } catch (SQLException e) {

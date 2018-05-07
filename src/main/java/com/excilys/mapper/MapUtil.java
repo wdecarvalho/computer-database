@@ -4,6 +4,9 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.excilys.dto.ComputerDTO;
 import com.excilys.exception.LocalDateExpectedException;
@@ -63,6 +66,19 @@ public abstract class MapUtil {
      */
     public static ComputerDTO computerToComputerDTO(Computer computer) {
         return new ComputerDTO(computer);
+    }
+
+    /**
+     * Prend une liste de String d'ID, transforme en set pour eviter les doublons,
+     * verifie que ce sont des nombres et creer une liste d'id pour la base de
+     * donnée.
+     * @param idsComputer
+     *            Liste d'ID de computer a supprimer
+     * @return Liste d'id pour base de données
+     */
+    public static String stringListIdToStringInListDatabase(String[] idsComputer) {
+        Set<Long> computerToDelete = Arrays.stream(idsComputer).map(l -> Long.valueOf(l)).collect(Collectors.toSet());
+        return computerToDelete.toString().replace("[", "(").replace("]", ")");
     }
 
 }

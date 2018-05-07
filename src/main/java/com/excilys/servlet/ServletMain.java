@@ -20,8 +20,15 @@ import com.excilys.model.Computer;
 import com.excilys.service.ServiceCdb;
 import com.excilys.util.Pages;
 
+import static com.excilys.servlet.RouteUrl.DASHBOARD_JSP;
 @WebServlet(name = "dashboard", urlPatterns = { "/dashboard" })
 public class ServletMain extends HttpServlet {
+    private static final String NUMBER_RESULT = "numberResult";
+    private static final String PAGE_COURANTE = "pageCourante";
+    private static final String LIMIT = "limit";
+    private static final String NB_COMPUTERS = "nbComputers";
+    private static final String COMPUTERS = "computers";
+    private static final String PAGE = "page";
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(Logger.class);
 
@@ -34,8 +41,7 @@ public class ServletMain extends HttpServlet {
         try {
             serviceCdb = ServiceCdb.getInstance();
         } catch (DaoNotInitializeException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
     }
 
@@ -69,18 +75,18 @@ public class ServletMain extends HttpServlet {
         int numberResult = numberResultForThisRequest(req);
         int page = 1;
         try {
-            page = Integer.parseInt(req.getParameter("page"));
+            page = Integer.parseInt(req.getParameter(PAGE));
         } catch (NumberFormatException e) {
             // Nothing to do especially
         }
         final Pages<Computer> pagesComputer = serviceCdb.findByPagesComputer(page, numberResult);
         final List<ComputerDTO> computerDTOs = pagesComputer.getEntities().stream()
                 .map(c -> MapUtil.computerToComputerDTO(c)).collect(Collectors.toList());
-        req.setAttribute("computers", computerDTOs);
-        req.setAttribute("nbComputers", pagesComputer.getMaxComputers());
-        req.setAttribute("limit", pagesComputer.getPageMax());
-        req.setAttribute("pageCourante", pagesComputer.getPageCourante());
-        req.getRequestDispatcher("jsp/dashboard.jsp").forward(req, res);
+        req.setAttribute(COMPUTERS, computerDTOs);
+        req.setAttribute(NB_COMPUTERS, pagesComputer.getMaxComputers());
+        req.setAttribute(LIMIT, pagesComputer.getPageMax());
+        req.setAttribute(PAGE_COURANTE, pagesComputer.getPageCourante());
+        req.getRequestDispatcher(DASHBOARD_JSP.toString()).forward(req, res);
     }
 
     /**
@@ -92,14 +98,14 @@ public class ServletMain extends HttpServlet {
      * @return Nombre de resultat a afficher
      */
     private int numberResultForThisRequest(HttpServletRequest req) {
-        if (req.getSession().getAttribute("numberResult") == null) {
-            req.getSession().setAttribute("numberResult", 10);
+        if (req.getSession().getAttribute(NUMBER_RESULT) == null) {
+            req.getSession().setAttribute(NUMBER_RESULT, 10);
         }
-        int numberResult = (int) req.getSession().getAttribute("numberResult");
+        int numberResult = (int) req.getSession().getAttribute(NUMBER_RESULT);
         try {
-            int tmpNumberResult = Integer.parseInt(req.getParameter("numberResult"));
+            int tmpNumberResult = Integer.parseInt(req.getParameter(NUMBER_RESULT));
             if (tmpNumberResult == 10 || tmpNumberResult == 50 || tmpNumberResult == 100) {
-                req.getSession().setAttribute("numberResult", tmpNumberResult);
+                req.getSession().setAttribute(NUMBER_RESULT, tmpNumberResult);
                 numberResult = tmpNumberResult;
             }
         } catch (NumberFormatException e) {
