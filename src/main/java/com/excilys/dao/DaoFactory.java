@@ -138,9 +138,9 @@ public class DaoFactory {
         config.setJdbcUrl(aProperties.getProperty("url"));
         config.setUsername(aProperties.getProperty("user"));
         config.setPassword(aProperties.getProperty("password"));
-        config.addDataSourceProperty("cachePrepStmts", true);
-        config.addDataSourceProperty("prepStmtCacheSize", 250);
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", 2048);
+        config.addDataSourceProperty("cachePrepStmts", aProperties.getProperty("cachePrepStmts"));
+        config.addDataSourceProperty("prepStmtCacheSize", aProperties.getProperty("prepStmtCacheSize"));
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", aProperties.getProperty("prepStmtCacheSqlLimit"));
         ds = new HikariDataSource(config);
     }
 

@@ -50,7 +50,7 @@ public class SeleniumTest {
      */
     @Test
     public void verifySearchButton() {
-        driver.get("http://localhost:8080/william.cdb/dashboard");
+        driver.get("http://localhost:8081/william.cdb/dashboard");
         WebElement text = driver.findElement(By.id("addComputer"));
         assertTrue(text.getText().equals("Add Computer"));
     }
