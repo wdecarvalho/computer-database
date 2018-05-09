@@ -19,7 +19,8 @@ import com.excilys.model.Computer;
 import com.excilys.util.Pages;
 
 public class ComputerDao extends Dao<Computer> {
-
+    private static final String SEARCH_COMPUTER = "SELECT computer.id, computer.name, computer.introduced, computer.discontinued, company.id, company.name "
+            + "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id WHERE computer.name LIKE ? or company.name LIKE ? ORDER BY computer.name ASC LIMIT ? OFFSET ? ";
     private static final String DELETE_ONE_COMPUTER = "DELETE FROM computer where id = ?;";
     private static final String DELETE_LIST_COMPUTER = "DELETE FROM computer where id in %s ;";
     private static final String CREATE_ONE_COMPUTER = "INSERT INTO computer (name,introduced,discontinued,company_id) values (?,?,?,?);";
@@ -32,7 +33,7 @@ public class ComputerDao extends Dao<Computer> {
     private static final String FIND_COMPUTER_PAGE = "SELECT computer.id, computer.name, computer.introduced, computer.discontinued, company.id, company.name "
             + "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id ORDER BY computer.id ASC LIMIT ? OFFSET ? ";
     private static final String NUMBER_PAGE_MAX = "SELECT COUNT(*) FROM computer";
-    private static final String DATE_ERROR_TRUNCATION = "L'année doit être supérieur à 1970";
+    private static final String NUMBER_PAGE_MAX_SEARCH = "SELECT count(*) FROM computer LEFT OUTER JOIN company on computer.company_id = company.id WHERE computer.name LIKE ? or company.name LIKE ? ORDER BY computer.name ASC";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ComputerDao.class);
 
@@ -253,33 +254,108 @@ public class ComputerDao extends Dao<Computer> {
         }
     }
 
+    /**
+     * Recupere le nombre d'ordinateur max de la recherche.
+     * @param search
+     *            Parametre de recherche (nom)
+     * @return Nombre d'ordinateur trouvée.
+     * @throws SQLException
+     *             SQLException
+     */
+    public int numberOfElementToSearch(final String search) throws SQLException {
+        try (Connection connection = daoFactory.getConnexion();
+                PreparedStatement preparedStatement = connection.prepareStatement(NUMBER_PAGE_MAX_SEARCH,
+                        ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+            preparedStatement.setString(1, search);
+            preparedStatement.setString(2, search);
+            try (ResultSet rSet = preparedStatement.executeQuery()) {
+                rSet.next();
+                int numberElement = rSet.getInt(1);
+                return numberElement;
+            }
+        }
+
+    }
+
     @Override
-    public Pages<Computer> findPerPage(int... pageAndNumberResult) {
-        int page = pageAndNumberResult[0];
+    public Pages<Computer> findPerPage(int... pageAndResultAndTypeSearch) {
+        int page = pageAndResultAndTypeSearch[0];
         if (page <= 1) {
             page = 1;
         }
         Pages<Computer> pages = new Pages<Computer>(page);
-        if (pageAndNumberResult.length > 1) {
-            pages.setNumberPerPageResult(pageAndNumberResult[1]);
-        }
         try {
-            pages.setPageMax(numberOfElement());
-            try (Connection connection = daoFactory.getConnexion();
-                    PreparedStatement preparedStatement = connection.prepareStatement(FIND_COMPUTER_PAGE,
-                            ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-                preparedStatement.setInt(1, pages.getNumberPerPageResult());
-                preparedStatement.setInt(2, pages.startResult());
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    while (resultSet.next()) {
-                        pages.getEntities().add(createComputerWithcompany(null, resultSet).get());
-                    }
-                }
+            if (pageAndResultAndTypeSearch.length > 1) {
+                pages.setNumberPerPageResult(pageAndResultAndTypeSearch[1]);
             }
+            createAndExecuteSearchPerPageSql(pages, FIND_COMPUTER_PAGE, "");
         } catch (SQLException e) {
             LOGGER.debug(e.getMessage());
         }
         return pages;
+    }
+
+    /**
+     * Recupere le mot a recherché et effectue une recherche par page.
+     * @param search
+     *            Mot a recherhcé
+     * @param pageAndResultAndTypeSearch
+     *            Contient la page destination et le nombre de resutlat souhaitée
+     * @return Pages de computer
+     */
+    public Pages<Computer> findPerPage(final String search, int... pageAndResultAndTypeSearch) {
+        int page = pageAndResultAndTypeSearch[0];
+        if (page <= 1) {
+            page = 1;
+        }
+        Pages<Computer> pages = new Pages<Computer>(page);
+        try {
+            if (pageAndResultAndTypeSearch.length > 1) {
+                pages.setNumberPerPageResult(pageAndResultAndTypeSearch[1]);
+            }
+            createAndExecuteSearchPerPageSql(pages, SEARCH_COMPUTER, search);
+        } catch (SQLException e) {
+            LOGGER.debug(e.getMessage());
+        }
+        return pages;
+    }
+
+    /**
+     * Creer la requete SQL en fonction du besoin utilisateur et l'execute.
+     * @param pages
+     *            Page a afficher
+     * @param request
+     *            Requete SQL a executer si on fait une recherche ou non
+     * @param search
+     *            La requete SQL va recherché par rapport a cette attribut
+     * @throws SQLException
+     *             SQLException
+     */
+    private void createAndExecuteSearchPerPageSql(final Pages<Computer> pages, final String request,
+            final String search) throws SQLException {
+        String searchAll = "";
+        if (search.isEmpty()) {
+            pages.setPageMax(numberOfElement());
+        } else {
+            searchAll = new StringBuilder("%").append(search).append("%").toString();
+            pages.setPageMax(numberOfElementToSearch(searchAll));
+        }
+        try (Connection connection = daoFactory.getConnexion();
+                PreparedStatement preparedStatement = connection.prepareStatement(request,
+                        ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+            int cpt = 0;
+            if (!search.isEmpty()) {
+                preparedStatement.setString(++cpt, searchAll);
+                preparedStatement.setString(++cpt, searchAll);
+            }
+            preparedStatement.setInt(++cpt, pages.getNumberPerPageResult());
+            preparedStatement.setInt(++cpt, pages.startResult());
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    pages.getEntities().add(createComputerWithcompany(null, resultSet).get());
+                }
+            }
+        }
     }
 
 }

@@ -24,7 +24,7 @@ public class DaoFactory {
 
     private static DaoFactory factory;
 
-    private static HikariConfig config = new HikariConfig();
+    private static HikariConfig config;
     private static HikariDataSource ds;
 
     /**
@@ -46,7 +46,6 @@ public class DaoFactory {
      *             Une DAO non géré a été demandé
      */
     public Dao<?> getDao(DaoType type) throws SQLException, DaoNotInitializeException {
-
         switch (type) {
         case COMPUTER_DAO:
             return getComputerDao();
@@ -104,18 +103,18 @@ public class DaoFactory {
         String driver = null;
         try {
             aProperties.load(path);
-            driver = aProperties.getProperty("driver");
+            driver = aProperties.getProperty("dataSource.driverClassName");
         } catch (FileNotFoundException e) {
             LOGGER.error(e.getMessage());
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
         }
         try {
-            Class.forName(aProperties.getProperty("driver"));
+            Class.forName(aProperties.getProperty("dataSource.driverClassName"));
         } catch (ClassNotFoundException e) {
             LOGGER.error(e.getMessage());
         }
-        LOGGER.info("Base de donnée utilisée : " + aProperties.getProperty("url"));
+        LOGGER.info("Base de donnée utilisée : " + aProperties.getProperty("jdbcUrl"));
         hikariConnectionInit(aProperties);
         if ("org.h2.Driver".equals(driver)) {
             try (Connection connection = ds.getConnection()) {
@@ -135,12 +134,10 @@ public class DaoFactory {
      *            Propriété pour la connexion
      */
     private static void hikariConnectionInit(final Properties aProperties) {
-        config.setJdbcUrl(aProperties.getProperty("url"));
-        config.setUsername(aProperties.getProperty("user"));
-        config.setPassword(aProperties.getProperty("password"));
-        config.addDataSourceProperty("cachePrepStmts", aProperties.getProperty("cachePrepStmts"));
-        config.addDataSourceProperty("prepStmtCacheSize", aProperties.getProperty("prepStmtCacheSize"));
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", aProperties.getProperty("prepStmtCacheSqlLimit"));
+        config = new HikariConfig(aProperties);
+        config.addDataSourceProperty("cachePrepStmts", true);
+        config.addDataSourceProperty("prepStmtCacheSize", 250);
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", 2048);
         ds = new HikariDataSource(config);
     }
 

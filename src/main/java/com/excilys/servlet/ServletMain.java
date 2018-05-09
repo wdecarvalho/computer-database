@@ -21,6 +21,7 @@ import com.excilys.service.ServiceCdb;
 import com.excilys.util.Pages;
 
 import static com.excilys.servlet.RouteUrl.DASHBOARD_JSP;
+
 @WebServlet(name = "dashboard", urlPatterns = { "/dashboard" })
 public class ServletMain extends HttpServlet {
     private static final String NUMBER_RESULT = "numberResult";
@@ -72,6 +73,29 @@ public class ServletMain extends HttpServlet {
      *             Exception généré par la servlet
      */
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        final String action = req.getParameter("action");
+        if ("search".equals(action)) {
+            printDashboard(req, res, req.getParameter("search"));
+        } else {
+            printDashboard(req, res, "");
+        }
+    }
+
+    /**
+     * Affiche le dashboard sans recherche.
+     * @param req
+     *            HttpServletRequest
+     * @param res
+     *            HttpServletReponse
+     * @param search
+     *            Si 0 false sinon true
+     * @throws ServletException
+     *             ServletException
+     * @throws IOException
+     *             IOException
+     */
+    private void printDashboard(HttpServletRequest req, HttpServletResponse res, final String search)
+            throws ServletException, IOException {
         int numberResult = numberResultForThisRequest(req);
         int page = 1;
         try {
@@ -79,7 +103,13 @@ public class ServletMain extends HttpServlet {
         } catch (NumberFormatException e) {
             // Nothing to do especially
         }
-        final Pages<Computer> pagesComputer = serviceCdb.findByPagesComputer(page, numberResult);
+        final Pages<Computer> pagesComputer;
+        if (search.isEmpty()) {
+            pagesComputer = serviceCdb.findByPagesComputer(page, numberResult);
+        } else {
+            pagesComputer = serviceCdb.findByPagesComputer(search, page, numberResult);
+            req.setAttribute("toSearch", search);
+        }
         final List<ComputerDTO> computerDTOs = pagesComputer.getEntities().stream()
                 .map(c -> MapUtil.computerToComputerDTO(c)).collect(Collectors.toList());
         req.setAttribute(COMPUTERS, computerDTOs);

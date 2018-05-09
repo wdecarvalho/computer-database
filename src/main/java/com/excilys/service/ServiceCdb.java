@@ -175,11 +175,19 @@ public class ServiceCdb {
      * @return Page de computer
      */
     public Pages<Computer> findByPagesComputer(int... pageAndNumberResult) {
-        if (pageAndNumberResult.length == 1) {
-            return computerDao.findPerPage(pageAndNumberResult[0]);
-        } else {
-            return computerDao.findPerPage(pageAndNumberResult[0], pageAndNumberResult[1]);
-        }
+        return computerDao.findPerPage(pageAndNumberResult);
+    }
+
+    /**
+     * Retourne les computer par pages et par recherche.
+     * @param search
+     *            Computer ou company name a recherché
+     * @param pageAndNumberResult
+     *            Numero de page courante et nombre de resultat a afficher
+     * @return Page de computer
+     */
+    public Pages<Computer> findByPagesComputer(final String search, int... pageAndNumberResult) {
+        return computerDao.findPerPage(search, pageAndNumberResult);
     }
 
     /**

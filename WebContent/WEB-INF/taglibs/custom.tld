@@ -22,5 +22,10 @@
 			<required>true</required>
 			<type>int</type>
 		</attribute>
+		<attribute>
+			<name>toSearch</name>
+			<rtexprvalue>true</rtexprvalue> 
+			<type>String</type>
+		</attribute>
 	</tag>
 </taglib>

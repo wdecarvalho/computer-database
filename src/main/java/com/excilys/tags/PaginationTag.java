@@ -18,6 +18,7 @@ public class PaginationTag extends SimpleTagSupport {
     private static final String LI_CLASS_PAGE_ITEM = "<li class='page-item'>";
     private int pageCourante;
     private int limit;
+    private String toSearch;
     private static final int NB_PAGE = 2;
 
     /**
@@ -74,7 +75,11 @@ public class PaginationTag extends SimpleTagSupport {
      */
     public String constructUrl(int page) {
         final StringBuilder sBuilder = new StringBuilder(DASHBOARD_PAGE);
-        sBuilder.append(page).append("'");
+        sBuilder.append(page);
+        if (toSearch != null && !toSearch.isEmpty()) {
+            sBuilder.append("&action=search&search=").append(toSearch);
+        }
+        sBuilder.append("'");
         return sBuilder.toString();
 
     }
@@ -93,6 +98,14 @@ public class PaginationTag extends SimpleTagSupport {
 
     public void setLimit(int limit) {
         this.limit = limit;
+    }
+
+    public String getToSearch() {
+        return toSearch;
+    }
+
+    public void setToSearch(String toSearch) {
+        this.toSearch = toSearch;
     }
 
 }

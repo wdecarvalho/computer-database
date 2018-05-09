@@ -48,6 +48,7 @@ import static com.excilys.servlet.ActionUtilisateur.EDITFORM;
 
 @WebServlet(urlPatterns = { "/computer" })
 public class ServletComputer extends HttpServlet {
+    private static final String PAGE = "page";
     private static final String UL_CLOSE = "</ul>";
     private static final String LI_CLOSE = "</li>";
     private static final String LI = "<li>";
@@ -138,7 +139,7 @@ public class ServletComputer extends HttpServlet {
     }
 
     /**
-     * Supprime un computer en base de données si l'ID est valide et présent.
+     * Supprime une liste de computer en base de données si les ID sont valides et sont présents.
      * @param req
      *            HttpServletRequest
      * @param res
@@ -153,7 +154,7 @@ public class ServletComputer extends HttpServlet {
         String[] idsComputer = req.getParameter(SELECTION).split(",");
         if ("".equals(idsComputer[0])) {
             req.setAttribute(MESSAGE_USER, DELETE_NO_COMPUTER_SELECTED.toString());
-            req.setAttribute("page", 60);
+            req.setAttribute(PAGE, 60);
             req.setAttribute(TYPE_MESSAGE, WARNING);
         } else {
             try {
@@ -166,7 +167,7 @@ public class ServletComputer extends HttpServlet {
                 }
             } catch (NumberFormatException e) {
                 req.setAttribute(MESSAGE_USER, DELETE_NO_VALID_ID.toString());
-                req.setAttribute("page", 60);
+                req.setAttribute(PAGE, 60);
                 req.setAttribute(TYPE_MESSAGE, ERROR);
                 req.getRequestDispatcher(DASHBOARD_SERVLET.toString()).forward(req, res);
             }
@@ -176,7 +177,7 @@ public class ServletComputer extends HttpServlet {
 
     /**
      * Verifie que les localdates ne produisent pas d'erreur, demande a la couche de
-     * service de mettre a jour le computer et gere toutes les eventuelles erreurs
+     * service de mettre a jour le computer et gère toutes les eventuelles erreurs
      * qui irait à l'encontre des validations necessaires pour sa modification.
      * @param req
      *            HttpServletRequest
@@ -348,6 +349,7 @@ public class ServletComputer extends HttpServlet {
     }
 
     /**
+     * Ajoute le message d'erreur et son type, et redirige en fonction de l'action.
      * @param req
      *            Requete
      * @param res
@@ -368,7 +370,7 @@ public class ServletComputer extends HttpServlet {
         if (page.equals(ADD_COMPUTER)) {
             req.setAttribute(ACTION, ADDFORM.toString());
         } else {
-            final Long idComputer = Long.valueOf(req.getAttribute(ID).toString());
+            final Long idComputer = Long.valueOf(req.getAttribute(ID).toString()); //ID peut etre null - to string
             try {
                 final ComputerDTO computerDTO = MapUtil
                         .computerToComputerDTO(serviceCdb.getComputerDaoDetails(idComputer));

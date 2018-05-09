@@ -32,13 +32,15 @@
 			<h1 id="homeTitle">${requestScope.nbComputers} Computers found</h1>
 			<div id="actions" class="form-horizontal">
 				<div class="pull-left">
-					<form id="searchForm" action="#" method="GET" class="form-inline">
-
+					<%-- Search Form --%>
+					<form id="searchForm" action="dashboard" method="GET" class="form-inline">
+						<input type="hidden" name="action" value="search"/>
 						<input type="search" id="searchbox" name="search"
-							class="form-control" placeholder="Search name" /> <input
-							type="submit" id="searchsubmit" value="Filter by name"
+							class="form-control" placeholder="Search name" />
+							<input type="submit" id="searchsubmit" value="Filter by name"
 							class="btn btn-primary" />
 					</form>
+					<%-- END --%>
 				</div>
 				<div class="pull-right">
 					<a class="btn btn-success" id="addComputer"
@@ -99,11 +101,15 @@
 		<div class="container text-center">
 
 			<pagination:pagination limit="${requestScope.limit}"
-				pageCourante="${requestScope.pageCourante}" />
+				pageCourante="${requestScope.pageCourante}" toSearch="${toSearch}"/>
 
 			<div class="btn-group btn-group-sm pull-right" role="group">
 				<form id="sendNumberResult" action="dashboard" method="get">
 					<input hidden name="page" value="${requestScope.pageCourante}" />
+					<c:if test="${toSearch != null}">
+						<input hidden name="action" value="search" />
+						<input hidden name="search" value="${toSearch}"/>
+					</c:if>
 				</form>
 				<button form="sendNumberResult" type="submit" name="numberResult"
 					value="10"

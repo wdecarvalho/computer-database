@@ -393,9 +393,10 @@ public class ServiceCdbTest {
     @Test
     @DisplayName("Test delete a computer with no ID or invalid ID")
     public void deleteComputerWithInvalidIdTest() {
-        Mockito.when(computerDao.delete(null)).thenReturn(false);
-        assertFalse(servicecdb.deleteComputer(null));
-        Mockito.verify(computerDao).delete(null);
+        final Computer computer = new Computer.Builder("").build();
+        Mockito.when(computerDao.delete(computer.getId())).thenReturn(false);
+        assertFalse(servicecdb.deleteComputer(computer.getId()));
+        Mockito.verify(computerDao).delete(computer.getId());
         Mockito.when(computerDao.delete(-1L)).thenReturn(false);
         assertFalse(servicecdb.deleteComputer(-1L));
         Mockito.verify(computerDao).delete(-1L);
