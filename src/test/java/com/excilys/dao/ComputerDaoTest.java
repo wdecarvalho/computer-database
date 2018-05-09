@@ -150,6 +150,18 @@ public class ComputerDaoTest {
     }
 
     /**
+     * Verifie que la recherche par page fonctionne.
+     */
+    @Test
+    @DisplayName("Should return 2 for page 1 search requested")
+    public void findPerPageReseach() {
+        assertEquals(2, computerDao.findPerPage("try", 0, 20).getEntities().size());
+        assertEquals(1, computerDao.findPerPage("try", 0, 1).getEntities().size());
+        assertEquals(1, computerDao.findPerPage("try", 2, 1).getEntities().size());
+        assertEquals(2, computerDao.findPerPage("try", 3, 20).getEntities().size());
+    }
+
+    /**
      * Lorsque une SQLException intervient un optional vide doit etre retournée.
      * @throws SQLException
      *             SQLException
@@ -186,6 +198,19 @@ public class ComputerDaoTest {
     public void findPerPageComputerWhenSQLExceptionIsCatched() throws SQLException {
         scenariseConnectionAndPreparedStatement(false, false);
         assertSame(0, mockComputerDao.findPerPage(1).getEntities().size());
+        verifyConnectionAndPreparedStatement(false);
+    }
+
+    /**
+     * Lorsque une SQLException intervient une page vide doit être affichée.
+     * @throws SQLException
+     *             SQLException
+     */
+    @Test
+    @DisplayName("Should return an empty page when a SQLException occures")
+    public void findPerPageWithSQLException() throws SQLException {
+        scenariseConnectionAndPreparedStatement(false, false);
+        assertSame(0, mockComputerDao.findPerPage("try", 0).getPageCourante());
         verifyConnectionAndPreparedStatement(false);
     }
 
@@ -372,6 +397,39 @@ public class ComputerDaoTest {
     public void deleteComputerWhenSQLExceptionIsCatched() throws SQLException {
         scenariseConnectionAndPreparedStatement(true, false);
         assertFalse(mockComputerDao.delete(1L));
+        verifyConnectionAndPreparedStatement(true);
+    }
+
+    /**
+     * Test la suppresion d'une liste de computers.
+     */
+    @Test
+    @DisplayName("Should delete computers with ID 20 and 21")
+    public void deleteComputerByList() {
+        final String listeIdString = "(20,21)";
+        assertTrue(computerDao.delete(listeIdString));
+    }
+
+    /**
+     * Test la supression d'une liste de computer ou les ID n'existe pas.
+     */
+    @Test
+    @DisplayName("Should not delete computers with ID -5 and -1")
+    public void deleteComputerByListNotExisting() {
+        final String listeIdString = "(-5,-1)";
+        assertFalse(computerDao.delete(listeIdString));
+    }
+
+    /**
+     * Test la suppresion d'une liste de computer quand une SQLException apparait.
+     * @throws SQLException
+     *             SQLException
+     */
+    @Test
+    @DisplayName("Should not delete computers when SQLException appear")
+    public void notDeletingWhenSQLException() throws SQLException {
+        scenariseConnectionAndPreparedStatement(true, false);
+        assertFalse(mockComputerDao.delete("(5,10)"));
         verifyConnectionAndPreparedStatement(true);
     }
 

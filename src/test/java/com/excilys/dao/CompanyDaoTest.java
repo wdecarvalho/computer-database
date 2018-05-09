@@ -1,5 +1,6 @@
 package com.excilys.dao;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -101,8 +102,8 @@ public class CompanyDaoTest {
      */
     @Test
     @DisplayName("Test find to get all companys")
-    public void findAllcomputerTest() {
-        assertTrue(companyDao.findAll().size() == 42);
+    public void findAllCompanyTest() {
+        assertTrue(companyDao.findAll().size() >= 38);
     }
 
     /**
@@ -127,6 +128,25 @@ public class CompanyDaoTest {
     }
 
     /**
+     * Verifie que la supression en cascade d'une companie fonctionne.
+     */
+    @Test
+    @DisplayName("Should delete company 34 ")
+    public void deleteCompanyAndHisComputers() {
+        assertTrue(companyDao.delete(34L));
+    }
+
+    /**
+     * Verifie que la supression en cascade d'une companie ne fonctionne pas si l'ID
+     * n'est pas valide.
+     */
+    @Test
+    @DisplayName("Should not delete company 66 ")
+    public void deleteCompanyAndHisComputersWhenIDNotValid() {
+        assertFalse(companyDao.delete(66L));
+    }
+
+    /**
      * Lorsque une SQLException intervient un optional vide doit etre retournée.
      * @throws SQLException
      *             SQLException
@@ -136,7 +156,7 @@ public class CompanyDaoTest {
     public void findComputerWhenSQLExceptionIsCatched() throws SQLException {
         scenariseConnectionAndPreparedStatement(false);
         assertEquals(Optional.empty(), mockCompanyDao.find(1L));
-        verifyConnectionAndPreparedStatement(false);
+        verifyConnectionAndPreparedStatement(false, false);
     }
 
     /**
@@ -149,7 +169,7 @@ public class CompanyDaoTest {
     public void findAllComputersWhenSQLExceptionIsCatched() throws SQLException {
         scenariseConnectionAndPreparedStatement(false);
         assertEquals(0, mockCompanyDao.findAll().size());
-        verifyConnectionAndPreparedStatement(false);
+        verifyConnectionAndPreparedStatement(false, false);
     }
 
     /**
@@ -163,24 +183,43 @@ public class CompanyDaoTest {
     public void findPerPageComputerWhenSQLExceptionIsCatched() throws SQLException {
         scenariseConnectionAndPreparedStatement(false);
         assertSame(0, mockCompanyDao.findPerPage(1).getEntities().size());
-        verifyConnectionAndPreparedStatement(false);
+        verifyConnectionAndPreparedStatement(false, false);
+    }
+
+    /**
+     * Verifie que rien n'est supprimé sur une SQLException intervient.
+     * @throws SQLException
+     *             SQLException
+     */
+    @Test
+    @DisplayName("Should not delete a company if a SQLException occures")
+    public void deleteACompanyWhenSQLExceptionOccures() throws SQLException {
+        scenariseConnectionAndPreparedStatement(true);
+        assertEquals(false, mockCompanyDao.delete(27L));
+        verifyConnectionAndPreparedStatement(false, true);
     }
 
     /**
      * @param update
      *            false si c'est un find, true sinon
+     * @param delete
+     *            true si c'est un delete, false sinon
      * @throws SQLException
      *             When SQLException occures.
      */
-    private void verifyConnectionAndPreparedStatement(final boolean update) throws SQLException {
+    private void verifyConnectionAndPreparedStatement(final boolean update, final boolean delete) throws SQLException {
         Mockito.verify(daoFactory).getConnexion();
-        Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt());
-        if (update) {
+        if (delete) {
+            Mockito.verify(connection, Mockito.times(2)).prepareStatement(Mockito.anyString(), Mockito.anyInt(),
+                    Mockito.anyInt());
+        } else {
+            Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt());
+        }
+        if (update || delete) {
             Mockito.verify(ps).executeUpdate();
         } else {
             Mockito.verify(ps).executeQuery();
         }
-
     }
 
     /**

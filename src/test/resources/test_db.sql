@@ -74,3 +74,16 @@ insert into computer (id,name,introduced,discontinued,company_id) values (  9,'A
 insert into computer (id,name,introduced,discontinued,company_id) values ( 10,'Apple IIc Plus',null,null,null);
 insert into computer (id,name,introduced,discontinued,company_id) values ( 11,'Apple II Plus',null,null,null);
 insert into computer (id,name,introduced,discontinued,company_id) values ( 12,'Apple III','1980-05-01','1984-04-01',1);
+
+insert into computer (id,name,company_id) values ( 20, 'test1', 42);
+insert into computer (id,name,company_id) values ( 21, 'test2', 42);
+insert into computer (id,name,company_id) values ( 22, 'test3', 42);
+insert into computer (id,name,company_id) values ( 23, 'test4', 42);
+insert into computer (id,name,company_id) values ( 24, 'test5', 42);
+insert into computer (id,name,company_id) values ( 25, 'try', 42);
+insert into computer (id,name,company_id) values ( 26, 'try', 42);
+
+insert into computer (id,name,company_id) values ( 30, 'name12', 33);
+insert into computer (id,name,company_id) values ( 31, 'name22', 33);
+insert into computer (id,name,company_id) values ( 32, 'name32', 33);
+

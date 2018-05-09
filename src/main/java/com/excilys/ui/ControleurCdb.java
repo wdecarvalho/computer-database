@@ -24,6 +24,7 @@ import static com.excilys.ui.FormEntry.COMPUTER_NAME;
 import static com.excilys.ui.FormEntry.DATE_DISCONTINUED;
 import static com.excilys.ui.FormEntry.DATE_INTRODUCED;
 import static com.excilys.ui.ChoixUtilisateur.NUMBER_COMPUTER;
+import static com.excilys.ui.ChoixUtilisateur.NUMBER_COMPANY;
 import static com.excilys.ui.ChoixUtilisateur.AJOUTER_COMPANIE_TO_COMPUTER;
 import static com.excilys.ui.ChoixUtilisateur.CHOIX_USER;
 import static com.excilys.ui.ChoixUtilisateur.MESSAGE_USER_COMPUTER;
@@ -125,6 +126,9 @@ public class ControleurCdb {
         case DELETE_COMPUTER:
             deleteComputer();
             break;
+        case DELETE_COMPANY:
+            deleteCompany();
+            break;
         case QUIT:
             run = false;
             break;
@@ -150,6 +154,27 @@ public class ControleurCdb {
             System.out.printf(ID_COMPUTER_NUM_ONLY, "computer");
         } catch (ComputerNotFoundException e) {
             LOGGER.info(e.getMessage());
+        }
+    }
+
+    /**
+     * Supprime la company ainsi que les computeur raccroché.
+     */
+    private void deleteCompany() {
+        System.out.println(NUMBER_COMPANY);
+        try {
+            final Long l = Long.valueOf(scanner.nextLine());
+            if (!serviceCdb.deleteCompany(l)) {
+                if (serviceCdb.isExistCompany(l)) {
+                    LOGGER.info(
+                            "La company n'a pas pu être supprimé a cause d'une dépendence à un ou plusieurs computers");
+                } else {
+                    LOGGER.info(String.format("La company d'id %s n'existe pas", l));
+                }
+            }
+        } catch (NumberFormatException e) {
+            LOGGER.debug(String.format(ID_COMPUTER_NUMBER_ONLY, "company"));
+            System.out.printf(ID_COMPUTER_NUM_ONLY, "company");
         }
     }
 
@@ -347,6 +372,7 @@ public class ControleurCdb {
         System.out.println(ChoixUtilisateur.ADD_COMPUTER);
         System.out.println(ChoixUtilisateur.UPDATE_COMPUTER);
         System.out.println(ChoixUtilisateur.DELETE_COMPUTER);
+        System.out.println(ChoixUtilisateur.DELETE_COMPANY);
         System.out.println(ChoixUtilisateur.QUIT);
         System.out.print(CHOIX_USER);
     }

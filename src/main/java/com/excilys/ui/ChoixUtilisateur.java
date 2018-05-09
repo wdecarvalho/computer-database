@@ -7,9 +7,11 @@ public enum ChoixUtilisateur {
     CHOIX_USER("Veuillez entrez le numéro de l'action souhaitez : ", 0),
     MESSAGE_USER_COMPUTER("Veuillez entrez les informations demandées ci-dessous (entrée pour passer) : ", 0),
     NUMBER_COMPUTER("Quel est le numero de l'ordinateur ? : [0-9] ", 0),
+    NUMBER_COMPANY("Quel est le numero de la companie ? : [0-9] ", 0),
     AJOUTER_COMPANIE_TO_COMPUTER("Voulez vous ajouter une companie à l'ordinateur ? : [y/n] ", 0),
     //-------------------------------------------------
-    QUIT("7. Quit program ", 7),
+    QUIT("8. Quit program ", 8),
+    DELETE_COMPANY("7. Delete a company ", 7),
     DELETE_COMPUTER("6. Delete a computer ", 6),
     UPDATE_COMPUTER("5. Modify a computer ", 5),
     ADD_COMPUTER("4. Add a computer ", 4),

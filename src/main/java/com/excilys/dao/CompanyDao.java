@@ -21,6 +21,8 @@ public class CompanyDao extends Dao<Company> {
     private static final String FIND_COMPUTER_PAGE = "SELECT company.id, company.name "
             + "FROM company ORDER BY company.id ASC LIMIT ? OFFSET ? ";
     private static final String NUMBER_PAGE_MAX = "SELECT COUNT(*) FROM company";
+    private static final String DELETE_ONE_COMPANY = "DELETE FROM company where id = ? ;";
+    private static final String DELETE_COMPUTER_LINKED = "DELETE FROM computer where company_id = ? ;";
     private static final Logger LOGGER = LoggerFactory.getLogger(CompanyDao.class);
 
     private DaoFactory daoFactory;
@@ -127,5 +129,30 @@ public class CompanyDao extends Dao<Company> {
             LOGGER.debug(e.getMessage());
         }
         return pages;
+    }
+
+    @Override
+    public boolean delete(Long id) {
+        boolean res = false;
+        try (Connection connection = daoFactory.getConnexion();
+                PreparedStatement preparedStatement = connection.prepareStatement(DELETE_ONE_COMPANY,
+                        ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+            try (PreparedStatement preparedStatement2 = connection.prepareStatement(DELETE_COMPUTER_LINKED,
+                    ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+                connection.setAutoCommit(false);
+                connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+                preparedStatement2.setLong(1, id);
+                preparedStatement2.executeUpdate();
+                preparedStatement.setLong(1, id);
+                if (preparedStatement.executeUpdate() == 1) {
+                    res = true;
+                }
+                connection.commit();
+            }
+        } catch (SQLException e) {
+            LOGGER.debug(e.getMessage());
+            res = false;
+        }
+        return res;
     }
 }

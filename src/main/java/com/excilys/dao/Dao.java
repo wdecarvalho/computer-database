@@ -9,7 +9,7 @@ public abstract class Dao<T> {
 
     /**
      * Constructeur de Dao.
-    */
+     */
     public Dao() {
     }
 
@@ -35,4 +35,11 @@ public abstract class Dao<T> {
      */
     public abstract Pages<T> findPerPage(int... pageAndNumberResult);
 
+    /**
+     * Supprime un objet stockée en base de données par son ID.
+     * @param id
+     *            ID de l'objet a supprimer
+     * @return True si la suppresion réussie
+     */
+    public abstract boolean delete(Long id);
 }

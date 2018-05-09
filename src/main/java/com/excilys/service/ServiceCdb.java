@@ -149,6 +149,16 @@ public class ServiceCdb {
     }
 
     /**
+     * Demande a la DAO de supprimer une company et les computers rattachés.
+     * @param id
+     *            ID de la company a supprimer.
+     * @return true si la suppresion a fonctionné.
+     */
+    public boolean deleteCompany(final Long id) {
+        return companyDao.delete(id);
+    }
+
+    /**
      * Demande a la DAO de supprimer une liste de computer.
      * @param ids
      *            ID des computers à supprimer
