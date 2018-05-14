@@ -27,7 +27,13 @@ $(document).ready(function() {
 			$("#nomObligatoire").addClass("hidden")
 			$("#divComputerName").addClass("has-success")
 		}
-	}
-
-	)
+	});
+	
+	  var introducedDate = $("#introduced").val();
+	    if (introduced != null) {
+	        $("#discontinued").attr("min", introducedDate);
+	    }
+	    $("#introduced").change(function() {
+	        $("#discontinued").attr("min", $(this).val());
+	    });
 });
