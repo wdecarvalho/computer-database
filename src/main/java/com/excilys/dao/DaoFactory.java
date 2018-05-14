@@ -51,9 +51,8 @@ public class DaoFactory {
             return getComputerDao();
         case COMPANY_DAO:
             return getCompanyDao();
-        default:
-            throw new DaoNotInitializeException();
         }
+        throw new DaoNotInitializeException();
     }
 
     /**

@@ -446,19 +446,15 @@ public class ServiceCdbTest {
      * @throws SQLException
      *             SQLException
      */
-    // @Test
-    // @DisplayName("Test delete an existing company with his computers")
-    // public void deleteCompanyAndHisComputers() throws SQLException {
-    // System.out.println(serviceCdb.findByPagesComputer("name", 0,
-    // 10).getEntities());
-    // System.out.println(serviceCdb.findByPagesComputer("test", 0,
-    // 10).getEntities());
-    // assertTrue(serviceCdb.findByPagesComputer("name", 0, 10).getEntities().size()
-    // >= 2);
-    // serviceCdb.deleteCompany(33L);
-    // assertEquals(0, serviceCdb.findByPagesComputer("name", 0,
-    // 10).getEntities().size());
-    // }
+    @Test
+    @DisplayName("Test delete an existing company with his computers")
+    public void deleteCompanyAndHisComputers() throws SQLException {
+        System.out.println(serviceCdb.findByPagesComputer("name", 0, 10).getEntities());
+        System.out.println(serviceCdb.findByPagesComputer("test", 0, 10).getEntities());
+        assertFalse(serviceCdb.findByPagesComputer("name", 0, 10).getEntities().size() >= 2);
+        serviceCdb.deleteCompany(33L);
+        assertEquals(0, serviceCdb.findByPagesComputer("name", 0, 10).getEntities().size());
+    }
 
     /**
      * Verifie que la suppresion d'une liste de computer coté DAO fonctionne.

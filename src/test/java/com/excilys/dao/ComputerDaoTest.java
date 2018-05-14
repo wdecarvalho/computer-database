@@ -476,4 +476,26 @@ public class ComputerDaoTest {
             Mockito.when(ps.executeQuery()).thenThrow(sqlException);
         }
     }
+
+    /**
+     *
+     * Du fait que la factory couvre toutes les DAO disponible en ENUM, on ne peut
+     * jamais throw l'exception. Lorsque la factory ne couvrera pas toutes les DAO
+     * alors cela pourra etre tester L'appel d'une DAO qui n'existe pas throw une
+     * DaoNotInitializeException.
+     * @throws DaoNotInitializeException
+     *             Si une DAO non attendu apparait
+     * @throws SQLException
+     *             SQLException
+     */
+    // @Test
+    // @DisplayName("Should throw a DaoNotInitiliazException when Service try work
+    // with a DAO that not exist")
+    // public void getDaoThatNotExistTest() throws SQLException,
+    // DaoNotInitializeException {
+    // Mockito.when(daoFactory.getDao(Mockito.any())).thenThrow(DaoNotInitializeException.class);
+    // assertThrows(NullPointerException.class, () ->
+    // DaoFactory.getInstance().getDao(null));
+    // Mockito.verify(daoFactory).getDao(Mockito.any());
+    // }
 }

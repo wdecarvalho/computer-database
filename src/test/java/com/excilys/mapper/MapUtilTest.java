@@ -61,4 +61,44 @@ public class MapUtilTest {
         };
     }
 
+    /*
+     * =============================================================================
+     * = Test la transformation String List Java en String List Database
+     * =============================================================================
+     * =
+     */
+
+    /**
+     * Prend une liste de String qui correspond a liste de long et retourne une
+     * String qui correspond a la liste en base de données.
+     */
+    @Test
+    @DisplayName("Should take a String[] that represent a list of Long and convert it to a String that represent a list in database")
+    public void transformAListJavaToListDatabaseTest() {
+        final String result = MapUtil.stringListIdToStringInListDatabase(new String[] {"1", "2", "3", "4" });
+        assertEquals(result, "(1, 2, 3, 4)");
+    }
+
+    /**
+     * Prend une liste de String qui correspond a liste de long et retourne une
+     * String sans doublon qui correspond a la liste en base de données.
+     */
+    @Test
+    @DisplayName("Should remove doublon during the transformation of the List")
+    public void shouldRemoveDoublonDuringTransformation() {
+        final String result = MapUtil.stringListIdToStringInListDatabase(new String[] {"1", "1", "1", "4" });
+        assertEquals(result, "(1, 4)");
+    }
+
+    /**
+     * Prend une liste de String qui correspond a liste de long et retourne une
+     * String sans doublon qui correspond a la liste en base de données.
+     */
+    @Test
+    @DisplayName("Should remove doublon during the transformation of the List")
+    public void shouldThrowAnError() {
+        assertThrows(NumberFormatException.class,
+                () -> MapUtil.stringListIdToStringInListDatabase(new String[] {"a", "4" }));
+    }
+
 }
