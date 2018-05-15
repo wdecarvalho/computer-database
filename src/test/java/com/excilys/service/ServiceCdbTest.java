@@ -451,7 +451,7 @@ public class ServiceCdbTest {
     public void deleteCompanyAndHisComputers() throws SQLException {
         System.out.println(serviceCdb.findByPagesComputer("name", 0, 10).getEntities());
         System.out.println(serviceCdb.findByPagesComputer("test", 0, 10).getEntities());
-        assertFalse(serviceCdb.findByPagesComputer("name", 0, 10).getEntities().size() >= 2);
+        assertTrue(serviceCdb.findByPagesComputer("name", 0, 10).getEntities().size() >= 2);
         serviceCdb.deleteCompany(33L);
         assertEquals(0, serviceCdb.findByPagesComputer("name", 0, 10).getEntities().size());
     }

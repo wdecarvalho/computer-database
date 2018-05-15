@@ -14,7 +14,6 @@ import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.function.Predicate;
 
 import org.junit.jupiter.api.DisplayName;
 import org.openqa.selenium.Alert;
@@ -23,8 +22,6 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.support.events.WebDriverEventListener;
-import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;

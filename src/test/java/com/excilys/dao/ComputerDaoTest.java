@@ -34,6 +34,7 @@ import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.exception.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
+import com.excilys.util.Pages;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
@@ -127,6 +128,11 @@ public class ComputerDaoTest {
     public void findcomputerByPageTest() {
         assertEquals(1, computerDao.findPerPage(1).getPageCourante());
         assertEquals(2, computerDao.findPerPage(2).getPageCourante());
+        Pages<Computer> pages = computerDao.findPerPage(2);
+        assertTrue(pages.getPageMax() >= 2);
+        assertTrue(pages.getMaxComputers() >= 15);
+        pages.setMaxComputers(23);
+        assertTrue(pages.getMaxComputers() == 23);
     }
 
     /**
