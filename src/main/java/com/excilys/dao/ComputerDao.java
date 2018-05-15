@@ -33,7 +33,7 @@ public class ComputerDao extends Dao<Computer> {
     private static final String FIND_COMPUTER_PAGE = "SELECT computer.id, computer.name, computer.introduced, computer.discontinued, company.id, company.name "
             + "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id ORDER BY computer.id ASC LIMIT ? OFFSET ? ";
     private static final String NUMBER_PAGE_MAX = "SELECT COUNT(computer.id) FROM computer";
-    private static final String NUMBER_PAGE_MAX_SEARCH = "SELECT count(computer.id) FROM computer LEFT OUTER JOIN company on computer.company_id = company.id WHERE computer.name LIKE ? or company.name LIKE ? ORDER BY computer.name ASC; ";
+    private static final String NUMBER_PAGE_MAX_SEARCH = "SELECT count(computer.id) FROM computer LEFT OUTER JOIN company on computer.company_id = company.id WHERE computer.name LIKE ? or company.name LIKE ?; ";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ComputerDao.class);
 

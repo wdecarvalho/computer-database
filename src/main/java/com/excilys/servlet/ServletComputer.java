@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.excilys.dto.ComputerDTO;
 import com.excilys.exception.CompanyNotFoundException;
 import com.excilys.exception.ComputerException;
-import com.excilys.exception.ComputerNeedIdToBeUpdateException;
+import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.ComputerNotFoundException;
 import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.exception.DateTruncationException;
@@ -139,7 +139,8 @@ public class ServletComputer extends HttpServlet {
     }
 
     /**
-     * Supprime une liste de computer en base de données si les ID sont valides et sont présents.
+     * Supprime une liste de computer en base de données si les ID sont valides et
+     * sont présents.
      * @param req
      *            HttpServletRequest
      * @param res
@@ -154,7 +155,6 @@ public class ServletComputer extends HttpServlet {
         String[] idsComputer = req.getParameter(SELECTION).split(",");
         if ("".equals(idsComputer[0])) {
             req.setAttribute(MESSAGE_USER, DELETE_NO_COMPUTER_SELECTED.toString());
-            req.setAttribute(PAGE, 60);
             req.setAttribute(TYPE_MESSAGE, WARNING);
         } else {
             try {
@@ -167,7 +167,6 @@ public class ServletComputer extends HttpServlet {
                 }
             } catch (NumberFormatException e) {
                 req.setAttribute(MESSAGE_USER, DELETE_NO_VALID_ID.toString());
-                req.setAttribute(PAGE, 60);
                 req.setAttribute(TYPE_MESSAGE, ERROR);
                 req.getRequestDispatcher(DASHBOARD_SERVLET.toString()).forward(req, res);
             }
@@ -194,25 +193,53 @@ public class ServletComputer extends HttpServlet {
         if (localDates.isEmpty()) {
             return;
         }
-        final Computer computer = createComputerToAddToDatabase(req, localDates);
-        try {
-            computer.setId(Long.valueOf(req.getParameter(COMPUTER_ID)));
-            serviceCdb.updateComputer(computer);
-            req.setAttribute(MESSAGE_USER, UPDATE_SUCCESSFULL_COMPUTER.toString());
-            req.setAttribute(TYPE_MESSAGE, SUCCESS);
-            req.getRequestDispatcher(DASHBOARD_SERVLET.toString()).forward(req, res);
-        } catch (ComputerException e) {
-            req.setAttribute(ID, computer.getId());
-            sendErrorMessagetoUser(req, res, e.getMessage(), EDIT_COMPUTER);
-        } catch (NumberFormatException e) {
-            sendErrorMessagetoUser(req, res, new ComputerNeedIdToBeUpdateException().getMessage(), DASHBOARD);
-        } catch (DateTruncationException e) {
-            req.setAttribute(ID, computer.getId());
-            sendErrorMessagetoUser(req, res, e.getMessage(), EDIT_COMPUTER);
-        } catch (CompanyNotFoundException e) {
-            req.setAttribute(ID, computer.getId());
-            sendErrorMessagetoUser(req, res, e.getMessage(), EDIT_COMPUTER);
+        final Long computerId = returnIdIfIsPresent(req, res);
+        if (!computerId.equals(-1L)) {
+            try {
+                final Computer computer = createComputerToAddToDatabase(req, localDates);
+                computer.setId(computerId);
+                serviceCdb.updateComputer(computer);
+                req.setAttribute(MESSAGE_USER, UPDATE_SUCCESSFULL_COMPUTER.toString());
+                req.setAttribute(TYPE_MESSAGE, SUCCESS);
+                req.getRequestDispatcher(DASHBOARD_SERVLET.toString()).forward(req, res);
+            } catch (ComputerException e) {
+                req.setAttribute(ID, computerId);
+                sendErrorMessagetoUser(req, res, e.getMessage(), EDIT_COMPUTER);
+            } catch (DateTruncationException e) {
+                req.setAttribute(ID, computerId);
+                sendErrorMessagetoUser(req, res, e.getMessage(), EDIT_COMPUTER);
+            } catch (CompanyNotFoundException e) {
+                req.setAttribute(ID, computerId);
+                sendErrorMessagetoUser(req, res, e.getMessage(), EDIT_COMPUTER);
+            }
         }
+
+    }
+
+    /**
+     * Si l'ID n'est pas present envoie un message d'erreur et renvoie -1 sinon
+     * renvoie l'ID du computer.
+     * @param req
+     *            HttpServletRequest
+     * @param res
+     *            HttpServletResponse
+     * @return -1 ou ID du computer
+     * @throws IOException
+     *             IOException
+     * @throws ServletException
+     *             ServletException
+     */
+    private Long returnIdIfIsPresent(HttpServletRequest req, HttpServletResponse res)
+            throws ServletException, IOException {
+        Long idReturn = -1L;
+        try {
+            idReturn = Long.valueOf(req.getParameter(COMPUTER_ID));
+        } catch (NumberFormatException e) {
+            req.setAttribute(MESSAGE_USER, DELETE_NO_VALID_ID.toString());
+            req.setAttribute(TYPE_MESSAGE, ERROR);
+            req.getRequestDispatcher(DASHBOARD_SERVLET.toString()).forward(req, res);
+        }
+        return idReturn;
     }
 
     /**
@@ -260,8 +287,8 @@ public class ServletComputer extends HttpServlet {
         if (localDates.isEmpty()) {
             return;
         }
-        final Computer computer = createComputerToAddToDatabase(req, localDates);
         try {
+            final Computer computer = createComputerToAddToDatabase(req, localDates);
             if (serviceCdb.createComputer(computer) == -1L) {
                 sendErrorMessagetoUser(req, res, ADD_ERROR_COMPUTER.toString(), ADD_COMPUTER);
             } else {
@@ -285,11 +312,17 @@ public class ServletComputer extends HttpServlet {
      * @param localDates
      *            LocalDate introduced et discontinued
      * @return Computer computer a ajouté en base
+     * @throws ComputerNameNotPresentException
+     *             Le nom du computer est obligatoire
      */
-    private Computer createComputerToAddToDatabase(HttpServletRequest req, final List<LocalDate> localDates) {
+    private Computer createComputerToAddToDatabase(HttpServletRequest req, final List<LocalDate> localDates)
+            throws ComputerNameNotPresentException {
         final LocalDate introduced = localDates.get(0);
         final LocalDate discontinued = localDates.get(1);
         final String computerName = req.getParameter(COMPUTER_NAME);
+        if (computerName.trim().isEmpty()) {
+            throw new ComputerNameNotPresentException();
+        }
         final Long companyId = Long.valueOf(req.getParameter(COMPANY_ID));
         Company company = null;
         if (companyId != 0L) { // Attention service catch company hors liste et -1
@@ -370,7 +403,7 @@ public class ServletComputer extends HttpServlet {
         if (page.equals(ADD_COMPUTER)) {
             req.setAttribute(ACTION, ADDFORM.toString());
         } else {
-            final Long idComputer = Long.valueOf(req.getAttribute(ID).toString()); //ID peut etre null - to string
+            final Long idComputer = Long.valueOf(req.getAttribute(ID).toString()); // ID peut etre null - to string
             try {
                 final ComputerDTO computerDTO = MapUtil
                         .computerToComputerDTO(serviceCdb.getComputerDaoDetails(idComputer));

@@ -9,6 +9,13 @@ import com.excilys.exception.DateIntroShouldBeMinorthanDisconException;
 public class ComputerValidation {
 
     /**
+     * Non instanciable de l'exterieur.
+     */
+    private ComputerValidation() {
+
+    }
+
+    /**
      * Verifie que le champ obligatoire nom est bien présent.
      * @param name
      *            Nom du computer
