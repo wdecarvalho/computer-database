@@ -17,7 +17,7 @@ import com.excilys.dto.ComputerDTO;
 import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.mapper.MapUtil;
 import com.excilys.model.Computer;
-import com.excilys.service.ServiceCdb;
+import com.excilys.service.ServiceComputer;
 import com.excilys.util.Pages;
 
 import static com.excilys.servlet.RouteUrl.DASHBOARD_JSP;
@@ -33,14 +33,14 @@ public class ServletMain extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(Logger.class);
 
-    private ServiceCdb serviceCdb;
+    private ServiceComputer serviceComputer;
 
     /**
      * Init le service de CDB.
      */
     public ServletMain() {
         try {
-            serviceCdb = ServiceCdb.getInstance();
+            serviceComputer = ServiceComputer.getInstance();
         } catch (DaoNotInitializeException e) {
             LOGGER.error(e.getMessage());
         }
@@ -105,9 +105,9 @@ public class ServletMain extends HttpServlet {
         }
         final Pages<Computer> pagesComputer;
         if (search.isEmpty()) {
-            pagesComputer = serviceCdb.findByPagesComputer(page, numberResult);
+            pagesComputer = serviceComputer.findByPage(page, numberResult);
         } else {
-            pagesComputer = serviceCdb.findByPagesComputer(search, page, numberResult);
+            pagesComputer = serviceComputer.findByPagesComputer(search, page, numberResult);
             req.setAttribute("toSearch", search);
         }
         final List<ComputerDTO> computerDTOs = pagesComputer.getEntities().stream()

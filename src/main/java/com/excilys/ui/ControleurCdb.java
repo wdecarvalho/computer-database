@@ -15,7 +15,8 @@ import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.exception.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
-import com.excilys.service.ServiceCdb;
+import com.excilys.service.ServiceCompany;
+import com.excilys.service.ServiceComputer;
 import com.excilys.util.Pages;
 
 import static com.excilys.ui.FormEntry.CURRENT;
@@ -57,7 +58,8 @@ public class ControleurCdb {
 
     private static final String DECORATE = "============== Gestion CDB ==============";
 
-    private ServiceCdb serviceCdb;
+    private ServiceComputer serviceComputer;
+    private ServiceCompany serviceCompany;
 
     private Scanner scanner;
 
@@ -75,7 +77,8 @@ public class ControleurCdb {
      */
     public void core() {
         try {
-            serviceCdb = ServiceCdb.getInstance();
+            serviceComputer = ServiceComputer.getInstance();
+            serviceCompany = ServiceCompany.getInstance();
         } catch (DaoNotInitializeException e1) {
             LOGGER.error(e1.getMessage());
             return;
@@ -147,8 +150,8 @@ public class ControleurCdb {
         System.out.println(NUMBER_COMPUTER);
         try {
             final Long l = Long.valueOf(scanner.nextLine());
-            final Computer computer3 = serviceCdb.getComputerDaoDetails(l);
-            serviceCdb.deleteComputer(computer3.getId());
+            final Computer computer3 = serviceComputer.getComputerDaoDetails(l);
+            serviceComputer.deleteOne(computer3.getId());
         } catch (NumberFormatException e) {
             LOGGER.debug(String.format(ID_COMPUTER_NUMBER_ONLY, "computer"));
             System.out.printf(ID_COMPUTER_NUM_ONLY, "computer");
@@ -164,8 +167,8 @@ public class ControleurCdb {
         System.out.println(NUMBER_COMPANY);
         try {
             final Long l = Long.valueOf(scanner.nextLine());
-            if (!serviceCdb.deleteCompany(l)) {
-                if (serviceCdb.isExistCompany(l)) {
+            if (!serviceCompany.deleteOne(l)) {
+                if (serviceCompany.isExistCompany(l)) {
                     LOGGER.info(
                             "La company n'a pas pu être supprimé a cause d'une dépendence à un ou plusieurs computers");
                 } else {
@@ -187,10 +190,10 @@ public class ControleurCdb {
         System.out.println(NUMBER_COMPUTER);
         try {
             final Long l = Long.valueOf(scanner.nextLine());
-            final Computer current = serviceCdb.getComputerDaoDetails(l);
+            final Computer current = serviceComputer.getComputerDaoDetails(l);
             final Computer computer2 = creationComputer(current);
             computer2.setId(l);
-            serviceCdb.updateComputer(computer2);
+            serviceComputer.updateComputer(computer2);
         } catch (NumberFormatException e) {
             LOGGER.debug(String.format(ID_COMPUTER_NUMBER_ONLY, "computer"));
             System.out.printf(ID_COMPUTER_NUM_ONLY, "computer");
@@ -323,7 +326,7 @@ public class ControleurCdb {
 
             try {
                 Long companyId = Long.valueOf(scanner.nextLine());
-                while (!serviceCdb.isExistCompany(companyId)) {
+                while (!serviceCompany.isExistCompany(companyId)) {
                     System.out.println(COMPANY_NOT_FOUND + companyId);
                     companyId = Long.valueOf(scanner.nextLine());
                 }
@@ -349,7 +352,7 @@ public class ControleurCdb {
      */
     private void insertComputer(final Computer computer) {
         try {
-            if (serviceCdb.createComputer(computer).equals(-1L)) {
+            if (serviceComputer.createComputer(computer).equals(-1L)) {
                 System.out.println(COMPUTER_NOT_SAVE);
             }
         } catch (CompanyNotFoundException e) {
@@ -408,7 +411,7 @@ public class ControleurCdb {
      *            : Numero de page a afficher
      */
     private void printListComputersByPage(int page) {
-        final Pages<Computer> pages = serviceCdb.findByPagesComputer(page);
+        final Pages<Computer> pages = serviceComputer.findByPage(page);
         for (Computer computer : pages.getEntities()) {
             System.out.println(computer);
         }
@@ -446,7 +449,7 @@ public class ControleurCdb {
      *            Numero de page a afficher
      */
     private void printListCompaniesByPage(int page) {
-        final Pages<Company> pages = serviceCdb.findByPagesCompany(page);
+        final Pages<Company> pages = serviceCompany.findByPage(page);
         for (Company company : pages.getEntities()) {
             System.out.println(company);
         }
@@ -460,7 +463,7 @@ public class ControleurCdb {
      */
     private void printComputer(final Long id) {
         try {
-            System.out.println(serviceCdb.getComputerDaoDetails(id));
+            System.out.println(serviceComputer.getComputerDaoDetails(id));
         } catch (ComputerNotFoundException e) {
             LOGGER.info(e.getMessage());
         }

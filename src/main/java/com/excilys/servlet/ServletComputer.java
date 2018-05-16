@@ -29,7 +29,8 @@ import com.excilys.exception.LocalDateExpectedException;
 import com.excilys.mapper.MapUtil;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
-import com.excilys.service.ServiceCdb;
+import com.excilys.service.ServiceCompany;
+import com.excilys.service.ServiceComputer;
 
 import static com.excilys.servlet.MessagetypeUser.ADD_ERROR_COMPUTER;
 import static com.excilys.servlet.MessagetypeUser.ADD_SUCCESSFULL_COMPUTER;
@@ -71,14 +72,16 @@ public class ServletComputer extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(Logger.class);
 
-    private ServiceCdb serviceCdb;
+    private ServiceComputer serviceComputer;
+    private ServiceCompany serviceCompany;
 
     /**
      * Init le service de CDB.
      */
     public ServletComputer() {
         try {
-            serviceCdb = ServiceCdb.getInstance();
+            serviceComputer = ServiceComputer.getInstance();
+            serviceCompany = ServiceCompany.getInstance();
         } catch (DaoNotInitializeException e) {
             LOGGER.error(e.getMessage());
         }
@@ -115,7 +118,7 @@ public class ServletComputer extends HttpServlet {
         if (action != null) {
             switch (ActionUtilisateur.getEnum(action)) {
             case ADDFORM:
-                req.setAttribute(COMPANYS, serviceCdb.getListCompanies());
+                req.setAttribute(COMPANYS, serviceCompany.getAll());
                 req.getRequestDispatcher(ADDCOMPUTER_JSP.toString()).forward(req, res);
                 break;
             case ADD:
@@ -158,7 +161,7 @@ public class ServletComputer extends HttpServlet {
             req.setAttribute(TYPE_MESSAGE, WARNING);
         } else {
             try {
-                if (serviceCdb.deleteComputer(MapUtil.stringListIdToStringInListDatabase(idsComputer))) {
+                if (serviceComputer.deleteComputer(MapUtil.stringListIdToStringInListDatabase(idsComputer))) {
                     req.setAttribute(MESSAGE_USER, DELETE_SUCCESSFULL_COMPUTER.toString());
                     req.setAttribute(TYPE_MESSAGE, SUCCESS);
                 } else {
@@ -198,7 +201,7 @@ public class ServletComputer extends HttpServlet {
             try {
                 final Computer computer = createComputerToAddToDatabase(req, localDates);
                 computer.setId(computerId);
-                serviceCdb.updateComputer(computer);
+                serviceComputer.updateComputer(computer);
                 req.setAttribute(MESSAGE_USER, UPDATE_SUCCESSFULL_COMPUTER.toString());
                 req.setAttribute(TYPE_MESSAGE, SUCCESS);
                 req.getRequestDispatcher(DASHBOARD_SERVLET.toString()).forward(req, res);
@@ -257,9 +260,9 @@ public class ServletComputer extends HttpServlet {
             throws ServletException, IOException {
         try {
             final Long idComputer = Long.valueOf(req.getParameter(ID));
-            ComputerDTO computerDTO = MapUtil.computerToComputerDTO(serviceCdb.getComputerDaoDetails(idComputer));
+            ComputerDTO computerDTO = MapUtil.computerToComputerDTO(serviceComputer.getComputerDaoDetails(idComputer));
             req.setAttribute(COMPUTER, computerDTO);
-            req.setAttribute(COMPANYS, serviceCdb.getListCompanies());
+            req.setAttribute(COMPANYS, serviceCompany.getAll());
             req.getRequestDispatcher(EDITCOMPUTER_JSP.toString()).forward(req, res);
         } catch (NumberFormatException e) {
             req.getRequestDispatcher(ERROR_PAGE_404.toString()).forward(req, res);
@@ -289,7 +292,7 @@ public class ServletComputer extends HttpServlet {
         }
         try {
             final Computer computer = createComputerToAddToDatabase(req, localDates);
-            if (serviceCdb.createComputer(computer) == -1L) {
+            if (serviceComputer.createComputer(computer) == -1L) {
                 sendErrorMessagetoUser(req, res, ADD_ERROR_COMPUTER.toString(), ADD_COMPUTER);
             } else {
                 req.setAttribute(MESSAGE_USER, ADD_SUCCESSFULL_COMPUTER.toString());
@@ -406,14 +409,14 @@ public class ServletComputer extends HttpServlet {
             final Long idComputer = Long.valueOf(req.getAttribute(ID).toString()); // ID peut etre null - to string
             try {
                 final ComputerDTO computerDTO = MapUtil
-                        .computerToComputerDTO(serviceCdb.getComputerDaoDetails(idComputer));
+                        .computerToComputerDTO(serviceComputer.getComputerDaoDetails(idComputer));
                 req.setAttribute(COMPUTER, computerDTO);
             } catch (ComputerNotFoundException e) {
                 LOGGER.info(e.getMessage());
             }
             req.setAttribute(ACTION, EDITFORM.toString());
         }
-        req.setAttribute(COMPANYS, serviceCdb.getListCompanies());
+        req.setAttribute(COMPANYS, serviceCompany.getAll());
         req.getRequestDispatcher(String.format("jsp/%s.jsp", page)).forward(req, res);
     }
 
