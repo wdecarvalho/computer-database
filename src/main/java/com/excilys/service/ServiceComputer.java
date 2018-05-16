@@ -96,8 +96,7 @@ public class ServiceComputer implements ServiceCdb<Computer> {
         if (c.getCompany() != null && !serviceCompany.isExistCompany(c.getCompany().getId())) {
             throw new CompanyNotFoundException(c.getCompany().getId().toString());
         }
-        ComputerValidation.nameIsRequiredForComputer(c.getName());
-        ComputerValidation.dateIntroMinorThanDateDiscon(c.getIntroduced(), c.getDiscontinued());
+        ComputerValidation.validateComputerNameAndDate(c);
         return computerDao.create(c);
     }
 
@@ -118,9 +117,7 @@ public class ServiceComputer implements ServiceCdb<Computer> {
         if (c.getCompany() != null && !serviceCompany.isExistCompany(c.getCompany().getId())) {
             throw new CompanyNotFoundException(c.getCompany().getId().toString());
         }
-        ComputerValidation.idIsRequiredForComputerUpdate(c.getId());
-        ComputerValidation.nameIsRequiredForComputer(c.getName());
-        ComputerValidation.dateIntroMinorThanDateDiscon(c.getIntroduced(), c.getDiscontinued());
+        ComputerValidation.validateComputerAndVerifyPresenceId(c);
         return computerDao.update(c).orElseThrow(() -> new ComputerNotUpdatedException(c.getId().toString()));
     }
 

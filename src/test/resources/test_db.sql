@@ -87,3 +87,7 @@ insert into computer (id,name,company_id) values ( 30, 'name12', 33);
 insert into computer (id,name,company_id) values ( 31, 'name22', 33);
 insert into computer (id,name,company_id) values ( 32, 'name32', 33);
 
+insert into computer (id,name,company_id) values (40, 'cascade', 38);
+insert into computer (id,name,company_id) values (41, 'cascade2', 38);
+insert into computer (id,name,company_id) values (42, 'cascade3', 38);
+

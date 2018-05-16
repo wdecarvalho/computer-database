@@ -56,12 +56,13 @@ public class ServiceCdbTest {
     @InjectMocks
     private ServiceComputer mockServiceComputer;
 
-
     @InjectMocks
     private ServiceCompany mockServiceCompany;
 
     @Mock
     private ServiceCompany serviceCompany;
+
+    private ServiceCompany serviceCompanyReal;
 
     private ServiceComputer serviceComputer;
 
@@ -91,6 +92,7 @@ public class ServiceCdbTest {
         computer2 = new Computer.Builder("PC_NAME").introduced(LocalDate.now()).discontinued(LocalDate.now())
                 .company(new Company.Builder(1L).name("COMP_NAME").build()).build();
         serviceComputer = ServiceComputer.getInstance();
+        serviceCompanyReal = ServiceCompany.getInstance();
     }
 
     /*
@@ -483,8 +485,21 @@ public class ServiceCdbTest {
         Mockito.verify(computerDao).delete("(-4,1222)");
     }
 
+    /**
+     * Demande a la DAO de supprimer une company.
+     */
+    @Test
+    @DisplayName("Should delete company id ? and computers (?,?,?")
+    public void deleteOneCompany() {
+        assertEquals(3, serviceComputer.findByPagesComputer("cascade", 1).getEntities().size());
+        serviceCompanyReal.deleteOne(38L);
+        assertEquals(0, serviceComputer.findByPagesComputer("cascade", 1).getEntities().size());
+    }
+
     /*
-     * Creation du service
+     * ==================================================================== Creation
+     * du service
+     * ====================================================================
      */
 
     /**

@@ -11,6 +11,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.excilys.mapper.MapResulSet;
 import com.excilys.model.Company;
 import com.excilys.util.Pages;
 
@@ -59,8 +60,7 @@ public class CompanyDao extends Dao<Company> {
             preparedStatement.setInt(1, id.intValue());
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
-                    company = Optional.ofNullable(
-                            new Company.Builder(resultSet.getLong("id")).name(resultSet.getString("name")).build());
+                    company = MapResulSet.resulSetToOptionalCompanyComplete(resultSet);
                 }
             }
         } catch (SQLException e) {
@@ -77,7 +77,7 @@ public class CompanyDao extends Dao<Company> {
                         ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
                 ResultSet resultSet = preparedStatement.executeQuery()) {
             while (resultSet.next()) {
-                companys.add(new Company.Builder(resultSet.getLong("id")).name(resultSet.getString("name")).build());
+                companys.add(MapResulSet.resulSetToCompanyComplete(resultSet));
             }
         } catch (SQLException e) {
             LOGGER.debug(e.getMessage());
@@ -119,8 +119,7 @@ public class CompanyDao extends Dao<Company> {
                 preparedStatement.setInt(2, pages.startResult());
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     while (resultSet.next()) {
-                        pages.getEntities().add(
-                                new Company.Builder(resultSet.getLong("id")).name(resultSet.getString("name")).build());
+                        pages.getEntities().add(MapResulSet.resulSetToCompanyComplete(resultSet));
                     }
                 }
             }

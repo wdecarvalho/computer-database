@@ -2,9 +2,11 @@ package com.excilys.validation;
 
 import java.time.LocalDate;
 
+import com.excilys.exception.ComputerException;
 import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.ComputerNeedIdToBeUpdateException;
 import com.excilys.exception.DateIntroShouldBeMinorthanDisconException;
+import com.excilys.model.Computer;
 
 public class ComputerValidation {
 
@@ -16,13 +18,42 @@ public class ComputerValidation {
     }
 
     /**
+     * Verifie que le nom du computer est bien présent et que la date introduced <=
+     * date discontinued.
+     * @param c
+     *            Computer
+     * @throws ComputerException
+     *             Si une erreur de validation intervient Si le nom de l'ordinateur
+     *             n'est pas présent
+     */
+    public static void validateComputerNameAndDate(final Computer c) throws ComputerException {
+        nameIsRequiredForComputer(c.getName());
+        dateIntroMinorThanDateDiscon(c.getIntroduced(), c.getDiscontinued());
+    }
+
+    /**
+     * Verifie que l'id est present pour un objet attaché a la BD et valide des
+     * pré-requis.
+     * @param c
+     *            Computer
+     * @throws ComputerException
+     *             Si une erreur de validation intervient Si le nom de l'ordinateur
+     *             n'est pas présent
+     */
+    public static void validateComputerAndVerifyPresenceId(final Computer c) throws ComputerException {
+        idIsRequiredForComputerUpdate(c.getId());
+        validateComputerNameAndDate(c);
+
+    }
+
+    /**
      * Verifie que le champ obligatoire nom est bien présent.
      * @param name
      *            Nom du computer
      * @throws ComputerNameNotPresentException
      *             Le nom est obligatoire
      */
-    public static void nameIsRequiredForComputer(final String name) throws ComputerNameNotPresentException {
+    private static void nameIsRequiredForComputer(final String name) throws ComputerNameNotPresentException {
         if (name == null || name.isEmpty()) {
             throw new ComputerNameNotPresentException();
         }
@@ -37,7 +68,7 @@ public class ComputerValidation {
      * @throws DateIntroShouldBeMinorthanDisconException
      *             Exception si la date ne respecte pas la regle
      */
-    public static void dateIntroMinorThanDateDiscon(final LocalDate intro, final LocalDate discon)
+    private static void dateIntroMinorThanDateDiscon(final LocalDate intro, final LocalDate discon)
             throws DateIntroShouldBeMinorthanDisconException {
         boolean dateIntroMinorThanDateDisco = intro != null && discon != null && discon.isBefore(intro);
         if (dateIntroMinorThanDateDisco) {
@@ -52,7 +83,7 @@ public class ComputerValidation {
      * @throws ComputerNeedIdToBeUpdateException
      *             L'ID est obligatoire pour mise a jour
      */
-    public static void idIsRequiredForComputerUpdate(final Long id) throws ComputerNeedIdToBeUpdateException {
+    private static void idIsRequiredForComputerUpdate(final Long id) throws ComputerNeedIdToBeUpdateException {
         if (id == null) {
             throw new ComputerNeedIdToBeUpdateException();
         }

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.excilys.exception.DateTruncationException;
+import com.excilys.mapper.MapResulSet;
 import com.excilys.mapper.MapUtil;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
@@ -218,16 +219,9 @@ public class ComputerDao extends Dao<Computer> {
         Company company = null;
         if (resultSet.getString("company.id") != null) {
 
-            company = new Company.Builder(resultSet.getLong("company.id")).name(resultSet.getString("company.name"))
-                    .build();
+            company = MapResulSet.resulSetToCompanyOfComputer(resultSet);
         }
-        final String computerName = resultSet.getString("computer.name");
-        final Long computerId = resultSet.getLong("computer.id");
-
-        computer = Optional.ofNullable(new Computer.Builder(computerName).id(computerId)
-                .introduced(MapUtil.convertTimeStampToLocal(resultSet.getTimestamp("computer.introduced")))
-                .discontinued(MapUtil.convertTimeStampToLocal(resultSet.getTimestamp("computer.discontinued")))
-                .company(company).build());
+        computer = MapResulSet.resulsetToOptionalComputer(resultSet, company);
         return computer;
     }
 
