@@ -1,11 +1,5 @@
 package com.excilys.selenium;
 
-import org.testng.annotations.Test;
-
-import com.excilys.exception.DaoNotInitializeException;
-
-import org.testng.annotations.BeforeClass;
-
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -24,13 +18,13 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+import com.excilys.exception.DaoNotInitializeException;
 
 public class SeleniumTest {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SeleniumTest.class);
 
     private WebDriver driver;
 
@@ -65,7 +59,6 @@ public class SeleniumTest {
     @Test
     @DisplayName("Should show the first page when page not setted")
     public void verifyPaginationDefaultTest() {
-        JavascriptExecutor js = (JavascriptExecutor) driver;
         driver.get("http://localhost:8081/william.cdb/dashboard");
         WebElement pageActive = driver.findElement(By.className("pagination")).findElement(By.className("active"));
         assertEquals(pageActive.getText(), "1");
@@ -74,6 +67,7 @@ public class SeleniumTest {
     /**
      * Verifie que si la page 2 est disponible un clic sur celle-ci nous deplace.
      */
+    @SuppressWarnings("unchecked")
     @Test
     @DisplayName("Should go to page 2 when click on it is possible")
     public void verifyPaginationGoToExistTest() {

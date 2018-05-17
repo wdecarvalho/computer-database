@@ -1,6 +1,5 @@
 package com.excilys.service;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -26,7 +25,10 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import com.excilys.config.ServerConfiguration;
 import com.excilys.dao.CompanyDao;
 import com.excilys.dao.ComputerDao;
 import com.excilys.exception.CompanyNotFoundException;
@@ -35,15 +37,15 @@ import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.ComputerNeedIdToBeUpdateException;
 import com.excilys.exception.ComputerNotFoundException;
 import com.excilys.exception.ComputerNotUpdatedException;
-import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.exception.DateIntroShouldBeMinorthanDisconException;
 import com.excilys.exception.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
 import com.excilys.util.Pages;
 
-@ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
+@ExtendWith(MockitoExtension.class)
+@SpringJUnitConfig(classes = ServerConfiguration.class)
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
 public class ServiceCdbTest {
 
@@ -62,8 +64,10 @@ public class ServiceCdbTest {
     @Mock
     private ServiceCompany serviceCompany;
 
+    @Autowired
     private ServiceCompany serviceCompanyReal;
 
+    @Autowired
     private ServiceComputer serviceComputer;
 
     private Computer computer;
@@ -76,13 +80,9 @@ public class ServiceCdbTest {
 
     /**
      * Set up la classe de test en initialisant la couche de service.
-     * @throws DaoNotInitializeException
-     *             Si la DAO n'est pas correctement initialisée
-     * @throws SQLException
-     *             Si une erreur SQL intervient
      */
     @BeforeAll
-    public void setUp() throws SQLException, DaoNotInitializeException {
+    public void setUp() {
         MockitoAnnotations.initMocks(this);
         company = new Company.Builder(1L).name("COMP_NAME").build();
         computer = new Computer.Builder("PC_NAME").introduced(LocalDate.now()).discontinued(LocalDate.now())
@@ -91,8 +91,6 @@ public class ServiceCdbTest {
         // creation d'un computer d'instance differente pour tester l'equals.
         computer2 = new Computer.Builder("PC_NAME").introduced(LocalDate.now()).discontinued(LocalDate.now())
                 .company(new Company.Builder(1L).name("COMP_NAME").build()).build();
-        serviceComputer = ServiceComputer.getInstance();
-        serviceCompanyReal = ServiceCompany.getInstance();
     }
 
     /*
@@ -220,13 +218,14 @@ public class ServiceCdbTest {
     @Test
     @DisplayName("Test to create a valid computer")
     public void createValidComputerTest() throws CompanyNotFoundException, ComputerException, DateTruncationException {
+        Computer computer = new Computer.Builder("test").id(8L).build();
         Mockito.when(computerDao.create(computer)).thenReturn(1L);
         assertSame(1L, mockServiceComputer.createComputer(computer));
-        final Computer computer = new Computer.Builder("e").introduced(LocalDate.parse("2014-12-30"))
+        computer = new Computer.Builder("e").introduced(LocalDate.parse("2014-12-30"))
                 .discontinued(LocalDate.parse("2015-01-01")).build();
         Mockito.when(computerDao.create(computer)).thenReturn(2L);
         assertSame(2L, mockServiceComputer.createComputer(computer));
-        Mockito.verify(computerDao, Mockito.times(2)).create(computer);
+        Mockito.verify(computerDao).create(computer);
     }
 
     /**
@@ -377,9 +376,8 @@ public class ServiceCdbTest {
         assertThrows(CompanyNotFoundException.class, () -> serviceComputer.updateComputer(computer));
         computer.getCompany().setId(50L);
         assertThrows(CompanyNotFoundException.class, () -> serviceComputer.updateComputer(computer));
-        computer.getCompany().setId(5L);
-        computer.setId(10L);
-        assertThrows(ComputerNotUpdatedException.class, () -> mockServiceComputer.updateComputer(computer));
+        computer.getCompany().setId(-1L);
+        assertThrows(CompanyNotFoundException.class, () -> mockServiceComputer.updateComputer(computer));
     }
 
     /*
@@ -449,7 +447,6 @@ public class ServiceCdbTest {
         Mockito.verify(companyDao).delete(1L);
     }
 
-    // FIXME intestable avec H2
     /**
      * Verifie que la suppresion d'une companie supprime bien tous ses computers.
      * @throws SQLException
@@ -508,12 +505,12 @@ public class ServiceCdbTest {
      * @throws DaoNotInitializeException
      *             Si une DAO n'a pas réussi a s'initiliaser
      */
-    @Test
-    @DisplayName("Should return instance since is created")
-    public void getServiceInstance() throws DaoNotInitializeException {
-        ServiceComputer serviceCdb = ServiceComputer.getInstance();
-        ServiceComputer serviceCdb2 = ServiceComputer.getInstance();
-        assertNotNull(serviceCdb);
-        assertEquals(serviceCdb, serviceCdb2);
-    }
+    // @Test
+    // @DisplayName("Should return instance since is created")
+    // public void getServiceInstance() throws DaoNotInitializeException {
+    // ServiceComputer serviceCdb = ServiceComputer.getInstance();
+    // ServiceComputer serviceCdb2 = ServiceComputer.getInstance();
+    // assertNotNull(serviceCdb);
+    // assertEquals(serviceCdb, serviceCdb2);
+    // }
 }

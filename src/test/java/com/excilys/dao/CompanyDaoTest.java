@@ -6,14 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.FileNotFoundException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeAll;
+import javax.sql.DataSource;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -23,17 +23,20 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
-import com.excilys.exception.DaoNotInitializeException;
+import com.excilys.config.ServerConfiguration;
 import com.excilys.model.Company;
 import com.mysql.cj.protocol.Resultset;
 
-@ExtendWith(MockitoExtension.class) // RunWith
 @TestInstance(Lifecycle.PER_CLASS)
+@ExtendWith(MockitoExtension.class)
+@SpringJUnitConfig(classes = ServerConfiguration.class)
 public class CompanyDaoTest {
 
     @Mock
-    private DaoFactory daoFactory;
+    private DataSource dataSource;
 
     @Mock
     private Connection connection;
@@ -47,22 +50,8 @@ public class CompanyDaoTest {
     @InjectMocks
     private CompanyDao mockCompanyDao;
 
+    @Autowired
     private CompanyDao companyDao;
-
-    /**
-     * SetUp la classe de test en initialisant la companyDao et en preparant la base
-     * de données.
-     * @throws SQLException
-     *             Si une erreur SQL apparait
-     * @throws DaoNotInitializeException
-     *             Si la DAO n'est pas initialisée
-     * @throws FileNotFoundException
-     *             Si le fichier de script est manquant
-     */
-    @BeforeAll
-    public void setUp() throws SQLException, DaoNotInitializeException, FileNotFoundException {
-        companyDao = (CompanyDao) DaoFactory.getInstance().getDao(DaoType.COMPANY_DAO);
-    }
 
     /*
      * Test find en base de donnée
@@ -208,7 +197,7 @@ public class CompanyDaoTest {
      *             When SQLException occures.
      */
     private void verifyConnectionAndPreparedStatement(final boolean update, final boolean delete) throws SQLException {
-        Mockito.verify(daoFactory).getConnexion();
+        Mockito.verify(dataSource).getConnection();
         if (delete) {
             Mockito.verify(connection, Mockito.times(2)).prepareStatement(Mockito.anyString(), Mockito.anyInt(),
                     Mockito.anyInt());
@@ -229,7 +218,7 @@ public class CompanyDaoTest {
      *             When SQLException occures.
      */
     private void scenariseConnectionAndPreparedStatement(final boolean update) throws SQLException {
-        Mockito.when(daoFactory.getConnexion()).thenReturn(connection);
+        Mockito.when(dataSource.getConnection()).thenReturn(connection);
         Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
                 .thenReturn(ps);
         if (update) {

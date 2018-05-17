@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.FileNotFoundException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,6 +16,8 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+
+import javax.sql.DataSource;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -28,20 +29,23 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import com.excilys.config.ServerConfiguration;
 import com.excilys.exception.ComputerNeedIdToBeUpdateException;
-import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.exception.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
 import com.excilys.util.Pages;
 
-@ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
+@ExtendWith(MockitoExtension.class)
+@SpringJUnitConfig(classes = ServerConfiguration.class)
 public class ComputerDaoTest {
 
     @Mock
-    private DaoFactory daoFactory;
+    private DataSource dataSource;
 
     @Mock
     private Connection connection;
@@ -55,6 +59,7 @@ public class ComputerDaoTest {
     @InjectMocks
     private ComputerDao mockComputerDao;
 
+    @Autowired
     private ComputerDao computerDao;
 
     private Computer computer;
@@ -62,16 +67,9 @@ public class ComputerDaoTest {
     /**
      * SetUp la classe de test en initialisant la computerDao et en preparant la
      * base de données.
-     * @throws SQLException
-     *             Si une erreur SQL apparait
-     * @throws DaoNotInitializeException
-     *             Si la DAO n'est pas initialisé
-     * @throws FileNotFoundException
-     *             Si le fichier de script est manquant
      */
     @BeforeAll
-    public void setUp() throws SQLException, DaoNotInitializeException, FileNotFoundException {
-        computerDao = (ComputerDao) DaoFactory.getInstance().getDao(DaoType.COMPUTER_DAO);
+    public void setUp() {
         computer = new Computer.Builder("aa").id(12L).build();
     }
 
@@ -292,12 +290,12 @@ public class ComputerDaoTest {
     @Test
     @DisplayName("Create should throw a DateTruncationException for SQLState 22001 when date is before 1970")
     public void createComputerWhenDateTruncationExceptionIsCatched()
-            throws SQLException, ComputerNeedIdToBeUpdateException, DateTruncationException {
-        Mockito.when(daoFactory.getConnexion()).thenReturn(connection);
+            throws SQLException, ComputerNeedIdToBeUpdateException, DateTruncationException { // FIXME dataSource mock ?
+        Mockito.when(dataSource.getConnection()).thenReturn(connection);
         Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt())).thenReturn(ps);
         Mockito.when(ps.getGeneratedKeys()).thenThrow(new SQLException("", "22001"));
         assertThrows(DateTruncationException.class, () -> mockComputerDao.create(computer));
-        Mockito.verify(daoFactory).getConnexion();
+        Mockito.verify(dataSource).getConnection();
         Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt());
         Mockito.verify(ps).getGeneratedKeys();
     }
@@ -446,7 +444,7 @@ public class ComputerDaoTest {
      *             When SQLException occures.
      */
     private void verifyConnectionAndPreparedStatement(final boolean update) throws SQLException {
-        Mockito.verify(daoFactory).getConnexion();
+        Mockito.verify(dataSource).getConnection();
         Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt());
         if (update) {
             Mockito.verify(ps).executeUpdate();
@@ -467,7 +465,7 @@ public class ComputerDaoTest {
      */
     private void scenariseConnectionAndPreparedStatement(final boolean update, final boolean dateException)
             throws SQLException {
-        Mockito.when(daoFactory.getConnexion()).thenReturn(connection);
+        Mockito.when(dataSource.getConnection()).thenReturn(connection);
         Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
                 .thenReturn(ps);
         final SQLException sqlException;
