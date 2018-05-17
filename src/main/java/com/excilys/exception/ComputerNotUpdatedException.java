@@ -2,6 +2,7 @@ package com.excilys.exception;
 
 public class ComputerNotUpdatedException extends ComputerException {
 
+    private static final long serialVersionUID = 4659275341316203999L;
     private static final String MESSAGE = "L'ordinateur d'ID %s n'a pas été mit à jour car une erreur est apparu (Verifier que l'ID existe en BD)";
 
     /**

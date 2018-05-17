@@ -2,6 +2,7 @@ package com.excilys.exception;
 
 public class DateTruncationException extends Exception {
 
+    private static final long serialVersionUID = -6459166391539885269L;
     private static final String MESSAGE = "Votre date est invalide ( Attention l'année doit être superieure à 1970 )";
 
     /**
