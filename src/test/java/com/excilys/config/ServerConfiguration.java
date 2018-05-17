@@ -1,3 +1,5 @@
+package com.excilys.config;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -35,10 +37,8 @@ public class ServerConfiguration {
     public DataSource dataSource() {
         final Properties aProperties = new Properties();
         final InputStream path = ClassLoader.getSystemClassLoader().getResourceAsStream("app.properties");
-        String driver = null;
         try {
             aProperties.load(path);
-            driver = aProperties.getProperty("dataSource.driverClassName");
         } catch (FileNotFoundException e) {
             LOGGER.error(e.getMessage());
         } catch (IOException e) {
@@ -51,9 +51,7 @@ public class ServerConfiguration {
         }
         LOGGER.info("Base de donnée utilisée : " + aProperties.getProperty("jdbcUrl"));
         final DataSource dSource = hikariConnectionInit(aProperties);
-        if ("org.h2.Driver".equals(driver)) { // Selenium
-            runScriptForDatabaseConnection(dSource);
-        }
+        runScriptForDatabaseConnection(dSource);
         return dSource;
 
     }
