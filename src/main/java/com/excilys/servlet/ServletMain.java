@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -12,9 +13,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import com.excilys.dto.ComputerDTO;
-import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.mapper.MapUtil;
 import com.excilys.model.Computer;
 import com.excilys.service.ServiceComputer;
@@ -33,17 +35,17 @@ public class ServletMain extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(Logger.class);
 
+    @Autowired
     private ServiceComputer serviceComputer;
 
     /**
      * Init le service de CDB.
+     * @throws ServletException
      */
-    public ServletMain() {
-        try {
-            serviceComputer = ServiceComputer.getInstance();
-        } catch (DaoNotInitializeException e) {
-            LOGGER.error(e.getMessage());
-        }
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        SpringBeanAutowiringSupport.processInjectionBasedOnServletContext(this, config.getServletContext());
     }
 
     /**
@@ -101,7 +103,7 @@ public class ServletMain extends HttpServlet {
         try {
             page = Integer.parseInt(req.getParameter(PAGE));
         } catch (NumberFormatException e) {
-            // Nothing to do especially
+            LOGGER.debug(e.getMessage());
         }
         final Pages<Computer> pagesComputer;
         if (search.isEmpty()) {
@@ -139,7 +141,7 @@ public class ServletMain extends HttpServlet {
                 numberResult = tmpNumberResult;
             }
         } catch (NumberFormatException e) {
-            // nothing to do especially
+            LOGGER.debug(e.getMessage());
         }
         return numberResult;
     }

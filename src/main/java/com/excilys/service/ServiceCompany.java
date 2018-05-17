@@ -1,24 +1,22 @@
 package com.excilys.service;
 
-import java.sql.SQLException;
 import java.util.Collection;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.excilys.dao.CompanyDao;
-import com.excilys.dao.DaoFactory;
-import com.excilys.dao.DaoType;
 import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.model.Company;
 import com.excilys.util.Pages;
 
+@Service
 public class ServiceCompany implements ServiceCdb<Company> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCompany.class);
+    // private static final Logger LOGGER =
+    // LoggerFactory.getLogger(ServiceCompany.class);
 
-    private static ServiceCompany serviceCompany;
-
+    @Autowired
     private CompanyDao companyDao;
 
     /**
@@ -26,30 +24,8 @@ public class ServiceCompany implements ServiceCdb<Company> {
      * @throws DaoNotInitializeException
      *             Si la DAO n'est pas initialisé
      */
-    private ServiceCompany() throws DaoNotInitializeException {
-        try {
-            final DaoFactory daoFactory = DaoFactory.getInstance();
-            companyDao = (CompanyDao) daoFactory.getDao(DaoType.COMPANY_DAO);
-        } catch (SQLException e) {
-            LOGGER.debug(e.getMessage());
-            throw new DaoNotInitializeException();
+    private ServiceCompany() {
 
-        } catch (DaoNotInitializeException e1) {
-            LOGGER.error(e1.getMessage());
-        }
-    }
-
-    /**
-     * Permet de recuperer l'instance du service.
-     * @return ServiceCompany ServiceCompany
-     * @throws DaoNotInitializeException
-     *             Si la DAO n'est pas initialisé
-     */
-    public static ServiceCompany getInstance() throws DaoNotInitializeException {
-        if (serviceCompany == null) {
-            serviceCompany = new ServiceCompany();
-        }
-        return serviceCompany;
     }
 
     /**
@@ -58,6 +34,7 @@ public class ServiceCompany implements ServiceCdb<Company> {
      *            ID de la company a verifier
      * @return true si elle existe
      */
+
     public boolean isExistCompany(final Long id) {
         return companyDao.find(id).isPresent();
     }

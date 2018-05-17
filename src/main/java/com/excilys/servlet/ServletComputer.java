@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -17,13 +18,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import com.excilys.dto.ComputerDTO;
 import com.excilys.exception.CompanyNotFoundException;
 import com.excilys.exception.ComputerException;
 import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.ComputerNotFoundException;
-import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.exception.DateTruncationException;
 import com.excilys.exception.LocalDateExpectedException;
 import com.excilys.mapper.MapUtil;
@@ -49,7 +51,6 @@ import static com.excilys.servlet.ActionUtilisateur.EDITFORM;
 
 @WebServlet(urlPatterns = { "/computer" })
 public class ServletComputer extends HttpServlet {
-    private static final String PAGE = "page";
     private static final String UL_CLOSE = "</ul>";
     private static final String LI_CLOSE = "</li>";
     private static final String LI = "<li>";
@@ -61,7 +62,6 @@ public class ServletComputer extends HttpServlet {
     private static final String ADD_COMPUTER = "addComputer";
     private static final String COMPUTER = "computer";
     private static final String ID = "id";
-    private static final String DASHBOARD = "dashboard";
     private static final String COMPUTER_ID = "computerID";
     private static final String SELECTION = "selection";
     private static final String EDIT_COMPUTER = "editComputer";
@@ -72,19 +72,20 @@ public class ServletComputer extends HttpServlet {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(Logger.class);
 
+    @Autowired
     private ServiceComputer serviceComputer;
+
+    @Autowired
     private ServiceCompany serviceCompany;
 
     /**
-     * Init le service de CDB.
+     * Init les service de CDB.
+     * @throws ServletException
      */
-    public ServletComputer() {
-        try {
-            serviceComputer = ServiceComputer.getInstance();
-            serviceCompany = ServiceCompany.getInstance();
-        } catch (DaoNotInitializeException e) {
-            LOGGER.error(e.getMessage());
-        }
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        SpringBeanAutowiringSupport.processInjectionBasedOnServletContext(this, config.getServletContext());
     }
 
     /**

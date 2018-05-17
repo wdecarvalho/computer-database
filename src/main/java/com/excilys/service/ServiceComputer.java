@@ -1,64 +1,37 @@
 package com.excilys.service;
 
-import java.sql.SQLException;
 import java.util.Collection;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.excilys.dao.ComputerDao;
-import com.excilys.dao.DaoFactory;
-import com.excilys.dao.DaoType;
 import com.excilys.exception.CompanyNotFoundException;
 import com.excilys.exception.ComputerException;
 import com.excilys.exception.ComputerNotFoundException;
 import com.excilys.exception.ComputerNotUpdatedException;
-import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.exception.DateTruncationException;
 import com.excilys.model.Computer;
 import com.excilys.util.Pages;
 import com.excilys.validation.ComputerValidation;
 
+@Service
 public class ServiceComputer implements ServiceCdb<Computer> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceComputer.class);
 
-    private static ServiceComputer serviceComputer;
+    // private static final Logger LOGGER =
+    // LoggerFactory.getLogger(ServiceComputer.class);
 
+    @Autowired
     private ComputerDao computerDao;
 
-    private static ServiceCompany serviceCompany;
+    @Autowired
+    private ServiceCompany serviceCompany;
 
     /**
-     * Initialise le service.
-     * @throws DaoNotInitializeException
-     *             Si la DAO n'est pas initialisé
+     * Constructeur Singleton.
      */
-    private ServiceComputer() throws DaoNotInitializeException {
-        try {
-            final DaoFactory daoFactory = DaoFactory.getInstance();
-            serviceCompany = ServiceCompany.getInstance();
-            computerDao = (ComputerDao) daoFactory.getDao(DaoType.COMPUTER_DAO);
-        } catch (SQLException e) {
-            LOGGER.debug(e.getMessage());
-            throw new DaoNotInitializeException();
+    private ServiceComputer() {
 
-        } catch (DaoNotInitializeException e1) {
-            LOGGER.error(e1.getMessage());
-        }
-
-    }
-
-    /**
-     * Permet de recuperer l'instance du service.
-     * @return ServiceComputer
-     * @throws DaoNotInitializeException
-     *             Si la DAO n'est pas initialisé
-     */
-    public static ServiceComputer getInstance() throws DaoNotInitializeException {
-        if (serviceComputer == null) {
-            serviceComputer = new ServiceComputer();
-        }
-        return serviceComputer;
     }
 
     @Override
