@@ -9,8 +9,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import com.excilys.exception.DateTruncationException;
 import com.excilys.mapper.MapResulSet;
@@ -19,6 +23,7 @@ import com.excilys.model.Company;
 import com.excilys.model.Computer;
 import com.excilys.util.Pages;
 
+@Repository
 public class ComputerDao extends Dao<Computer> {
     private static final String SEARCH_COMPUTER = "SELECT computer.id, computer.name, computer.introduced, computer.discontinued, company.id, company.name "
             + "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id WHERE computer.name LIKE ? or company.name LIKE ? ORDER BY computer.name ASC LIMIT ? OFFSET ? ";
@@ -38,28 +43,13 @@ public class ComputerDao extends Dao<Computer> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ComputerDao.class);
 
-    private DaoFactory daoFactory;
-
-    private static ComputerDao computerDao;
+    @Autowired
+    private DataSource dataSource;
 
     /**
      * Constructeur de ComputerDao.
      */
     private ComputerDao() {
-    }
-
-    /**
-     * Permet de recuperer l'instance d'un ComputerDao.
-     * @param factory
-     *            DaoFactory
-     * @return ComputerDao
-     */
-    public static ComputerDao getInstance(final DaoFactory factory) {
-        if (computerDao == null) {
-            computerDao = new ComputerDao();
-            computerDao.daoFactory = factory;
-        }
-        return computerDao;
     }
 
     /**
@@ -72,7 +62,7 @@ public class ComputerDao extends Dao<Computer> {
      */
     public Long create(final Computer obj) throws DateTruncationException {
         Long id = -1L;
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement pStatement = connection.prepareStatement(CREATE_ONE_COMPUTER,
                         Statement.RETURN_GENERATED_KEYS)) {
             pStatement.setString(1, obj.getName());
@@ -97,7 +87,7 @@ public class ComputerDao extends Dao<Computer> {
     @Override
     public boolean delete(final Long iD) {
         boolean res = false;
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement ps = connection.prepareStatement(DELETE_ONE_COMPUTER, ResultSet.TYPE_SCROLL_SENSITIVE,
                         ResultSet.CONCUR_UPDATABLE)) {
             ps.setLong(1, iD);
@@ -118,7 +108,7 @@ public class ComputerDao extends Dao<Computer> {
      */
     public boolean delete(final String iDs) {
         boolean res = false;
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement ps = connection.prepareStatement(String.format(DELETE_LIST_COMPUTER, iDs),
                         ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             if (ps.executeUpdate() > 0) {
@@ -141,7 +131,7 @@ public class ComputerDao extends Dao<Computer> {
 
     public Optional<Computer> update(final Computer obj) throws DateTruncationException {
         Optional<Computer> computer = Optional.empty();
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement ps = connection.prepareStatement(UPDATE_ONE_COMPUTER, ResultSet.TYPE_SCROLL_SENSITIVE,
                         ResultSet.CONCUR_UPDATABLE)) {
             ps.setString(1, obj.getName());
@@ -171,7 +161,7 @@ public class ComputerDao extends Dao<Computer> {
     @Override
     public Optional<Computer> find(final Long id) {
         Optional<Computer> computer = Optional.empty();
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(FIND_ONE_COMPUTER,
                         ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
             preparedStatement.setInt(1, id.intValue());
@@ -190,7 +180,7 @@ public class ComputerDao extends Dao<Computer> {
     @Override
     public Collection<Computer> findAll() {
         final Collection<Computer> computers = new ArrayList<>();
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_COMPUTER,
                         ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
                 ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -232,7 +222,7 @@ public class ComputerDao extends Dao<Computer> {
      *             Si une erreur SQL intervient
      */
     public int numberOfElement() throws SQLException {
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(NUMBER_PAGE_MAX,
                         ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
                 ResultSet rSet = preparedStatement.executeQuery()) {
@@ -251,7 +241,7 @@ public class ComputerDao extends Dao<Computer> {
      *             SQLException
      */
     public int numberOfElementToSearch(final String search) throws SQLException {
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(NUMBER_PAGE_MAX_SEARCH,
                         ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
             preparedStatement.setString(1, search);
@@ -328,7 +318,7 @@ public class ComputerDao extends Dao<Computer> {
             searchAll = new StringBuilder("%").append(search).append("%").toString();
             pages.setPageMax(numberOfElementToSearch(searchAll));
         }
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(request,
                         ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
             int cpt = 0;

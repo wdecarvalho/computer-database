@@ -8,13 +8,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import com.excilys.mapper.MapResulSet;
 import com.excilys.model.Company;
 import com.excilys.util.Pages;
 
+@Repository
 public class CompanyDao extends Dao<Company> {
 
     private static final String FIND_ONE_COMPANY = "SELECT company.id, company.name FROM company where company.id = ?;";
@@ -26,9 +31,8 @@ public class CompanyDao extends Dao<Company> {
     private static final String DELETE_COMPUTER_LINKED = "DELETE FROM computer where company_id = ? ;";
     private static final Logger LOGGER = LoggerFactory.getLogger(CompanyDao.class);
 
-    private DaoFactory daoFactory;
-
-    private static CompanyDao companyDao;
+    @Autowired
+    private DataSource dataSource;
 
     /**
      * Constructeur de CompanyDao.
@@ -36,25 +40,11 @@ public class CompanyDao extends Dao<Company> {
     private CompanyDao() {
     }
 
-    /**
-     * Recupere l'instance de CompanyDao.
-     * @param factory
-     *            DaoFactory
-     * @return CompanyDao
-     */
-    public static CompanyDao getInstance(final DaoFactory factory) {
-        if (companyDao == null) {
-            companyDao = new CompanyDao();
-            companyDao.daoFactory = factory;
-        }
-        return companyDao;
-    }
-
     @Override
     public Optional<Company> find(final Long id) {
         Optional<Company> company = Optional.empty();
 
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(FIND_ONE_COMPANY,
                         ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
             preparedStatement.setInt(1, id.intValue());
@@ -72,7 +62,7 @@ public class CompanyDao extends Dao<Company> {
     @Override
     public Collection<Company> findAll() {
         final Collection<Company> companys = new ArrayList<>();
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_COMPANY,
                         ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
                 ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -92,7 +82,7 @@ public class CompanyDao extends Dao<Company> {
      *             Si une erreur SQL apparait
      */
     public int numberOfElement() throws SQLException {
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(NUMBER_PAGE_MAX,
                         ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
                 ResultSet rSet = preparedStatement.executeQuery()) {
@@ -112,7 +102,7 @@ public class CompanyDao extends Dao<Company> {
         Pages<Company> pages = new Pages<Company>(page);
         try {
             pages.setPageMax(numberOfElement());
-            try (Connection connection = daoFactory.getConnexion();
+            try (Connection connection = dataSource.getConnection();
                     PreparedStatement preparedStatement = connection.prepareStatement(FIND_COMPUTER_PAGE,
                             ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
                 preparedStatement.setInt(1, pages.getNumberPerPageResult());
@@ -133,7 +123,7 @@ public class CompanyDao extends Dao<Company> {
     @Override
     public boolean delete(Long id) {
         boolean res = false;
-        try (Connection connection = daoFactory.getConnexion();
+        try (Connection connection = dataSource.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(DELETE_ONE_COMPANY,
                         ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
             try (PreparedStatement preparedStatement2 = connection.prepareStatement(DELETE_COMPUTER_LINKED,
