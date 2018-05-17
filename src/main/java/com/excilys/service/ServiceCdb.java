@@ -2,8 +2,11 @@ package com.excilys.service;
 
 import java.util.Collection;
 
+import org.springframework.stereotype.Service;
+
 import com.excilys.util.Pages;
 
+@Service
 public interface ServiceCdb<T> {
 
     /**

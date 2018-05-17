@@ -3,8 +3,11 @@ package com.excilys.dao;
 import java.util.Collection;
 import java.util.Optional;
 
+import org.springframework.stereotype.Repository;
+
 import com.excilys.util.Pages;
 
+@Repository
 public abstract class Dao<T> {
 
     /**
