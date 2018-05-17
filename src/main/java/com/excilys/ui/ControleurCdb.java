@@ -1,17 +1,30 @@
 package com.excilys.ui;
 
+import static com.excilys.ui.ChoixUtilisateur.AJOUTER_COMPANIE_TO_COMPUTER;
+import static com.excilys.ui.ChoixUtilisateur.CHOIX_USER;
+import static com.excilys.ui.ChoixUtilisateur.MESSAGE_USER_COMPUTER;
+import static com.excilys.ui.ChoixUtilisateur.NUMBER_COMPANY;
+import static com.excilys.ui.ChoixUtilisateur.NUMBER_COMPUTER;
+import static com.excilys.ui.ChoixUtilisateur.PAGE_OR_QUIT;
+import static com.excilys.ui.FormEntry.COMPANY_ID;
+import static com.excilys.ui.FormEntry.COMPUTER_NAME;
+import static com.excilys.ui.FormEntry.CURRENT;
+import static com.excilys.ui.FormEntry.DATE_DISCONTINUED;
+import static com.excilys.ui.FormEntry.DATE_INTRODUCED;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Controller;
 
 import com.excilys.exception.CompanyNotFoundException;
 import com.excilys.exception.ComputerException;
 import com.excilys.exception.ComputerNameNotPresentException;
 import com.excilys.exception.ComputerNotFoundException;
-import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.exception.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
@@ -19,18 +32,7 @@ import com.excilys.service.ServiceCompany;
 import com.excilys.service.ServiceComputer;
 import com.excilys.util.Pages;
 
-import static com.excilys.ui.FormEntry.CURRENT;
-import static com.excilys.ui.FormEntry.COMPANY_ID;
-import static com.excilys.ui.FormEntry.COMPUTER_NAME;
-import static com.excilys.ui.FormEntry.DATE_DISCONTINUED;
-import static com.excilys.ui.FormEntry.DATE_INTRODUCED;
-import static com.excilys.ui.ChoixUtilisateur.NUMBER_COMPUTER;
-import static com.excilys.ui.ChoixUtilisateur.NUMBER_COMPANY;
-import static com.excilys.ui.ChoixUtilisateur.AJOUTER_COMPANIE_TO_COMPUTER;
-import static com.excilys.ui.ChoixUtilisateur.CHOIX_USER;
-import static com.excilys.ui.ChoixUtilisateur.MESSAGE_USER_COMPUTER;
-import static com.excilys.ui.ChoixUtilisateur.PAGE_OR_QUIT;
-
+@Controller
 public class ControleurCdb {
 
     private static final String AU_REVOIR = "Au revoir ! ";
@@ -59,6 +61,7 @@ public class ControleurCdb {
     private static final String DECORATE = "============== Gestion CDB ==============";
 
     private ServiceComputer serviceComputer;
+
     private ServiceCompany serviceCompany;
 
     private Scanner scanner;
@@ -71,18 +74,22 @@ public class ControleurCdb {
     }
 
     /**
+     * Contructeur de ControleurCdb.
+     * @param context
+     *            ApplicationContext
+     */
+    public ControleurCdb(final ApplicationContext context) {
+        scanner = new Scanner(System.in);
+        serviceComputer = (ServiceComputer) context.getBean("serviceComputer");
+        serviceCompany = (ServiceCompany) context.getBean("serviceCompany");
+    }
+
+    /**
      * Le coeur de l'interface utilisateur Initiliase le service puis affiche le
      * menu a l'utilisateur Pour chaque choix, effectue une fonctionnalité
      * disponible dans la couche de service.
      */
     public void core() {
-        try {
-            serviceComputer = ServiceComputer.getInstance();
-            serviceCompany = ServiceCompany.getInstance();
-        } catch (DaoNotInitializeException e1) {
-            LOGGER.error(e1.getMessage());
-            return;
-        }
         boolean run = true;
         while (run) {
             menu();

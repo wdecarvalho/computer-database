@@ -22,9 +22,22 @@
 		<selenium.version>3.4.0</selenium.version>
 		<testng.version>6.8</testng.version>
 		<hikari.version>3.0.0</hikari.version>
+		<spring.version>5.0.6.RELEASE</spring.version>
 	</properties>
 
 	<dependencies>
+	
+		<!-- SPRING -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
 
 		<!-- LOG -->
 		<dependency>

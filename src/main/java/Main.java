@@ -1,3 +1,6 @@
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
+
 import com.excilys.ui.ControleurCdb;
 
 public class Main {
@@ -8,6 +11,8 @@ public class Main {
      *            Argument entrée du programme
      */
     public static void main(String... args) {
-        new ControleurCdb().core();
+        AbstractApplicationContext context = new AnnotationConfigApplicationContext(ServerConfiguration.class);
+        new ControleurCdb(context).core();
     }
+
 }
