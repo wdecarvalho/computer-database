@@ -70,7 +70,7 @@ public class ServletComputer extends HttpServlet {
     private static final String ACTION = "action";
     private static final String MESSAGE_USER = "messageUser";
     private static final long serialVersionUID = 1L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(Logger.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServletComputer.class);
 
     @Autowired
     private ServiceComputer serviceComputer;

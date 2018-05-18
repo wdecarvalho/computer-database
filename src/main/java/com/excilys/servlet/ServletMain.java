@@ -11,8 +11,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
@@ -33,7 +31,6 @@ public class ServletMain extends HttpServlet {
     private static final String COMPUTERS = "computers";
     private static final String PAGE = "page";
     private static final long serialVersionUID = 1L;
-    private static final Logger LOGGER = LoggerFactory.getLogger(Logger.class);
 
     @Autowired
     private ServiceComputer serviceComputer;
@@ -103,7 +100,7 @@ public class ServletMain extends HttpServlet {
         try {
             page = Integer.parseInt(req.getParameter(PAGE));
         } catch (NumberFormatException e) {
-            LOGGER.debug(e.getMessage());
+            // Nothing to do especially
         }
         final Pages<Computer> pagesComputer;
         if (search.isEmpty()) {
@@ -141,7 +138,7 @@ public class ServletMain extends HttpServlet {
                 numberResult = tmpNumberResult;
             }
         } catch (NumberFormatException e) {
-            LOGGER.debug(e.getMessage());
+            // Nothing to do especially
         }
         return numberResult;
     }
