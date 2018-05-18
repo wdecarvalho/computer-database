@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.excilys.exception.DateTruncationException;
+import com.excilys.exception.date.DateTruncationException;
 import com.excilys.mapper.MapResulSet;
 import com.excilys.mapper.MapUtil;
 import com.excilys.model.Company;

@@ -22,12 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import com.excilys.dto.ComputerDTO;
-import com.excilys.exception.CompanyNotFoundException;
 import com.excilys.exception.ComputerException;
-import com.excilys.exception.ComputerNameNotPresentException;
-import com.excilys.exception.ComputerNotFoundException;
-import com.excilys.exception.DateTruncationException;
-import com.excilys.exception.LocalDateExpectedException;
+import com.excilys.exception.company.CompanyNotFoundException;
+import com.excilys.exception.computer.ComputerNameNotPresentException;
+import com.excilys.exception.computer.ComputerNotFoundException;
+import com.excilys.exception.date.DateTruncationException;
+import com.excilys.exception.date.LocalDateExpectedException;
 import com.excilys.mapper.MapUtil;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;

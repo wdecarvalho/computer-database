@@ -33,8 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.excilys.config.ServerConfiguration;
-import com.excilys.exception.ComputerNeedIdToBeUpdateException;
-import com.excilys.exception.DateTruncationException;
+import com.excilys.exception.computer.ComputerNeedIdToBeUpdateException;
+import com.excilys.exception.date.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
 import com.excilys.util.Pages;

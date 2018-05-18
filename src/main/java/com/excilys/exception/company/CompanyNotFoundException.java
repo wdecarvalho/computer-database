@@ -1,4 +1,4 @@
-package com.excilys.exception;
+package com.excilys.exception.company;
 
 public class CompanyNotFoundException extends Exception {
 

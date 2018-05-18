@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.excilys.dto.ComputerDTO;
-import com.excilys.exception.LocalDateExpectedException;
+import com.excilys.exception.date.LocalDateExpectedException;
 import com.excilys.model.Computer;
 
 public abstract class MapUtil {

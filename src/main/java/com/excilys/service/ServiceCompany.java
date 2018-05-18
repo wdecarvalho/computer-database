@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.excilys.dao.CompanyDao;
-import com.excilys.exception.DaoNotInitializeException;
 import com.excilys.model.Company;
 import com.excilys.util.Pages;
 
@@ -21,8 +20,6 @@ public class ServiceCompany implements ServiceCdb<Company> {
 
     /**
      * Initialise le service.
-     * @throws DaoNotInitializeException
-     *             Si la DAO n'est pas initialisé
      */
     private ServiceCompany() {
 

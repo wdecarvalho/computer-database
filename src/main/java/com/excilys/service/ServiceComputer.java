@@ -6,11 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.excilys.dao.ComputerDao;
-import com.excilys.exception.CompanyNotFoundException;
 import com.excilys.exception.ComputerException;
-import com.excilys.exception.ComputerNotFoundException;
-import com.excilys.exception.ComputerNotUpdatedException;
-import com.excilys.exception.DateTruncationException;
+import com.excilys.exception.company.CompanyNotFoundException;
+import com.excilys.exception.computer.ComputerNotFoundException;
+import com.excilys.exception.computer.ComputerNotUpdatedException;
+import com.excilys.exception.date.DateTruncationException;
 import com.excilys.model.Computer;
 import com.excilys.util.Pages;
 import com.excilys.validation.ComputerValidation;

@@ -13,7 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.excilys.dto.ComputerDTO;
-import com.excilys.exception.LocalDateExpectedException;
+import com.excilys.exception.date.LocalDateExpectedException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
 

@@ -6,7 +6,6 @@ import static org.testng.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
@@ -22,25 +21,18 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.excilys.exception.DaoNotInitializeException;
-
 public class SeleniumTest {
 
     private WebDriver driver;
 
     /**
-     * @throws DaoNotInitializeException
-     *             Si la DAO n'a pas pu etre initialisé
-     * @throws SQLException
-     *             SQLException
      * @throws FileNotFoundException
      *             Si le fichier n'a pas été trouvés
      * @throws URISyntaxException
      *             URISyntaxException
      */
     @BeforeClass
-    public void beforeClass()
-            throws SQLException, DaoNotInitializeException, FileNotFoundException, URISyntaxException {
+    public void beforeClass() throws FileNotFoundException, URISyntaxException {
         System.setProperty("webdriver.gecko.driver", "/home/decarvalho/Documents/geckodriver/geckodriver");
         driver = new FirefoxDriver();
 

@@ -3,9 +3,9 @@ package com.excilys.validation;
 import java.time.LocalDate;
 
 import com.excilys.exception.ComputerException;
-import com.excilys.exception.ComputerNameNotPresentException;
-import com.excilys.exception.ComputerNeedIdToBeUpdateException;
-import com.excilys.exception.DateIntroShouldBeMinorthanDisconException;
+import com.excilys.exception.computer.ComputerNameNotPresentException;
+import com.excilys.exception.computer.ComputerNeedIdToBeUpdateException;
+import com.excilys.exception.computer.DateIntroShouldBeMinorthanDisconException;
 import com.excilys.model.Computer;
 
 public class ComputerValidation {

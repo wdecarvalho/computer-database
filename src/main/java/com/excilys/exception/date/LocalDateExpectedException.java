@@ -1,4 +1,4 @@
-package com.excilys.exception;
+package com.excilys.exception.date;
 
 public class LocalDateExpectedException extends Exception {
 

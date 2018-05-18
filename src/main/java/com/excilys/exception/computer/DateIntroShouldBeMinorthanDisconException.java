@@ -1,4 +1,6 @@
-package com.excilys.exception;
+package com.excilys.exception.computer;
+
+import com.excilys.exception.ComputerException;
 
 public class DateIntroShouldBeMinorthanDisconException extends ComputerException {
 
