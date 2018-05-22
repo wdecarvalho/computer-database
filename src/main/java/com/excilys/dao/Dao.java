@@ -3,6 +3,11 @@ package com.excilys.dao;
 import java.util.Collection;
 import java.util.Optional;
 
+import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.excilys.util.Pages;
@@ -10,10 +15,20 @@ import com.excilys.util.Pages;
 @Repository
 public abstract class Dao<T> {
 
+    @Autowired
+    protected DataSource dataSource;
+
+    private JdbcTemplate jdbcTemplate;
+
+    @PostConstruct
+    private void initJdbcTemplate() {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
     /**
      * Constructeur de Dao.
      */
-    public Dao() {
+    Dao() {
     }
 
     /**
@@ -45,4 +60,8 @@ public abstract class Dao<T> {
      * @return True si la suppresion réussie
      */
     public abstract boolean delete(Long id);
+
+    public JdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
 }

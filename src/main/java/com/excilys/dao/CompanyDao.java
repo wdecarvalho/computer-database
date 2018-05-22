@@ -1,21 +1,16 @@
 package com.excilys.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
-import javax.sql.DataSource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 
-import com.excilys.mapper.MapResulSet;
+import com.excilys.mapper.MapperResulSetToCompany;
 import com.excilys.model.Company;
 import com.excilys.util.Pages;
 
@@ -31,9 +26,6 @@ public class CompanyDao extends Dao<Company> {
     private static final String DELETE_COMPUTER_LINKED = "DELETE FROM computer where company_id = ? ;";
     private static final Logger LOGGER = LoggerFactory.getLogger(CompanyDao.class);
 
-    @Autowired
-    private DataSource dataSource;
-
     /**
      * Constructeur de CompanyDao.
      */
@@ -43,36 +35,18 @@ public class CompanyDao extends Dao<Company> {
     @Override
     public Optional<Company> find(final Long id) {
         Optional<Company> company = Optional.empty();
-
-        try (Connection connection = dataSource.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(FIND_ONE_COMPANY,
-                        ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-            preparedStatement.setInt(1, id.intValue());
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    company = MapResulSet.resulSetToOptionalCompanyComplete(resultSet);
-                }
-            }
-        } catch (SQLException e) {
-            LOGGER.debug(e.getMessage());
+        try {
+            company = Optional
+                    .ofNullable(getJdbcTemplate().queryForObject(FIND_ONE_COMPANY, new MapperResulSetToCompany(), id));
+        } catch (EmptyResultDataAccessException e) {
+            // Nothing to espacially
         }
         return company;
     }
 
     @Override
     public Collection<Company> findAll() {
-        final Collection<Company> companys = new ArrayList<>();
-        try (Connection connection = dataSource.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_COMPANY,
-                        ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                ResultSet resultSet = preparedStatement.executeQuery()) {
-            while (resultSet.next()) {
-                companys.add(MapResulSet.resulSetToCompanyComplete(resultSet));
-            }
-        } catch (SQLException e) {
-            LOGGER.debug(e.getMessage());
-        }
-        return companys;
+        return getJdbcTemplate().query(FIND_ALL_COMPANY, new Object[0], new MapperResulSetToCompany());
     }
 
     /**
@@ -81,16 +55,8 @@ public class CompanyDao extends Dao<Company> {
      * @throws SQLException
      *             Si une erreur SQL apparait
      */
-    public int numberOfElement() throws SQLException {
-        try (Connection connection = dataSource.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(NUMBER_PAGE_MAX,
-                        ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                ResultSet rSet = preparedStatement.executeQuery()) {
-            rSet.next();
-            int numberElement = rSet.getInt(1);
-            return numberElement;
-        }
-
+    public int numberOfElement() {
+        return getJdbcTemplate().queryForObject(NUMBER_PAGE_MAX, Integer.class);
     }
 
     @Override
@@ -100,48 +66,23 @@ public class CompanyDao extends Dao<Company> {
             page = 1;
         }
         Pages<Company> pages = new Pages<Company>(page);
-        try {
-            pages.setPageMax(numberOfElement());
-            try (Connection connection = dataSource.getConnection();
-                    PreparedStatement preparedStatement = connection.prepareStatement(FIND_COMPUTER_PAGE,
-                            ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-                preparedStatement.setInt(1, pages.getNumberPerPageResult());
-                preparedStatement.setInt(2, pages.startResult());
-                try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                    while (resultSet.next()) {
-                        pages.getEntities().add(MapResulSet.resulSetToCompanyComplete(resultSet));
-                    }
-                }
-            }
-
-        } catch (SQLException e) {
-            LOGGER.debug(e.getMessage());
-        }
+        pages.setPageMax(numberOfElement());
+        ArrayList<Object> params = new ArrayList<>();
+        params.add(pages.getNumberPerPageResult());
+        params.add(pages.startResult());
+        pages.getEntities()
+                .addAll(getJdbcTemplate().query(FIND_COMPUTER_PAGE, params.toArray(), new MapperResulSetToCompany()));
         return pages;
     }
 
     @Override
     public boolean delete(Long id) {
         boolean res = false;
-        try (Connection connection = dataSource.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(DELETE_ONE_COMPANY,
-                        ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-            try (PreparedStatement preparedStatement2 = connection.prepareStatement(DELETE_COMPUTER_LINKED,
-                    ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-                connection.setAutoCommit(false);
-                connection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-                preparedStatement2.setLong(1, id);
-                preparedStatement2.executeUpdate();
-                preparedStatement.setLong(1, id);
-                if (preparedStatement.executeUpdate() == 1) {
-                    res = true;
-                }
-                connection.commit();
-            }
-        } catch (SQLException e) {
-            LOGGER.debug(e.getMessage());
-            res = false;
+        getJdbcTemplate().update(DELETE_COMPUTER_LINKED, id);
+        if (getJdbcTemplate().update(DELETE_ONE_COMPANY, id) == 1) {
+            res = true;
         }
         return res;
+
     }
 }

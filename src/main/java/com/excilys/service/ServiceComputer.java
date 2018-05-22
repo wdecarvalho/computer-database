@@ -2,12 +2,14 @@ package com.excilys.service;
 
 import java.util.Collection;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.excilys.dao.ComputerDao;
 import com.excilys.exception.ComputerException;
 import com.excilys.exception.company.CompanyNotFoundException;
+import com.excilys.exception.computer.ComputerNotDeletedException;
 import com.excilys.exception.computer.ComputerNotFoundException;
 import com.excilys.exception.computer.ComputerNotUpdatedException;
 import com.excilys.exception.date.DateTruncationException;
@@ -16,25 +18,27 @@ import com.excilys.util.Pages;
 import com.excilys.validation.ComputerValidation;
 
 @Service
+@Transactional
 public class ServiceComputer implements ServiceCdb<Computer> {
 
-    // private static final Logger LOGGER =
-    // LoggerFactory.getLogger(ServiceComputer.class);
+    private final ComputerDao computerDao;
 
-    @Autowired
-    private ComputerDao computerDao;
-
-    @Autowired
-    private ServiceCompany serviceCompany;
+    private final ServiceCompany serviceCompany;
 
     /**
-     * Constructeur Singleton.
+     * Constructeur de ServiceComputer [Spring].
+     * @param computerDao
+     *            ComputerDAO
+     * @param serviceCompany
+     *            ServiceCompanyDAO
      */
-    private ServiceComputer() {
-
+    private ServiceComputer(ComputerDao computerDao, ServiceCompany serviceCompany) {
+        this.computerDao = computerDao;
+        this.serviceCompany = serviceCompany;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<Computer> getAll() {
         return computerDao.findAll();
     }
@@ -47,6 +51,7 @@ public class ServiceComputer implements ServiceCdb<Computer> {
      * @throws ComputerNotFoundException
      *             Si le computer n'est pas présent
      */
+    @Transactional(readOnly = true)
     public Computer getComputerDaoDetails(final Long id) throws ComputerNotFoundException {
         return computerDao.find(id).orElseThrow(() -> new ComputerNotFoundException("" + id));
 
@@ -104,12 +109,16 @@ public class ServiceComputer implements ServiceCdb<Computer> {
      * @param ids
      *            ID des computers à supprimer
      * @return True si réussi
+     * @throws ComputerNotDeletedException
+     *             Si un ou plusieurs ordinateurs n'arrivent pas a être supprimé
      */
-    public boolean deleteComputer(final String ids) {
+    @Transactional(propagation = Propagation.REQUIRED)
+    public boolean deleteComputer(final String ids) throws ComputerNotDeletedException {
         return computerDao.delete(ids);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Pages<Computer> findByPage(int... pageAndNumberResult) {
         return computerDao.findPerPage(pageAndNumberResult);
     }
@@ -122,6 +131,7 @@ public class ServiceComputer implements ServiceCdb<Computer> {
      *            Numero de page courante et nombre de resultat a afficher
      * @return Page de computer
      */
+    @Transactional(readOnly = true)
     public Pages<Computer> findByPagesComputer(final String search, int... pageAndNumberResult) {
         return computerDao.findPerPage(search, pageAndNumberResult);
     }

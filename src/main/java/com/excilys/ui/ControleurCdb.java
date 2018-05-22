@@ -14,6 +14,7 @@ import static com.excilys.ui.FormEntry.DATE_INTRODUCED;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Scanner;
 
 import org.slf4j.Logger;
@@ -255,12 +256,23 @@ public class ControleurCdb {
         final String stringDateDiscon = formAndInputDateComputer(currentDateDiscon, DATE_DISCONTINUED);
 
         company = askforAddCompanieToComputer(currentCompany);
-        return new Computer.Builder(computerName)
-                .introduced(stringDateIntro.isEmpty() ? null
-                        : LocalDate.parse(stringDateIntro, DateTimeFormatter.ISO_LOCAL_DATE))
-                .discontinued(stringDateDiscon.isEmpty() ? null
-                        : LocalDate.parse(stringDateDiscon, DateTimeFormatter.ISO_LOCAL_DATE))
-                .company(company).build();
+        LocalDate dateIntro = null, dateDiscon = null;
+        try {
+            if (!stringDateIntro.isEmpty()) {
+                dateIntro = LocalDate.parse(stringDateIntro, DateTimeFormatter.ISO_LOCAL_DATE);
+            }
+        } catch (DateTimeParseException e) {
+            LOGGER.warn(new DateTruncationException().getMessage());
+        }
+        try {
+            if (!stringDateDiscon.isEmpty()) {
+                dateDiscon = LocalDate.parse(stringDateDiscon, DateTimeFormatter.ISO_LOCAL_DATE);
+            }
+        } catch (DateTimeParseException e) {
+            LOGGER.warn(new DateTruncationException().getMessage());
+        }
+        return new Computer.Builder(computerName).introduced(dateIntro).discontinued(dateDiscon).company(company)
+                .build();
     }
 
     /**
