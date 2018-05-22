@@ -35,6 +35,7 @@ import com.excilys.exception.ComputerException;
 import com.excilys.exception.company.CompanyNotFoundException;
 import com.excilys.exception.computer.ComputerNameNotPresentException;
 import com.excilys.exception.computer.ComputerNeedIdToBeUpdateException;
+import com.excilys.exception.computer.ComputerNotDeletedException;
 import com.excilys.exception.computer.ComputerNotFoundException;
 import com.excilys.exception.computer.ComputerNotUpdatedException;
 import com.excilys.exception.computer.DateIntroShouldBeMinorthanDisconException;
@@ -462,10 +463,11 @@ public class ServiceCdbTest {
 
     /**
      * Verifie que la suppresion d'une liste de computer coté DAO fonctionne.
+     * @throws ComputerNotDeletedException
      */
     @Test
     @DisplayName("Test delete a list of computers ")
-    public void deleteListComputerTest() {
+    public void deleteListComputerTest() throws ComputerNotDeletedException {
         Mockito.when(computerDao.delete("(4,2)")).thenReturn(true);
         assertTrue(mockServiceComputer.deleteComputer("(4,2)"));
         Mockito.verify(computerDao).delete("(4,2)");
@@ -473,10 +475,11 @@ public class ServiceCdbTest {
 
     /**
      * Demande a la DAO de supprimer une liste de computer non valide.
+     * @throws ComputerNotDeletedException
      */
     @Test
     @DisplayName("Test delete a list of computers ")
-    public void deleteListComputerNotValidTest() {
+    public void deleteListComputerNotValidTest() throws ComputerNotDeletedException {
         Mockito.when(computerDao.delete("(-4,1222)")).thenReturn(false);
         assertFalse(mockServiceComputer.deleteComputer("(-4,1222)"));
         Mockito.verify(computerDao).delete("(-4,1222)");

@@ -34,6 +34,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.excilys.config.ServerConfiguration;
 import com.excilys.exception.computer.ComputerNeedIdToBeUpdateException;
+import com.excilys.exception.computer.ComputerNotDeletedException;
 import com.excilys.exception.date.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
@@ -406,20 +407,22 @@ public class ComputerDaoTest {
 
     /**
      * Test la suppresion d'une liste de computers.
+     * @throws ComputerNotDeletedException
      */
     @Test
     @DisplayName("Should delete computers with ID 20 and 21")
-    public void deleteComputerByList() {
+    public void deleteComputerByList() throws ComputerNotDeletedException {
         final String listeIdString = "(20,21)";
         assertTrue(computerDao.delete(listeIdString));
     }
 
     /**
      * Test la supression d'une liste de computer ou les ID n'existe pas.
+     * @throws ComputerNotDeletedException
      */
     @Test
     @DisplayName("Should not delete computers with ID -5 and -1")
-    public void deleteComputerByListNotExisting() {
+    public void deleteComputerByListNotExisting() throws ComputerNotDeletedException {
         final String listeIdString = "(-5,-1)";
         assertFalse(computerDao.delete(listeIdString));
     }
@@ -428,10 +431,11 @@ public class ComputerDaoTest {
      * Test la suppresion d'une liste de computer quand une SQLException apparait.
      * @throws SQLException
      *             SQLException
+     * @throws ComputerNotDeletedException
      */
     @Test
     @DisplayName("Should not delete computers when SQLException appear")
-    public void notDeletingWhenSQLException() throws SQLException {
+    public void notDeletingWhenSQLException() throws SQLException, ComputerNotDeletedException {
         scenariseConnectionAndPreparedStatement(true, false);
         assertFalse(mockComputerDao.delete("(5,10)"));
         verifyConnectionAndPreparedStatement(true);
