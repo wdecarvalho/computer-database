@@ -55,7 +55,6 @@ public class ServerConfiguration {
             runScriptForDatabaseConnection(dSource);
         }
         return dSource;
-
     }
 
     /**
