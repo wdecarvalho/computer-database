@@ -25,6 +25,7 @@ import com.excilys.dto.ComputerDTO;
 import com.excilys.exception.ComputerException;
 import com.excilys.exception.company.CompanyNotFoundException;
 import com.excilys.exception.computer.ComputerNameNotPresentException;
+import com.excilys.exception.computer.ComputerNotDeletedException;
 import com.excilys.exception.computer.ComputerNotFoundException;
 import com.excilys.exception.date.DateTruncationException;
 import com.excilys.exception.date.LocalDateExpectedException;
@@ -34,20 +35,18 @@ import com.excilys.model.Computer;
 import com.excilys.service.ServiceCompany;
 import com.excilys.service.ServiceComputer;
 
+import static com.excilys.servlet.ActionUtilisateur.ADDFORM;
+import static com.excilys.servlet.ActionUtilisateur.EDITFORM;
 import static com.excilys.servlet.MessagetypeUser.ADD_ERROR_COMPUTER;
 import static com.excilys.servlet.MessagetypeUser.ADD_SUCCESSFULL_COMPUTER;
 import static com.excilys.servlet.MessagetypeUser.DELETE_NO_COMPUTER_SELECTED;
 import static com.excilys.servlet.MessagetypeUser.DELETE_NO_VALID_ID;
 import static com.excilys.servlet.MessagetypeUser.DELETE_SUCCESSFULL_COMPUTER;
 import static com.excilys.servlet.MessagetypeUser.UPDATE_SUCCESSFULL_COMPUTER;
-
-import static com.excilys.servlet.RouteUrl.DASHBOARD_SERVLET;
 import static com.excilys.servlet.RouteUrl.ADDCOMPUTER_JSP;
-import static com.excilys.servlet.RouteUrl.ERROR_PAGE_404;
+import static com.excilys.servlet.RouteUrl.DASHBOARD_SERVLET;
 import static com.excilys.servlet.RouteUrl.EDITCOMPUTER_JSP;
-
-import static com.excilys.servlet.ActionUtilisateur.ADDFORM;
-import static com.excilys.servlet.ActionUtilisateur.EDITFORM;
+import static com.excilys.servlet.RouteUrl.ERROR_PAGE_404;
 
 @WebServlet(urlPatterns = { "/computer" })
 public class ServletComputer extends HttpServlet {
@@ -166,12 +165,16 @@ public class ServletComputer extends HttpServlet {
                     req.setAttribute(MESSAGE_USER, DELETE_SUCCESSFULL_COMPUTER.toString());
                     req.setAttribute(TYPE_MESSAGE, SUCCESS);
                 } else {
-                    req.setAttribute(MESSAGE_USER, new ComputerNotFoundException("").getMessage());
+                    req.setAttribute(MESSAGE_USER, new ComputerNotDeletedException(MESSAGE_USER).getMessage());
                     req.setAttribute(TYPE_MESSAGE, ERROR);
                 }
             } catch (NumberFormatException e) {
                 req.setAttribute(MESSAGE_USER, DELETE_NO_VALID_ID.toString());
                 req.setAttribute(TYPE_MESSAGE, ERROR);
+                req.getRequestDispatcher(DASHBOARD_SERVLET.toString()).forward(req, res);
+            } catch (ComputerNotDeletedException e) {
+                req.setAttribute(MESSAGE_USER, e.getMessage());
+                req.setAttribute(TYPE_MESSAGE, WARNING);
                 req.getRequestDispatcher(DASHBOARD_SERVLET.toString()).forward(req, res);
             }
         }

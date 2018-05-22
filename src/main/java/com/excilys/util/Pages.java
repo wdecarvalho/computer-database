@@ -35,7 +35,8 @@ public class Pages<T> {
      */
     public int startResult() {
         if (pageCourante > pageMax) {
-            return (pageMax - 1) * numberPerPageResult;
+            final int nbResult = (pageMax - 1) * numberPerPageResult;
+            return nbResult <= 0 ? 0 : nbResult;
         } else {
             return firstResult();
         }

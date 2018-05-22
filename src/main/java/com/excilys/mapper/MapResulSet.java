@@ -71,4 +71,23 @@ public abstract class MapResulSet {
                 .company(company).build());
     }
 
+    /**
+     * Creer un omputer a partir du resulset.
+     * @param resultSet
+     *            ResulSet
+     * @param company
+     *            Company
+     * @return Optional<Computer>
+     * @throws SQLException
+     *             Si on arrive pas à acceder aux attributs
+     */
+    public static Computer resulsetToComputer(final ResultSet resultSet, final Company company) throws SQLException {
+        final String computerName = resultSet.getString("computer.name");
+        final Long computerId = resultSet.getLong("computer.id");
+        return new Computer.Builder(computerName).id(computerId)
+                .introduced(MapUtil.convertTimeStampToLocal(resultSet.getTimestamp("computer.introduced")))
+                .discontinued(MapUtil.convertTimeStampToLocal(resultSet.getTimestamp("computer.discontinued")))
+                .company(company).build();
+    }
+
 }
