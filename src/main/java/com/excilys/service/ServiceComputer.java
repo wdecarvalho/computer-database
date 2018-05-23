@@ -2,6 +2,7 @@ package com.excilys.service;
 
 import java.util.Collection;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,20 +22,16 @@ import com.excilys.validation.ComputerValidation;
 @Transactional
 public class ServiceComputer implements ServiceCdb<Computer> {
 
-    private final ComputerDao computerDao;
+    @Autowired
+    private ComputerDao computerDao;
 
-    private final ServiceCompany serviceCompany;
+    @Autowired
+    private ServiceCompany serviceCompany;
 
     /**
      * Constructeur de ServiceComputer [Spring].
-     * @param computerDao
-     *            ComputerDAO
-     * @param serviceCompany
-     *            ServiceCompanyDAO
      */
-    private ServiceComputer(ComputerDao computerDao, ServiceCompany serviceCompany) {
-        this.computerDao = computerDao;
-        this.serviceCompany = serviceCompany;
+    private ServiceComputer() {
     }
 
     @Override
