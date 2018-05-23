@@ -9,6 +9,7 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Repository;
 
@@ -30,7 +31,8 @@ public class CompanyDao extends Dao<Company> {
 
     /**
      * Constructeur de CompanyDao.
-     * @param dataSource DataSourceHikari
+     * @param dataSource
+     *            DataSourceHikari
      */
     private CompanyDao(final DataSource dataSource) {
         super(dataSource);
@@ -43,7 +45,7 @@ public class CompanyDao extends Dao<Company> {
             company = Optional
                     .ofNullable(getJdbcTemplate().queryForObject(FIND_ONE_COMPANY, new MapperResulSetToCompany(), id));
         } catch (EmptyResultDataAccessException e) {
-            // Nothing to espacially
+            // Nothing to do espacially
         }
         return company;
     }
@@ -82,9 +84,13 @@ public class CompanyDao extends Dao<Company> {
     @Override
     public boolean delete(Long id) {
         boolean res = false;
-        getJdbcTemplate().update(DELETE_COMPUTER_LINKED, id);
-        if (getJdbcTemplate().update(DELETE_ONE_COMPANY, id) == 1) {
-            res = true;
+        try {
+            getJdbcTemplate().update(DELETE_COMPUTER_LINKED, id);
+            if (getJdbcTemplate().update(DELETE_ONE_COMPANY, id) == 1) {
+                res = true;
+            }
+        } catch (DataAccessException e) {
+            LOGGER.error(e.getMessage());
         }
         return res;
 

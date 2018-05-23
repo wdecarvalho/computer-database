@@ -14,7 +14,7 @@ import com.excilys.util.Pages;
 @Repository
 public abstract class Dao<T> {
 
-    protected final DataSource dataSource;
+    private final DataSource dataSource;
 
     private JdbcTemplate jdbcTemplate;
 
