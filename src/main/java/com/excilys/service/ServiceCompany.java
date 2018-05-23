@@ -2,7 +2,6 @@ package com.excilys.service;
 
 import java.util.Collection;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,17 +13,14 @@ import com.excilys.util.Pages;
 @Transactional
 public class ServiceCompany implements ServiceCdb<Company> {
 
-    // private static final Logger LOGGER =
-    // LoggerFactory.getLogger(ServiceCompany.class);
-
-    @Autowired
-    private CompanyDao companyDao;
+    private final CompanyDao companyDao;
 
     /**
      * Initialise le service.
+     * @param companyDao a injecter
      */
-    private ServiceCompany() {
-
+    private ServiceCompany(CompanyDao companyDao) {
+        this.companyDao = companyDao;
     }
 
     /**

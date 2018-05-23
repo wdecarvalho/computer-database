@@ -6,7 +6,6 @@ import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -15,8 +14,7 @@ import com.excilys.util.Pages;
 @Repository
 public abstract class Dao<T> {
 
-    @Autowired
-    protected DataSource dataSource;
+    protected final DataSource dataSource;
 
     private JdbcTemplate jdbcTemplate;
 
@@ -27,8 +25,11 @@ public abstract class Dao<T> {
 
     /**
      * Constructeur de Dao.
+     * @param dataSource
+     *            DataSourceHikari
      */
-    Dao() {
+    Dao(final DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     /**

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -28,8 +30,10 @@ public class CompanyDao extends Dao<Company> {
 
     /**
      * Constructeur de CompanyDao.
+     * @param dataSource DataSourceHikari
      */
-    private CompanyDao() {
+    private CompanyDao(final DataSource dataSource) {
+        super(dataSource);
     }
 
     @Override

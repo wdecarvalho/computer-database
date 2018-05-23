@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -51,8 +53,11 @@ public class ComputerDao extends Dao<Computer> {
 
     /**
      * Constructeur de ComputerDao.
+     * @param dataSource
+     *            DataSourceHikari
      */
-    private ComputerDao() {
+    private ComputerDao(final DataSource dataSource) {
+        super(dataSource);
 
     }
 
