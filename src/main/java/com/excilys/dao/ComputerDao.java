@@ -24,6 +24,13 @@ import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
 
 @Repository
 public class ComputerDao extends Dao<Computer> {
+    private static final String ERROR_CODE_DATE_SQL = "22001";
+    private static final String ID = "id";
+    private static final String COMPUTER = "computer";
+    private static final String COMPANY_ID = "company_id";
+    private static final String DISCONTINUED = "discontinued";
+    private static final String INTRODUCED = "introduced";
+    private static final String NAME = "name";
     private static final String SEARCH_COMPUTER = "SELECT computer.id, computer.name, computer.introduced, computer.discontinued, company.id, company.name "
             + "FROM computer LEFT OUTER JOIN company on computer.company_id = company.id WHERE computer.name LIKE ? or company.name LIKE ? ORDER BY computer.name ASC LIMIT ? OFFSET ? ";
     private static final String DELETE_ONE_COMPUTER = "DELETE FROM computer where id = ?;";
@@ -59,17 +66,17 @@ public class ComputerDao extends Dao<Computer> {
      */
     public Long create(final Computer obj) throws DateTruncationException {
         SimpleJdbcInsert jdbcInsert = new SimpleJdbcInsert(getJdbcTemplate());
-        jdbcInsert.withTableName("computer").usingGeneratedKeyColumns("id");
-        SqlParameterSource parameterSource = new MapSqlParameterSource().addValue("name", obj.getName())
-                .addValue("introduced", MapUtil.convertLocalDateToTimeStamp(obj.getIntroduced()))
-                .addValue("discontinued", MapUtil.convertLocalDateToTimeStamp(obj.getDiscontinued()))
-                .addValue("company_id", obj.getCompany() == null ? null : obj.getCompany().getId());
+        jdbcInsert.withTableName(COMPUTER).usingGeneratedKeyColumns(ID);
+        SqlParameterSource parameterSource = new MapSqlParameterSource().addValue(NAME, obj.getName())
+                .addValue(INTRODUCED, MapUtil.convertLocalDateToTimeStamp(obj.getIntroduced()))
+                .addValue(DISCONTINUED, MapUtil.convertLocalDateToTimeStamp(obj.getDiscontinued()))
+                .addValue(COMPANY_ID, obj.getCompany() == null ? null : obj.getCompany().getId());
         Long id = -1L;
         try {
             id = jdbcInsert.executeAndReturnKey(parameterSource).longValue();
         } catch (DataIntegrityViolationException e) {
             if (e.getCause() instanceof MysqlDataTruncation) {
-                if (((MysqlDataTruncation) e.getCause()).getSQLState().equals("22001")) {
+                if (((MysqlDataTruncation) e.getCause()).getSQLState().equals(ERROR_CODE_DATE_SQL)) {
                     throw new DateTruncationException();
                 }
             } else {
@@ -133,7 +140,7 @@ public class ComputerDao extends Dao<Computer> {
                 computer = Optional.ofNullable(obj);
             }
         } catch (DataIntegrityViolationException e) {
-            if (((MysqlDataTruncation) e.getCause()).getSQLState().equals("22001")) {
+            if (((MysqlDataTruncation) e.getCause()).getSQLState().equals(ERROR_CODE_DATE_SQL)) {
                 throw new DateTruncationException();
             } else {
                 LOGGER.error(e.getMessage());

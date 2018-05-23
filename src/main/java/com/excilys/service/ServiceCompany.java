@@ -44,6 +44,7 @@ public class ServiceCompany implements ServiceCdb<Company> {
         return companyDao.findAll();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean deleteOne(final Long id) {
         return companyDao.delete(id);
