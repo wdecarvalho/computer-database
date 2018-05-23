@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class PaginationTagTest {
 
     private static final String PAGE1 = "<a href='dashboard?page=1'";
+    private static final String PAGE1SEARCH = "<a href='dashboard?page=1&action=search&search=e'";
     private static final String PAGE2 = "<a href='dashboard?page=2'";
 
     @Mock
@@ -55,6 +56,7 @@ public class PaginationTagTest {
         paginationTag.setPageCourante(1);
         paginationTag.setLimit(4);
         paginationTag.setJspContext(jspContext);
+        paginationTag.setToSearch("");
         Mockito.when(jspContext.getOut()).thenReturn(writer);
         paginationTag.doTag();
         // Mockito.verify(jspContext).getOut();
@@ -66,6 +68,12 @@ public class PaginationTagTest {
         paginationTag.setJspContext(jspContext);
         Mockito.when(jspContext.getOut()).thenReturn(writer);
         paginationTag.doTag();
-        Mockito.verify(jspContext, Mockito.times(2)).getOut();
+
+        paginationTag.setToSearch("e");
+        Mockito.when(jspContext.getOut()).thenReturn(writer);
+        paginationTag.doTag();
+        assertEquals(paginationTag.constructUrl(1), PAGE1SEARCH);
+
+        Mockito.verify(jspContext, Mockito.times(3)).getOut();
     }
 }

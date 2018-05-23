@@ -2,18 +2,12 @@ package com.excilys.dao;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
-import javax.sql.DataSource;
-
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -22,13 +16,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import com.excilys.config.ServerConfiguration;
 import com.excilys.model.Company;
-import com.mysql.cj.protocol.Resultset;
 
 @TestInstance(Lifecycle.PER_CLASS)
 @ExtendWith(MockitoExtension.class)
@@ -36,22 +32,21 @@ import com.mysql.cj.protocol.Resultset;
 public class CompanyDaoTest {
 
     @Mock
-    private DataSource dataSource;
-
-    @Mock
-    private Connection connection;
-
-    @Mock
-    private PreparedStatement ps;
-
-    @Mock
-    private Resultset rs;
+    JdbcTemplate jdbcTemplate;
 
     @InjectMocks
-    private CompanyDao mockCompanyDao;
+    CompanyDao mockCompanyDao;
 
     @Autowired
     private CompanyDao companyDao;
+
+    /**
+     * Init les annotations.
+     */
+    @BeforeAll
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     /*
      * Test find en base de donnée
@@ -136,97 +131,16 @@ public class CompanyDaoTest {
     }
 
     /**
-     * Lorsque une SQLException intervient un optional vide doit etre retournée.
-     * @throws SQLException
-     *             SQLException
+     * Verifie que la supression en cascade d'une companie ne fonctionne pas si l'ID
+     * n'est pas valide.
      */
+    @SuppressWarnings("serial")
     @Test
-    @DisplayName("Should return an empty optional for find method when SQLException occures")
-    public void findComputerWhenSQLExceptionIsCatched() throws SQLException {
-        scenariseConnectionAndPreparedStatement(false);
-        assertEquals(Optional.empty(), mockCompanyDao.find(1L));
-        verifyConnectionAndPreparedStatement(false, false);
+    @DisplayName("Should not delete company 66 ")
+    public void deleteeCompanyAndHisComputersWhenIDNotValid() {
+        Mockito.when(mockCompanyDao.getJdbcTemplate().update(Mockito.anyString(), Mockito.anyLong()))
+                .thenThrow(new DataAccessException("Anonymous") {
+                });
+        assertFalse(mockCompanyDao.delete(1L));
     }
-
-    /**
-     * Lorsque une SQLException intervient une liste vide doit être retournée.
-     * @throws SQLException
-     *             SQLException
-     */
-    @Test
-    @DisplayName("Should return an empty collection for findAll method when SQLException occures")
-    public void findAllComputersWhenSQLExceptionIsCatched() throws SQLException {
-        scenariseConnectionAndPreparedStatement(false);
-        assertEquals(0, mockCompanyDao.findAll().size());
-        verifyConnectionAndPreparedStatement(false, false);
-    }
-
-    /**
-     * Lorsque une SQLException intervient une page sans elements doit être
-     * retournée.
-     * @throws SQLException
-     *             SQLException
-     */
-    @Test
-    @DisplayName("Should return an empty page for findPerPage method when SQLException occures")
-    public void findPerPageComputerWhenSQLExceptionIsCatched() throws SQLException {
-        scenariseConnectionAndPreparedStatement(false);
-        assertSame(0, mockCompanyDao.findPerPage(1).getEntities().size());
-        verifyConnectionAndPreparedStatement(false, false);
-    }
-
-    /**
-     * Verifie que rien n'est supprimé sur une SQLException intervient.
-     * @throws SQLException
-     *             SQLException
-     */
-    @Test
-    @DisplayName("Should not delete a company if a SQLException occures")
-    public void deleteACompanyWhenSQLExceptionOccures() throws SQLException {
-        scenariseConnectionAndPreparedStatement(true);
-        assertEquals(false, mockCompanyDao.delete(27L));
-        verifyConnectionAndPreparedStatement(false, true);
-    }
-
-    /**
-     * @param update
-     *            false si c'est un find, true sinon
-     * @param delete
-     *            true si c'est un delete, false sinon
-     * @throws SQLException
-     *             When SQLException occures.
-     */
-    private void verifyConnectionAndPreparedStatement(final boolean update, final boolean delete) throws SQLException {
-        Mockito.verify(dataSource).getConnection();
-        if (delete) {
-            Mockito.verify(connection, Mockito.times(2)).prepareStatement(Mockito.anyString(), Mockito.anyInt(),
-                    Mockito.anyInt());
-        } else {
-            Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt());
-        }
-        if (update || delete) {
-            Mockito.verify(ps).executeUpdate();
-        } else {
-            Mockito.verify(ps).executeQuery();
-        }
-    }
-
-    /**
-     * @param update
-     *            false si c'est un find, true sinon
-     * @throws SQLException
-     *             When SQLException occures.
-     */
-    private void scenariseConnectionAndPreparedStatement(final boolean update) throws SQLException {
-        Mockito.when(dataSource.getConnection()).thenReturn(connection);
-        Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
-                .thenReturn(ps);
-        if (update) {
-            Mockito.when(ps.executeUpdate()).thenThrow(SQLException.class);
-        } else {
-            Mockito.when(ps.executeQuery()).thenThrow(SQLException.class);
-        }
-
-    }
-
 }

@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import javax.sql.DataSource;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,6 +51,9 @@ import com.excilys.util.Pages;
 @SpringJUnitConfig(classes = ServerConfiguration.class)
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
 public class ServiceCdbTest {
+
+    @Autowired
+    DataSource dataSource;
 
     @Mock
     CompanyDao companyDao;
@@ -464,6 +469,7 @@ public class ServiceCdbTest {
     /**
      * Verifie que la suppresion d'une liste de computer coté DAO fonctionne.
      * @throws ComputerNotDeletedException
+     *             Si un ou plusieurs computer n'ont pas pu être supprimé
      */
     @Test
     @DisplayName("Test delete a list of computers ")
@@ -476,6 +482,7 @@ public class ServiceCdbTest {
     /**
      * Demande a la DAO de supprimer une liste de computer non valide.
      * @throws ComputerNotDeletedException
+     *             Computer Not deleted exception
      */
     @Test
     @DisplayName("Test delete a list of computers ")
@@ -495,25 +502,4 @@ public class ServiceCdbTest {
         serviceCompanyReal.deleteOne(38L);
         assertEquals(0, serviceComputer.findByPagesComputer("cascade", 1).getEntities().size());
     }
-
-    /*
-     * ==================================================================== Creation
-     * du service
-     * ====================================================================
-     */
-
-    /**
-     * Un appel sur getInstance doit retourner toujours la meme instance
-     * (singleton).
-     * @throws DaoNotInitializeException
-     *             Si une DAO n'a pas réussi a s'initiliaser
-     */
-    // @Test
-    // @DisplayName("Should return instance since is created")
-    // public void getServiceInstance() throws DaoNotInitializeException {
-    // ServiceComputer serviceCdb = ServiceComputer.getInstance();
-    // ServiceComputer serviceCdb2 = ServiceComputer.getInstance();
-    // assertNotNull(serviceCdb);
-    // assertEquals(serviceCdb, serviceCdb2);
-    // }
 }

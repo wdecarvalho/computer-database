@@ -8,16 +8,10 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-
-import javax.sql.DataSource;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -26,8 +20,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -44,18 +36,6 @@ import com.excilys.util.Pages;
 @ExtendWith(MockitoExtension.class)
 @SpringJUnitConfig(classes = ServerConfiguration.class)
 public class ComputerDaoTest {
-
-    @Mock
-    private DataSource dataSource;
-
-    @Mock
-    private Connection connection;
-
-    @Mock
-    private PreparedStatement ps;
-
-    @Mock
-    private ResultSet rs;
 
     @InjectMocks
     private ComputerDao mockComputerDao;
@@ -135,6 +115,18 @@ public class ComputerDaoTest {
     }
 
     /**
+     * Verifie qu'on recupere toujours la derniere page possible.
+     */
+    @Test
+    @DisplayName("Test pagination when asked 4 and 3 is the last should return 3")
+    public void testAlwaysGettheLastPagePossible() {
+        Pages<Computer> pages = new Pages<>(4);
+        pages.setPageMax(30);
+        assertEquals(3, pages.getPageCourante());
+        pages.startResult();
+    }
+
+    /**
      * Verifie que la recuperation de page incorrecte affiche bien la premeire page.
      */
     @Test
@@ -164,59 +156,6 @@ public class ComputerDaoTest {
         assertEquals(1, computerDao.findPerPage("try", 0, 1).getEntities().size());
         assertEquals(1, computerDao.findPerPage("try", 2, 1).getEntities().size());
         assertEquals(2, computerDao.findPerPage("try", 3, 20).getEntities().size());
-    }
-
-    /**
-     * Lorsque une SQLException intervient un optional vide doit etre retournée.
-     * @throws SQLException
-     *             SQLException
-     */
-    @Test
-    @DisplayName("Should return an empty optional for find method when SQLException occures")
-    public void findComputerWhenSQLExceptionIsCatched() throws SQLException {
-        scenariseConnectionAndPreparedStatement(false, false);
-        assertEquals(Optional.empty(), mockComputerDao.find(1L));
-        verifyConnectionAndPreparedStatement(false);
-    }
-
-    /**
-     * Lorsque une SQLException intervient une liste vide doit être retournée.
-     * @throws SQLException
-     *             SQLException
-     */
-    @Test
-    @DisplayName("Should return an empty collection for findAll method when SQLException occures")
-    public void findAllComputersWhenSQLExceptionIsCatched() throws SQLException {
-        scenariseConnectionAndPreparedStatement(false, false);
-        assertEquals(0, mockComputerDao.findAll().size());
-        verifyConnectionAndPreparedStatement(false);
-    }
-
-    /**
-     * Lorsque une SQLException intervient une page sans elements doit être
-     * retournée.
-     * @throws SQLException
-     *             SQLException
-     */
-    @Test
-    @DisplayName("Should return an empty page for findPerPage method when SQLException occures")
-    public void findPerPageComputerWhenSQLExceptionIsCatched() throws SQLException {
-        scenariseConnectionAndPreparedStatement(false, false);
-        assertSame(0, mockComputerDao.findPerPage(1).getEntities().size());
-        verifyConnectionAndPreparedStatement(false);
-    }
-
-    /**
-     * Lorsque une SQLException intervient une page vide doit être affichée.
-     * @throws SQLException
-     *             SQLException
-     */
-    @Test
-    @DisplayName("Should return an empty page when a SQLException occures")
-    public void findPerPageWithSQLException() throws SQLException {
-        scenariseConnectionAndPreparedStatement(false, false);
-        assertSame(0, mockComputerDao.findPerPage("try", 0).getPageCourante());
-        verifyConnectionAndPreparedStatement(false);
     }
 
     /*
@@ -278,29 +217,6 @@ public class ComputerDaoTest {
         assertNotEquals(-1L, id);
     }
 
-    /**
-     * Verifie que la creation d'un computer avec une date invalide (avant 1970)
-     * declenche une exception.
-     * @throws SQLException
-     *             SQLException
-     * @throws ComputerNeedIdToBeUpdateException
-     *             ID obligatoire pour mettre a jour un computer
-     * @throws DateTruncationException
-     *             Exception quand la date non stockable en BD
-     */
-    @Test
-    @DisplayName("Create should throw a DateTruncationException for SQLState 22001 when date is before 1970")
-    public void createComputerWhenDateTruncationExceptionIsCatched()
-            throws SQLException, ComputerNeedIdToBeUpdateException, DateTruncationException { // FIXME dataSource mock ?
-        Mockito.when(dataSource.getConnection()).thenReturn(connection);
-        Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt())).thenReturn(ps);
-        Mockito.when(ps.getGeneratedKeys()).thenThrow(new SQLException("", "22001"));
-        assertThrows(DateTruncationException.class, () -> mockComputerDao.create(computer));
-        Mockito.verify(dataSource).getConnection();
-        Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt());
-        Mockito.verify(ps).getGeneratedKeys();
-    }
-
     /*
      * Test update
      */
@@ -318,7 +234,8 @@ public class ComputerDaoTest {
     @DisplayName("Should not update computer with no ID and throw ComputerNeedIdToBeUpdateException and should not update computer with ID 1111L (no present in database)")
     public void updateComputerTransientTest() throws ComputerNeedIdToBeUpdateException, DateTruncationException {
         final Computer computer = new Computer.Builder(null).build();
-        assertThrows(NullPointerException.class, () -> computerDao.update(computer));
+        System.out.println(computer);
+        assertEquals(Optional.empty(), computerDao.update(computer));
         final Computer computer3 = new Computer.Builder("name").id(1111L).build();
         assertEquals(Optional.empty(), computerDao.update(computer3));
     }
@@ -342,42 +259,6 @@ public class ComputerDaoTest {
         assertEquals(LocalDate.of(2015, Month.FEBRUARY, 02), updated.get().getDiscontinued());
     }
 
-    /**
-     * Test la mise a jour d'un computer quand une SQLException intervient.
-     * @throws SQLException
-     *             SQLException
-     * @throws ComputerNeedIdToBeUpdateException
-     *             Quand l'ID du computer n'est pas donnée
-     * @throws DateTruncationException
-     *             Si une erreur de date apparait
-     */
-    @Test
-    @DisplayName("Update should return null when a normal SQLException is thrown")
-    public void updateComputerWhenSQLExceptionIsCatched()
-            throws SQLException, ComputerNeedIdToBeUpdateException, DateTruncationException {
-        scenariseConnectionAndPreparedStatement(true, false);
-        assertEquals(Optional.empty(), mockComputerDao.update(computer));
-        verifyConnectionAndPreparedStatement(true);
-    }
-
-    /**
-     * Test la mise a jour d'un computer quand une SQLException intervient.
-     * @throws SQLException
-     *             SQLException
-     * @throws ComputerNeedIdToBeUpdateException
-     *             Quand l'ID du computer n'est pas donnée
-     * @throws DateTruncationException
-     *             Si une erreur de date apparait
-     */
-    @Test
-    @DisplayName("Update should throw a DateTruncationException for SQLState 22001")
-    public void updateComputerWhenDateTruncationExceptionIsCatched()
-            throws SQLException, ComputerNeedIdToBeUpdateException, DateTruncationException {
-        scenariseConnectionAndPreparedStatement(true, true);
-        assertThrows(DateTruncationException.class, () -> mockComputerDao.update(computer));
-        verifyConnectionAndPreparedStatement(true);
-    }
-
     /*
      * Test de suppression
      */
@@ -393,21 +274,9 @@ public class ComputerDaoTest {
     }
 
     /**
-     * Test la supression d'un computer quand une SQLException intervient.
-     * @throws SQLException
-     *             SQLException
-     */
-    @Test
-    @DisplayName("Should return false when a SQLException is thrown")
-    public void deleteComputerWhenSQLExceptionIsCatched() throws SQLException {
-        scenariseConnectionAndPreparedStatement(true, false);
-        assertFalse(mockComputerDao.delete(1L));
-        verifyConnectionAndPreparedStatement(true);
-    }
-
-    /**
      * Test la suppresion d'une liste de computers.
      * @throws ComputerNotDeletedException
+     *             Si un ou plusieurs computer n'ont pas été supprimé.
      */
     @Test
     @DisplayName("Should delete computers with ID 20 and 21")
@@ -417,8 +286,21 @@ public class ComputerDaoTest {
     }
 
     /**
+     * Test la suppresion d'une liste de computers.
+     * @throws ComputerNotDeletedException
+     *             Si un ou plusieurs computer n'ont pas été supprimé.
+     */
+    @Test
+    @DisplayName("Should delete computers with ID 16 and not delete computer with id -1")
+    public void deleteSomeComputerByList() {
+        final String listeIdString = "(22,-1)";
+        assertThrows(ComputerNotDeletedException.class, () -> computerDao.delete(listeIdString));
+    }
+
+    /**
      * Test la supression d'une liste de computer ou les ID n'existe pas.
      * @throws ComputerNotDeletedException
+     *             Si un ou plusieurs computer n'ont pas été supprimé.
      */
     @Test
     @DisplayName("Should not delete computers with ID -5 and -1")
@@ -426,84 +308,4 @@ public class ComputerDaoTest {
         final String listeIdString = "(-5,-1)";
         assertFalse(computerDao.delete(listeIdString));
     }
-
-    /**
-     * Test la suppresion d'une liste de computer quand une SQLException apparait.
-     * @throws SQLException
-     *             SQLException
-     * @throws ComputerNotDeletedException
-     */
-    @Test
-    @DisplayName("Should not delete computers when SQLException appear")
-    public void notDeletingWhenSQLException() throws SQLException, ComputerNotDeletedException {
-        scenariseConnectionAndPreparedStatement(true, false);
-        assertFalse(mockComputerDao.delete("(5,10)"));
-        verifyConnectionAndPreparedStatement(true);
-    }
-
-    /**
-     * @param update
-     *            false si c'est un find, true sinon
-     * @throws SQLException
-     *             When SQLException occures.
-     */
-    private void verifyConnectionAndPreparedStatement(final boolean update) throws SQLException {
-        Mockito.verify(dataSource).getConnection();
-        Mockito.verify(connection).prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt());
-        if (update) {
-            Mockito.verify(ps).executeUpdate();
-        } else {
-            Mockito.verify(ps).executeQuery();
-        }
-
-    }
-
-    /**
-     * @param update
-     *            false si c'est un find, true sinon
-     * @param dateException
-     *            true si on veut ajouter un SQLState correspondant au probleme de
-     *            date, false sinon
-     * @throws SQLException
-     *             When SQLException occures.
-     */
-    private void scenariseConnectionAndPreparedStatement(final boolean update, final boolean dateException)
-            throws SQLException {
-        Mockito.when(dataSource.getConnection()).thenReturn(connection);
-        Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt(), Mockito.anyInt()))
-                .thenReturn(ps);
-        final SQLException sqlException;
-        if (dateException) {
-            sqlException = new SQLException("", "22001");
-        } else {
-            sqlException = new SQLException("", "");
-        }
-        if (update) {
-            Mockito.when(ps.executeUpdate()).thenThrow(sqlException);
-        } else {
-            Mockito.when(ps.executeQuery()).thenThrow(sqlException);
-        }
-    }
-
-    /**
-     *
-     * Du fait que la factory couvre toutes les DAO disponible en ENUM, on ne peut
-     * jamais throw l'exception. Lorsque la factory ne couvrera pas toutes les DAO
-     * alors cela pourra etre tester L'appel d'une DAO qui n'existe pas throw une
-     * DaoNotInitializeException.
-     * @throws DaoNotInitializeException
-     *             Si une DAO non attendu apparait
-     * @throws SQLException
-     *             SQLException
-     */
-    // @Test
-    // @DisplayName("Should throw a DaoNotInitiliazException when Service try work
-    // with a DAO that not exist")
-    // public void getDaoThatNotExistTest() throws SQLException,
-    // DaoNotInitializeException {
-    // Mockito.when(daoFactory.getDao(Mockito.any())).thenThrow(DaoNotInitializeException.class);
-    // assertThrows(NullPointerException.class, () ->
-    // DaoFactory.getInstance().getDao(null));
-    // Mockito.verify(daoFactory).getDao(Mockito.any());
-    // }
 }
