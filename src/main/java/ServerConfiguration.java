@@ -21,7 +21,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 @Configuration
-@ComponentScan(basePackages = { "com.excilys" })
+@ComponentScan(basePackages = { "com.excilys.dao", "com.excilys.service", "com.excilys.servlet" })
 public class ServerConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfiguration.class);
 
