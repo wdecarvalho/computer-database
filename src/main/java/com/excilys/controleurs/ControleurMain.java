@@ -38,7 +38,6 @@ public class ControleurMain {
     public String accueil(final Model model,
             @RequestParam(name = "page", required = false, defaultValue = "1") final Integer page,
             @RequestParam(name = "numberResult", required = false) Integer nbResult) {
-        LOGGER.error("Coucou je suis le controlleur");
         nbResult = createNbResultWithAllowedValue(model, nbResult);
         final Pages<Computer> pagesComputer = serviceComputer.findByPage(page, nbResult);
         final List<ComputerDTO> computerDTOs = pagesComputer.getEntities().stream()
@@ -55,7 +54,6 @@ public class ControleurMain {
             @RequestParam(name = "page", required = false, defaultValue = "1") final Integer page,
             @RequestParam(name = "numberResult", required = false) Integer nbResult,
             @RequestParam(name = "search") final String search) {
-        LOGGER.error("Coucou je suis le controlleur");
         nbResult = createNbResultWithAllowedValue(model, nbResult);
         final Pages<Computer> pagesComputer = serviceComputer.findByPagesComputer(search, page, nbResult);
         final List<ComputerDTO> computerDTOs = pagesComputer.getEntities().stream()

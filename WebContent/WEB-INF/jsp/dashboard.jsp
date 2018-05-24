@@ -85,7 +85,7 @@
 						<tr>
 							<td class="editMode"><input type="checkbox" name="cb"
 								class="cb" value="${computer.id}"></td>
-							<td><a href="computer?id=${computer.id}&action=editForm"
+							<td><a href="computer/${computer.id}"
 								onclick="">${computer.name}</a></td>
 							<td>${computer.introDate}</td>
 							<td>${computer.disconDate}</td>

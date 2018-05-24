@@ -82,7 +82,7 @@ public abstract class MapUtil {
         } else {
             company = new Company.Builder(computerDTO.getCompanyID()).name(computerDTO.getCompanyName()).build();
         }
-        return new Computer.Builder(computerDTO.getName()).introduced(computerDTO.getIntroDate())
+        return new Computer.Builder(computerDTO.getName()).id(computerDTO.getId()).introduced(computerDTO.getIntroDate())
                 .discontinued(computerDTO.getDisconDate()).company(company).build();
     }
 

@@ -5,6 +5,10 @@
 	version="3.0">
 	<display-name>william.cdb</display-name>
 	<error-page>
+        <error-code>400</error-code>
+        <location>/static/views/400.html</location>
+    </error-page>
+	<error-page>
 		<error-code>404</error-code>
 		<location>/static/views/404.html</location>
 	</error-page>
