@@ -2,16 +2,26 @@ package com.excilys.dto;
 
 import java.time.LocalDate;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.executable.ValidateOnExecution;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
+import com.excilys.constants.commons.message.MessageValidationAndException;
 import com.excilys.model.Computer;
 
+@ValidateOnExecution
 public class ComputerDTO {
 
     private Long id;
 
+    @NotBlank(message = MessageValidationAndException.NAME_IS_REQUIRED)
     private String name;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate introDate;
 
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate disconDate;
 
     private Long companyID;
@@ -83,12 +93,6 @@ public class ComputerDTO {
     }
 
     @Override
-    public String toString() {
-        return "ComputerDTO [id=" + id + ", name=" + name + ", introDate=" + introDate + ", disconDate=" + disconDate
-                + ", companyName=" + companyName + "]";
-    }
-
-    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -116,6 +120,12 @@ public class ComputerDTO {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "ComputerDTO [id=" + id + ", name=" + name + ", introDate=" + introDate + ", disconDate=" + disconDate
+                + ", companyID=" + companyID + ", companyName=" + companyName + "]";
     }
 
 }
