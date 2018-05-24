@@ -16,13 +16,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 @Configuration
-@ComponentScan(basePackages = { "com.excilys.dao", "com.excilys.service", "com.excilys.servlet" })
-public class ServerConfiguration {
+@EnableWebMvc
+@ComponentScan(basePackages = { "com.excilys.dao", "com.excilys.service", "com.excilys.controleurs" })
+public class ServerConfiguration implements WebMvcConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfiguration.class);
 
     /**
@@ -55,6 +60,23 @@ public class ServerConfiguration {
             runScriptForDatabaseConnection(dSource);
         }
         return dSource;
+    }
+
+    /**
+     * Creer un InternalResourceViewResolver pour trouver les fichiers jsp.
+     * @return ViewResolver viewresolver
+     */
+    @Bean
+    public InternalResourceViewResolver viewResolver() {
+        InternalResourceViewResolver bean = new InternalResourceViewResolver();
+        bean.setPrefix("/WEB-INF/jsp/");
+        bean.setSuffix(".jsp");
+        return bean;
+    }
+
+    @Override
+    public void addResourceHandlers(final ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/**").addResourceLocations("/");
     }
 
     /**

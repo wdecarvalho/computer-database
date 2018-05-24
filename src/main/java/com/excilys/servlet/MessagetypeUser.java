@@ -6,9 +6,9 @@ public enum MessagetypeUser {
             "Les ordinateurs ont été correctement supprimés"), DELETE_NO_VALID_ID(
                     "Les ordinateurs doivent être composée uniquement de nombre [0-9]"),
 
-    UPDATE_SUCCESSFULL_COMPUTER("L'ordinateur a été correctement modifié"),
-    ADD_ERROR_COMPUTER("Une erreur a empeché la création de l'ordinateur"),
-    ADD_SUCCESSFULL_COMPUTER("L'ordinateur a été correctement sauvegardé");
+    UPDATE_SUCCESSFULL_COMPUTER("L'ordinateur a été correctement modifié"), ADD_ERROR_COMPUTER(
+            "Une erreur a empeché la création de l'ordinateur"), ADD_SUCCESSFULL_COMPUTER(
+                    "L'ordinateur a été correctement sauvegardé");
 
     private final String message;
 

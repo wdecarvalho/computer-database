@@ -35,24 +35,24 @@
 							<div id="divComputerName" class="form-group">
 								<label class="control-label" for="computerName">Computer
 									name</label> <input required type="text" class="form-control"
-									id="computerName" name="computerName"
+									id="computerName" name="name"
 									placeholder="Computer name">
 									<span id='nomObligatoire' class='help-block hidden'>Le nom est obligatoire</span>
 							</div>
 							<div class="form-group">
 								<label for="introduced">Introduced date</label> <input
-									type="date" class="form-control" name="introduced" id="introduced"
+									type="date" class="form-control" name="introDate" id="introduced"
 									placeholder="Introduced date">
 							</div>
 							<div class="form-group">
 								<label for="discontinued">Discontinued date</label> <input
-									type="date" class="form-control" name="discontinued" id="discontinued"
+									type="date" class="form-control" name="disconDate" id="discontinued"
 									placeholder="Discontinued date">
 							</div>
 							<div class="form-group">
 								<label for="companyId">Company</label> <select
-									class="form-control" name="companyId">
-									<option value="0"></option>
+									class="form-control" id="companyId" name="companyID">
+									<option/>
 									<c:forEach items="${requestScope['companys']}" var="company">
 										<option value="${company.id}">${company.name}</option>
 									</c:forEach>

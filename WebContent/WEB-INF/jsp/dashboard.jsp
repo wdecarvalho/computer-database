@@ -11,8 +11,8 @@
 <!-- Bootstrap -->
 <link href="static/css/bootstrap.min.css" rel="stylesheet"
 	media="screen">
-<link href="static/css/font-awesome.css" rel="stylesheet" media="screen">
-<link href="static/css/main.css" rel="stylesheet" media="screen">
+<link href="static/css/font-awesome.css" rel="stylesheet" media="screen"  type="text/css">
+<link href="static/css/main.css" rel="stylesheet" media="screen"  type="text/css">
 </head>
 <c:if test="${messageUser!=null}">
 	<div class="container">

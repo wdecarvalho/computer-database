@@ -16,7 +16,4 @@
 		<error-code>403</error-code>
 		<location>/static/views/403.html</location>
 	</error-page>
-	<welcome-file-list>
-		<welcome-file>dashboard</welcome-file>
-	</welcome-file-list>
 </web-app>
