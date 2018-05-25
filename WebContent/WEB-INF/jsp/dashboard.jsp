@@ -5,6 +5,8 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <%@ taglib prefix="pagination" uri="/WEB-INF/taglibs/custom.tld"%>
 <%@ taglib prefix="infouser" uri="/WEB-INF/taglibs/tagInfoUser.tld"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+
 <title>Computer Database</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="utf-8">
@@ -29,7 +31,7 @@
 	</header>
 	<section id="main">
 		<div class="container">
-			<h1 id="homeTitle">${requestScope.nbComputers} Computers found</h1>
+			<h1 id="homeTitle"><spring:message code="computer.found" arguments="${requestScope.nbComputers}"/></h1>
 			<div id="actions" class="form-horizontal">
 				<div class="pull-left">
 					<%-- Search Form --%>
@@ -103,7 +105,8 @@
 			<pagination:pagination limit="${requestScope.limit}"
 				pageCourante="${requestScope.pageCourante}" toSearch="${toSearch}"/>
 
-			<div class="btn-group btn-group-sm pull-right" role="group">
+				<div class="pull-right">
+			<div class="btn-group btn-group-sm" role="group">
 				<form id="sendNumberResult" action="dashboard" method="get">
 					<input hidden name="page" value="${requestScope.pageCourante}" />
 					<c:if test="${toSearch != null}">
@@ -121,6 +124,10 @@
 					value="100"
 					class="<c:if test="${sessionScope.numberResult == 100}">active</c:if> btn btn-default">100</button>
 			</div>
+			<a href="?lang=en"><img width="40" height="25" src="https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/1280px-Flag_of_the_United_Kingdom.svg.png"/></a>
+			<a href="?lang=fr"><img width="40" height="25" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/225px-Flag_of_France.svg.png"/></a>
+		</div>
+
 		</div>
 	</footer>
 	<script src="${pageContext.request.contextPath}/static/js/jquery.min.js"></script>
