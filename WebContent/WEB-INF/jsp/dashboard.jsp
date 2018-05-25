@@ -9,10 +9,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta charset="utf-8">
 <!-- Bootstrap -->
-<link href="static/css/bootstrap.min.css" rel="stylesheet"
+<link href="${pageContext.request.contextPath}/static/css/bootstrap.min.css" rel="stylesheet"
 	media="screen">
-<link href="static/css/font-awesome.css" rel="stylesheet" media="screen"  type="text/css">
-<link href="static/css/main.css" rel="stylesheet" media="screen"  type="text/css">
+<link href="${pageContext.request.contextPath}/static/css/font-awesome.css" rel="stylesheet" media="screen"  type="text/css">
+<link href="${pageContext.request.contextPath}/static/css/main.css" rel="stylesheet" media="screen"  type="text/css">
 </head>
 <c:if test="${messageUser!=null}">
 	<div class="container">
@@ -23,7 +23,7 @@
 <body>
 	<header class="navbar navbar-inverse navbar-fixed-top">
 		<div class="container">
-			<a class="navbar-brand" href="dashboard"> Application - Computer
+			<a class="navbar-brand" href="${pageContext.request.contextPath}/dashboard"> Application - Computer
 				Database </a>
 		</div>
 	</header>
@@ -33,7 +33,7 @@
 			<div id="actions" class="form-horizontal">
 				<div class="pull-left">
 					<%-- Search Form --%>
-					<form id="searchForm" action="dashboard" method="GET" class="form-inline">
+					<form id="searchForm" action="${pageContext.request.contextPath}/dashboard" method="GET" class="form-inline">
 						<input type="hidden" name="action" value="search"/>
 						<input type="search" id="searchbox" name="search"
 							class="form-control" placeholder="Search name" />
@@ -51,8 +51,8 @@
 			</div>
 		</div>
 
-		<form id="deleteForm" action="computer" method="POST">
-			<input type="hidden" name="selection" value="">
+		<form id="deleteForm" action="${pageContext.request.contextPath}/dashboard/delete" method="POST">
+			<input type="hidden" name="selection" value="-1">
 				<input type="hidden" name="action" value="delete"/>
 		</form>
 
@@ -123,9 +123,9 @@
 			</div>
 		</div>
 	</footer>
-	<script src="static/js/jquery.min.js"></script>
-	<script src="static/js/bootstrap.min.js"></script>
-	<script src="static/js/dashboard.js"></script>
+	<script src="${pageContext.request.contextPath}/static/js/jquery.min.js"></script>
+	<script src="${pageContext.request.contextPath}/static/js/bootstrap.min.js"></script>
+	<script src="${pageContext.request.contextPath}/static/js/dashboard.js"></script>
 
 </body>
 </html>

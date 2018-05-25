@@ -82,8 +82,9 @@ public abstract class MapUtil {
         } else {
             company = new Company.Builder(computerDTO.getCompanyID()).name(computerDTO.getCompanyName()).build();
         }
-        return new Computer.Builder(computerDTO.getName()).id(computerDTO.getId()).introduced(computerDTO.getIntroDate())
-                .discontinued(computerDTO.getDisconDate()).company(company).build();
+        return new Computer.Builder(computerDTO.getName()).id(computerDTO.getId())
+                .introduced(computerDTO.getIntroDate()).discontinued(computerDTO.getDisconDate()).company(company)
+                .build();
     }
 
     /**
@@ -97,6 +98,16 @@ public abstract class MapUtil {
     public static String stringListIdToStringInListDatabase(String[] idsComputer) {
         Set<Long> computerToDelete = Arrays.stream(idsComputer).map(l -> Long.valueOf(l)).collect(Collectors.toSet());
         return computerToDelete.toString().replace("[", "(").replace("]", ")");
+    }
+
+    /**
+     * Prend une liste d'ID et creer une liste d'id reconnu par la base de données.
+     * @param idsComputer
+     *            IDs de computers a supprimer
+     * @return String
+     */
+    public static String setIdToStringListDatabase(Set<Long> idsComputer) {
+        return idsComputer.toString().replace("[", "(").replace("]", ")");
     }
 
 }
