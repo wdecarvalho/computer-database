@@ -1,35 +1,44 @@
 package com.excilys.controleurs;
 
+import static com.excilys.tags.TypeAlerte.ERROR;
+import static com.excilys.tags.TypeAlerte.SUCCESS;
+import static com.excilys.tags.TypeAlerte.WARNING;
+
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.excilys.dto.ComputerDTO;
+import com.excilys.exception.computer.ComputerNotDeletedException;
 import com.excilys.mapper.MapUtil;
 import com.excilys.model.Computer;
 import com.excilys.service.ServiceComputer;
 import com.excilys.util.Pages;
 
+import static com.excilys.servlet.MessagetypeUser.DELETE_SUCCESSFULL_COMPUTER;
+import static com.excilys.servlet.RouteUrl.DASHBOARD;
 import static com.excilys.servlet.RouteUrl.DASHBOARD_JSP;
 
 @Controller
 @SessionAttributes(names = { "numberResult" }, types = { Integer.class })
 public class ControleurMain {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ControleurMain.class);
     private static final String COMPUTERS = "computers";
     private static final String NB_COMPUTERS = "nbComputers";
     private static final String LIMIT = "limit";
     private static final String PAGE_COURANTE = "pageCourante";
+    private static final String TYPE_MESSAGE = "typeMessage";
+    private static final String MESSAGE_USER = "messageUser";
 
     @Autowired
     private ServiceComputer serviceComputer;
@@ -63,6 +72,36 @@ public class ControleurMain {
         model.addAttribute(LIMIT, pagesComputer.getPageMax());
         model.addAttribute(PAGE_COURANTE, pagesComputer.getPageCourante());
         return DASHBOARD_JSP.toString();
+    }
+
+    /**
+     * Demande a la couche de service de supprimer une liste de computers.
+     * @param requestAttributes
+     *            RequestAttribute
+     * @param toDelete
+     *            Set<Long> a supprimer
+     * @return JSP
+     */
+    @PostMapping(path = "/dashboard/delete")
+    public String deleteComputers(final RedirectAttributes requestAttributes,
+            @RequestParam(name = "selection", required = true) Set<Long> toDelete) {
+        try {
+            if (toDelete.isEmpty()) {
+                throw new ComputerNotDeletedException(MESSAGE_USER);
+            }
+            if (serviceComputer.deleteComputer(MapUtil.setIdToStringListDatabase(toDelete))) {
+                requestAttributes.addFlashAttribute(MESSAGE_USER, DELETE_SUCCESSFULL_COMPUTER.toString());
+                requestAttributes.addFlashAttribute(TYPE_MESSAGE, SUCCESS);
+            } else {
+                requestAttributes.addFlashAttribute(MESSAGE_USER,
+                        new ComputerNotDeletedException(MESSAGE_USER).getMessage());
+                requestAttributes.addFlashAttribute(TYPE_MESSAGE, ERROR);
+            }
+        } catch (ComputerNotDeletedException e) {
+            requestAttributes.addFlashAttribute(MESSAGE_USER, e.getMessage());
+            requestAttributes.addFlashAttribute(TYPE_MESSAGE, WARNING);
+        }
+        return DASHBOARD.toString();
     }
 
     /**

@@ -129,13 +129,18 @@ public class ControleurComputer {
      *            ModelAttribute
      * @param redirectAttributes
      *            Attribut a envoyer a un autre controlleur
+     * @param id
+     *            ID dans l'URL du computer qui doit être modifié.
      * @return JSP
      */
-    @PostMapping(path = "/computer/{id}")
+    @PostMapping(path = "/computer/{idComputer}")
     public String updateComputer(@Valid @ModelAttribute ComputerDTO computerDTO, final BindingResult result,
-            final Model model, final RedirectAttributes redirectAttributes, final @PathVariable(name = "id") Long id) {
-        if (id != computerDTO.getId()) {
-            return "error";
+            final Model model, final RedirectAttributes redirectAttributes,
+            @PathVariable(name = "idComputer") final Long id) {
+        if (!id.equals(computerDTO.getId())) {
+            System.out.println(id);
+            System.out.println(computerDTO.getId());
+            return "redirect:/static/views/409.jsp";
         }
         System.out.println(computerDTO);
         if (result.hasErrors()) {

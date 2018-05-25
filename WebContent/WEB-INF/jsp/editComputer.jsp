@@ -37,7 +37,8 @@
 						<fieldset>
 							<div id="divComputerName" class="form-group">
 								<label for="computerName">Computer name</label> <input
-									value="${computer.name}" type="text" class="form-control"
+									value="${computer.name}" required  oninvalid="this.setCustomValidity('Ce champ est obligatoire')"
+    oninput="this.setCustomValidity('')"type="text" class="form-control"
 									id="computerName" name="name" placeholder="Computer name">
 									<span id='nomObligatoire' class='help-block hidden'>Le nom est obligatoire</span>
 							</div>
@@ -54,7 +55,7 @@
 							<div class="form-group">
 								<label for="companyId">Company</label> <select
 									class="form-control" name="companyID">
-									<option value="0"></option>
+									<option/>
 									<c:forEach items="${companys}" var="company">
 										<c:choose>
 											<c:when test="${company.id == computer.companyID}">
