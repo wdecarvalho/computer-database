@@ -1,6 +1,7 @@
 package com.excilys.controleurs;
 
 import static com.excilys.tags.TypeAlerte.ERROR;
+import static com.excilys.tags.TypeAlerte.INFO;
 import static com.excilys.tags.TypeAlerte.SUCCESS;
 import static com.excilys.tags.TypeAlerte.WARNING;
 
@@ -26,51 +27,66 @@ import com.excilys.service.ServiceComputer;
 import com.excilys.util.Pages;
 
 import static com.excilys.servlet.MessagetypeUser.DELETE_SUCCESSFULL_COMPUTER;
+import static com.excilys.servlet.MessagetypeUser.DELETE_NO_COMPUTER_SELECTED;
+import static com.excilys.servlet.MessagetypeUser.TYPE_MESSAGE;
+import static com.excilys.servlet.MessagetypeUser.MESSAGE_USER;
 import static com.excilys.servlet.RouteUrl.DASHBOARD;
 import static com.excilys.servlet.RouteUrl.DASHBOARD_JSP;
+
+import static com.excilys.controleurs.AttributeToSend.COMPUTERS;
+import static com.excilys.controleurs.AttributeToSend.NB_COMPUTERS;
+import static com.excilys.controleurs.AttributeToSend.LIMIT;
+import static com.excilys.controleurs.AttributeToSend.PAGE_COURANTE;
 
 @Controller
 @SessionAttributes(names = { "numberResult" }, types = { Integer.class })
 public class ControleurMain {
 
-    private static final String COMPUTERS = "computers";
-    private static final String NB_COMPUTERS = "nbComputers";
-    private static final String LIMIT = "limit";
-    private static final String PAGE_COURANTE = "pageCourante";
-    private static final String TYPE_MESSAGE = "typeMessage";
-    private static final String MESSAGE_USER = "messageUser";
+    /*
+     * Request params
+     */
+    private static final String SEARCH = "search";
+    private static final String NUMBER_RESULT = "numberResult";
+    private static final String PAGE = "page";
 
     @Autowired
     private ServiceComputer serviceComputer;
 
     @RequestMapping(path = "/dashboard", method = { RequestMethod.GET })
     public String accueil(final Model model,
-            @RequestParam(name = "page", required = false, defaultValue = "1") final Integer page,
-            @RequestParam(name = "numberResult", required = false) Integer nbResult) {
+            @RequestParam(name = PAGE, required = false, defaultValue = "1") final Integer page,
+            @RequestParam(name = NUMBER_RESULT, required = false) Integer nbResult) {
         nbResult = createNbResultWithAllowedValue(model, nbResult);
         final Pages<Computer> pagesComputer = serviceComputer.findByPage(page, nbResult);
-        final List<ComputerDTO> computerDTOs = pagesComputer.getEntities().stream()
-                .map(c -> MapUtil.computerToComputerDTO(c)).collect(Collectors.toList());
-        model.addAttribute(COMPUTERS, computerDTOs);
-        model.addAttribute(NB_COMPUTERS, pagesComputer.getMaxComputers());
-        model.addAttribute(LIMIT, pagesComputer.getPageMax());
-        model.addAttribute(PAGE_COURANTE, pagesComputer.getPageCourante());
-        return DASHBOARD_JSP.toString();
+        return getComputerDTOAndPrintAccueil(model, pagesComputer);
     }
 
-    @RequestMapping(path = "/dashboard", method = { RequestMethod.GET }, params = { "search" })
+    @RequestMapping(path = "/dashboard", method = { RequestMethod.GET }, params = { SEARCH })
     public String accueil(final Model model,
-            @RequestParam(name = "page", required = false, defaultValue = "1") final Integer page,
-            @RequestParam(name = "numberResult", required = false) Integer nbResult,
-            @RequestParam(name = "search") final String search) {
+            @RequestParam(name = PAGE, required = false, defaultValue = "1") final Integer page,
+            @RequestParam(name = NUMBER_RESULT, required = false) Integer nbResult,
+            @RequestParam(name = SEARCH) final String search) {
         nbResult = createNbResultWithAllowedValue(model, nbResult);
         final Pages<Computer> pagesComputer = serviceComputer.findByPagesComputer(search, page, nbResult);
+        return getComputerDTOAndPrintAccueil(model, pagesComputer);
+    }
+
+    /**
+     * Recupere les computer de la page et les transforme en computerDTO puis envoie
+     * toutes les infos necessaire a la JSP.
+     * @param model
+     *            ModelAttribute
+     * @param pagesComputer
+     *            Pages<Computer>
+     * @return JSP
+     */
+    private String getComputerDTOAndPrintAccueil(final Model model, final Pages<Computer> pagesComputer) {
         final List<ComputerDTO> computerDTOs = pagesComputer.getEntities().stream()
                 .map(c -> MapUtil.computerToComputerDTO(c)).collect(Collectors.toList());
-        model.addAttribute(COMPUTERS, computerDTOs);
-        model.addAttribute(NB_COMPUTERS, pagesComputer.getMaxComputers());
-        model.addAttribute(LIMIT, pagesComputer.getPageMax());
-        model.addAttribute(PAGE_COURANTE, pagesComputer.getPageCourante());
+        model.addAttribute(COMPUTERS.toString(), computerDTOs);
+        model.addAttribute(NB_COMPUTERS.toString(), pagesComputer.getMaxComputers());
+        model.addAttribute(LIMIT.toString(), pagesComputer.getPageMax());
+        model.addAttribute(PAGE_COURANTE.toString(), pagesComputer.getPageCourante());
         return DASHBOARD_JSP.toString();
     }
 
@@ -85,21 +101,23 @@ public class ControleurMain {
     @PostMapping(path = "/dashboard/delete")
     public String deleteComputers(final RedirectAttributes requestAttributes,
             @RequestParam(name = "selection", required = true) Set<Long> toDelete) {
-        try {
-            if (toDelete.isEmpty()) {
-                throw new ComputerNotDeletedException(MESSAGE_USER);
+        if (toDelete.isEmpty()) {
+            requestAttributes.addFlashAttribute(MESSAGE_USER.toString(), DELETE_NO_COMPUTER_SELECTED.toString());
+            requestAttributes.addFlashAttribute(TYPE_MESSAGE.toString(), INFO);
+        } else {
+            try {
+                if (serviceComputer.deleteComputer(MapUtil.setIdToStringListDatabase(toDelete))) {
+                    requestAttributes.addFlashAttribute(MESSAGE_USER.toString(), DELETE_SUCCESSFULL_COMPUTER.toString());
+                    requestAttributes.addFlashAttribute(TYPE_MESSAGE.toString(), SUCCESS);
+                } else {
+                    requestAttributes.addFlashAttribute(MESSAGE_USER.toString(),
+                            new ComputerNotDeletedException(MESSAGE_USER.toString()).getMessage());
+                    requestAttributes.addFlashAttribute(TYPE_MESSAGE.toString(), ERROR);
+                }
+            } catch (ComputerNotDeletedException e) {
+                requestAttributes.addFlashAttribute(MESSAGE_USER.toString(), e.getMessage());
+                requestAttributes.addFlashAttribute(TYPE_MESSAGE.toString(), WARNING);
             }
-            if (serviceComputer.deleteComputer(MapUtil.setIdToStringListDatabase(toDelete))) {
-                requestAttributes.addFlashAttribute(MESSAGE_USER, DELETE_SUCCESSFULL_COMPUTER.toString());
-                requestAttributes.addFlashAttribute(TYPE_MESSAGE, SUCCESS);
-            } else {
-                requestAttributes.addFlashAttribute(MESSAGE_USER,
-                        new ComputerNotDeletedException(MESSAGE_USER).getMessage());
-                requestAttributes.addFlashAttribute(TYPE_MESSAGE, ERROR);
-            }
-        } catch (ComputerNotDeletedException e) {
-            requestAttributes.addFlashAttribute(MESSAGE_USER, e.getMessage());
-            requestAttributes.addFlashAttribute(TYPE_MESSAGE, WARNING);
         }
         return DASHBOARD.toString();
     }
@@ -114,9 +132,9 @@ public class ControleurMain {
     private Integer createNbResultWithAllowedValue(final Model model, Integer nbResult) {
         final boolean valeurPossible = nbResult != null && (nbResult == 10 || nbResult == 50 || nbResult == 100);
         if (valeurPossible) {
-            model.addAttribute("numberResult", nbResult);
-        } else if (model.asMap().containsKey("numberResult")) {
-            nbResult = (Integer) model.asMap().get("numberResult");
+            model.addAttribute(NUMBER_RESULT, nbResult);
+        } else if (model.asMap().containsKey(NUMBER_RESULT)) {
+            nbResult = (Integer) model.asMap().get(NUMBER_RESULT);
         } else {
             nbResult = 10;
         }

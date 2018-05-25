@@ -2,11 +2,18 @@ package com.excilys.servlet;
 
 public enum RouteUrl {
 
+    /*
+     * JSP pour GET et other pour post
+     */
     DASHBOARD("redirect:/dashboard"),
     DASHBOARD_JSP("dashboard"),
     ADDCOMPUTER_JSP("addComputer"),
-    ERROR_PAGE_404("static/views/404.html"),
-    EDITCOMPUTER_JSP("editComputer");
+    EDITCOMPUTER_JSP("editComputer"),
+
+    /*
+     * Errors pages redirection
+     */
+    ERROR_PAGE_409("redirect:/static/views/409.jsp");
 
     private final String url;
 

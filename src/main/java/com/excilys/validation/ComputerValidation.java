@@ -3,7 +3,6 @@ package com.excilys.validation;
 import java.time.LocalDate;
 
 import com.excilys.exception.ComputerException;
-import com.excilys.exception.computer.ComputerNameNotPresentException;
 import com.excilys.exception.computer.ComputerNeedIdToBeUpdateException;
 import com.excilys.exception.computer.DateIntroShouldBeMinorthanDisconException;
 import com.excilys.model.Computer;
@@ -26,8 +25,7 @@ public class ComputerValidation {
      *             Si une erreur de validation intervient Si le nom de l'ordinateur
      *             n'est pas présent
      */
-    public static void validateComputerNameAndDate(final Computer c) throws ComputerException {
-        nameIsRequiredForComputer(c.getName());
+    public static void validateComputerDate(final Computer c) throws ComputerException {
         dateIntroMinorThanDateDiscon(c.getIntroduced(), c.getDiscontinued());
     }
 
@@ -42,21 +40,8 @@ public class ComputerValidation {
      */
     public static void validateComputerAndVerifyPresenceId(final Computer c) throws ComputerException {
         idIsRequiredForComputerUpdate(c.getId());
-        validateComputerNameAndDate(c);
+        validateComputerDate(c);
 
-    }
-
-    /**
-     * Verifie que le champ obligatoire nom est bien présent.
-     * @param name
-     *            Nom du computer
-     * @throws ComputerNameNotPresentException
-     *             Le nom est obligatoire
-     */
-    private static void nameIsRequiredForComputer(final String name) throws ComputerNameNotPresentException {
-        if (name == null || name.isEmpty()) {
-            throw new ComputerNameNotPresentException();
-        }
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.excilys.controleurs;
 
+import static com.excilys.controleurs.AttributeToSend.COMPANYS;
 import static com.excilys.tags.TypeAlerte.ERROR;
 import static com.excilys.tags.TypeAlerte.SUCCESS;
 
@@ -7,8 +8,6 @@ import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -32,19 +31,17 @@ import com.excilys.tags.TypeAlerte;
 
 import static com.excilys.servlet.MessagetypeUser.ADD_ERROR_COMPUTER;
 import static com.excilys.servlet.MessagetypeUser.ADD_SUCCESSFULL_COMPUTER;
+import static com.excilys.servlet.MessagetypeUser.MESSAGE_USER;
+import static com.excilys.servlet.MessagetypeUser.TYPE_MESSAGE;
 import static com.excilys.servlet.MessagetypeUser.UPDATE_SUCCESSFULL_COMPUTER;
 import static com.excilys.servlet.RouteUrl.ADDCOMPUTER_JSP;
 import static com.excilys.servlet.RouteUrl.DASHBOARD;
 import static com.excilys.servlet.RouteUrl.EDITCOMPUTER_JSP;
+import static com.excilys.servlet.RouteUrl.ERROR_PAGE_409;
 
 @Controller
 public class ControleurComputer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ControleurComputer.class);
-
-    private static final String COMPANYS = "companys";
-    private static final String TYPE_MESSAGE = "typeMessage";
-    private static final String MESSAGE_USER = "messageUser";
     private static final String COMPUTER = "computer";
 
     @Autowired
@@ -81,17 +78,17 @@ public class ControleurComputer {
     public String postComputer(@Valid @ModelAttribute ComputerDTO computerDTO, final BindingResult result,
             final Model model, final RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            getAndPrepareSendErrorValidation(result, model);
+            resultErrorToStringAndSendItWithTypeError(result, model);
         } else {
             try {
                 if (serviceComputer.createComputer(MapUtil.computerDTOToComputer(computerDTO)).equals(-1L)) {
-                    prepareErrorVisibleByUser(model, ADD_ERROR_COMPUTER.toString(), ERROR);
+                    setMessageErrorAndIsTypeToModel(model, ADD_ERROR_COMPUTER.toString(), ERROR);
                 } else {
                     return sendMessageToMainControlleur(redirectAttributes, ADD_SUCCESSFULL_COMPUTER.toString(),
                             SUCCESS);
                 }
             } catch (ComputerException | CompanyNotFoundException | DateTruncationException e) {
-                prepareErrorVisibleByUser(model, e.getMessage(), ERROR);
+                setMessageErrorAndIsTypeToModel(model, e.getMessage(), ERROR);
             }
         }
         return redirectToFormAdd(model);
@@ -138,21 +135,17 @@ public class ControleurComputer {
             final Model model, final RedirectAttributes redirectAttributes,
             @PathVariable(name = "idComputer") final Long id) {
         if (!id.equals(computerDTO.getId())) {
-            System.out.println(id);
-            System.out.println(computerDTO.getId());
-            return "redirect:/static/views/409.jsp";
+            return ERROR_PAGE_409.toString();
         }
-        System.out.println(computerDTO);
         if (result.hasErrors()) {
-            getAndPrepareSendErrorValidation(result, model);
+            resultErrorToStringAndSendItWithTypeError(result, model);
         } else {
             try {
-                System.out.println(MapUtil.computerDTOToComputer(computerDTO));
                 serviceComputer.updateComputer(MapUtil.computerDTOToComputer(computerDTO));
                 return sendMessageToMainControlleur(redirectAttributes, UPDATE_SUCCESSFULL_COMPUTER.toString(),
                         SUCCESS);
             } catch (ComputerException | DateTruncationException | CompanyNotFoundException e) {
-                prepareErrorVisibleByUser(model, e.getMessage(), ERROR);
+                setMessageErrorAndIsTypeToModel(model, e.getMessage(), ERROR);
             }
         }
         return redirectToFormEdit(model, computerDTO);
@@ -166,10 +159,10 @@ public class ControleurComputer {
      * @param model
      *            ModelAttribute
      */
-    private void getAndPrepareSendErrorValidation(final BindingResult result, final Model model) {
+    private void resultErrorToStringAndSendItWithTypeError(final BindingResult result, final Model model) {
         final String errors = result.getAllErrors().stream().map(e -> e.getDefaultMessage())
                 .collect(Collectors.joining("\n"));
-        prepareErrorVisibleByUser(model, errors, ERROR);
+        setMessageErrorAndIsTypeToModel(model, errors, ERROR);
     }
 
     /**
@@ -179,7 +172,7 @@ public class ControleurComputer {
      * @return jsp computer
      */
     private String redirectToFormAdd(final Model model) {
-        model.addAttribute(COMPANYS, serviceCompany.getAll());
+        model.addAttribute(COMPANYS.toString(), serviceCompany.getAll());
         return ADDCOMPUTER_JSP.toString();
     }
 
@@ -193,7 +186,7 @@ public class ControleurComputer {
      */
     private String redirectToFormEdit(final Model model, final ComputerDTO computerDTO) {
         model.addAttribute(COMPUTER, computerDTO);
-        model.addAttribute(COMPANYS, serviceCompany.getAll());
+        model.addAttribute(COMPANYS.toString(), serviceCompany.getAll());
         return EDITCOMPUTER_JSP.toString();
     }
 
@@ -206,9 +199,9 @@ public class ControleurComputer {
      * @param typeAlerte
      *            Type alerte du message
      */
-    private void prepareErrorVisibleByUser(final Model model, final String errors, final TypeAlerte typeAlerte) {
-        model.addAttribute(MESSAGE_USER, errors);
-        model.addAttribute(TYPE_MESSAGE, typeAlerte);
+    private void setMessageErrorAndIsTypeToModel(final Model model, final String errors, final TypeAlerte typeAlerte) {
+        model.addAttribute(MESSAGE_USER.toString(), errors);
+        model.addAttribute(TYPE_MESSAGE.toString(), typeAlerte);
     }
 
     /**
@@ -223,8 +216,8 @@ public class ControleurComputer {
      */
     private String sendMessageToMainControlleur(final RedirectAttributes redirectAttributes, final String message,
             final TypeAlerte typeAlerte) {
-        redirectAttributes.addFlashAttribute(MESSAGE_USER, message);
-        redirectAttributes.addFlashAttribute(TYPE_MESSAGE, typeAlerte);
+        redirectAttributes.addFlashAttribute(MESSAGE_USER.toString(), message);
+        redirectAttributes.addFlashAttribute(TYPE_MESSAGE.toString(), typeAlerte);
         return DASHBOARD.toString();
     }
 

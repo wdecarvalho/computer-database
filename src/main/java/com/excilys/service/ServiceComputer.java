@@ -71,7 +71,7 @@ public class ServiceComputer implements ServiceCdb<Computer> {
         if (c.getCompany() != null && !serviceCompany.isExistCompany(c.getCompany().getId())) {
             throw new CompanyNotFoundException(c.getCompany().getId().toString());
         }
-        ComputerValidation.validateComputerNameAndDate(c);
+        ComputerValidation.validateComputerDate(c);
         return computerDao.create(c);
     }
 
