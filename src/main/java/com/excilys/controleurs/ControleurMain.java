@@ -26,17 +26,16 @@ import com.excilys.model.Computer;
 import com.excilys.service.ServiceComputer;
 import com.excilys.util.Pages;
 
-import static com.excilys.servlet.MessagetypeUser.DELETE_SUCCESSFULL_COMPUTER;
-import static com.excilys.servlet.MessagetypeUser.DELETE_NO_COMPUTER_SELECTED;
-import static com.excilys.servlet.MessagetypeUser.TYPE_MESSAGE;
-import static com.excilys.servlet.MessagetypeUser.MESSAGE_USER;
-import static com.excilys.servlet.RouteUrl.DASHBOARD;
-import static com.excilys.servlet.RouteUrl.DASHBOARD_JSP;
-
 import static com.excilys.controleurs.AttributeToSend.COMPUTERS;
 import static com.excilys.controleurs.AttributeToSend.NB_COMPUTERS;
 import static com.excilys.controleurs.AttributeToSend.LIMIT;
 import static com.excilys.controleurs.AttributeToSend.PAGE_COURANTE;
+import static com.excilys.controleurs.MessagetypeUser.DELETE_NO_COMPUTER_SELECTED;
+import static com.excilys.controleurs.MessagetypeUser.DELETE_SUCCESSFULL_COMPUTER;
+import static com.excilys.controleurs.MessagetypeUser.MESSAGE_USER;
+import static com.excilys.controleurs.MessagetypeUser.TYPE_MESSAGE;
+import static com.excilys.controleurs.RouteUrl.DASHBOARD;
+import static com.excilys.controleurs.RouteUrl.DASHBOARD_JSP;
 
 @Controller
 @SessionAttributes(names = { "numberResult" }, types = { Integer.class })

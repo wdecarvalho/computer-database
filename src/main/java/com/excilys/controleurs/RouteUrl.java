@@ -1,4 +1,4 @@
-package com.excilys.servlet;
+package com.excilys.controleurs;
 
 public enum RouteUrl {
 

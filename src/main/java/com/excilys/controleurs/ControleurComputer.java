@@ -1,6 +1,15 @@
 package com.excilys.controleurs;
 
 import static com.excilys.controleurs.AttributeToSend.COMPANYS;
+import static com.excilys.controleurs.MessagetypeUser.ADD_ERROR_COMPUTER;
+import static com.excilys.controleurs.MessagetypeUser.ADD_SUCCESSFULL_COMPUTER;
+import static com.excilys.controleurs.MessagetypeUser.MESSAGE_USER;
+import static com.excilys.controleurs.MessagetypeUser.TYPE_MESSAGE;
+import static com.excilys.controleurs.MessagetypeUser.UPDATE_SUCCESSFULL_COMPUTER;
+import static com.excilys.controleurs.RouteUrl.ADDCOMPUTER_JSP;
+import static com.excilys.controleurs.RouteUrl.DASHBOARD;
+import static com.excilys.controleurs.RouteUrl.EDITCOMPUTER_JSP;
+import static com.excilys.controleurs.RouteUrl.ERROR_PAGE_409;
 import static com.excilys.tags.TypeAlerte.ERROR;
 import static com.excilys.tags.TypeAlerte.SUCCESS;
 
@@ -28,16 +37,6 @@ import com.excilys.mapper.MapUtil;
 import com.excilys.service.ServiceCompany;
 import com.excilys.service.ServiceComputer;
 import com.excilys.tags.TypeAlerte;
-
-import static com.excilys.servlet.MessagetypeUser.ADD_ERROR_COMPUTER;
-import static com.excilys.servlet.MessagetypeUser.ADD_SUCCESSFULL_COMPUTER;
-import static com.excilys.servlet.MessagetypeUser.MESSAGE_USER;
-import static com.excilys.servlet.MessagetypeUser.TYPE_MESSAGE;
-import static com.excilys.servlet.MessagetypeUser.UPDATE_SUCCESSFULL_COMPUTER;
-import static com.excilys.servlet.RouteUrl.ADDCOMPUTER_JSP;
-import static com.excilys.servlet.RouteUrl.DASHBOARD;
-import static com.excilys.servlet.RouteUrl.EDITCOMPUTER_JSP;
-import static com.excilys.servlet.RouteUrl.ERROR_PAGE_409;
 
 @Controller
 public class ControleurComputer {
