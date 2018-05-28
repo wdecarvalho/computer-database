@@ -58,6 +58,8 @@ public class ServiceComputer implements ServiceCdb<Computer> {
      * Demande a la DAO de crée un computer.
      * @param c
      *            Computer à sauvegarder
+     * @param validation
+     *            True si on a besoin d'appelé le validator javax
      * @return L'ID du computer crée ou -1L si a echoué
      * @throws ComputerException
      *             Si une regle propre au computer échoue
@@ -66,12 +68,16 @@ public class ServiceComputer implements ServiceCdb<Computer> {
      * @throws DateTruncationException
      *             Lorsque une date invalide essaye de se stocker en BD
      */
-    public Long createComputer(final Computer c)
+    public Long createComputer(final Computer c, final boolean validation)
             throws ComputerException, CompanyNotFoundException, DateTruncationException {
         if (c.getCompany() != null && !serviceCompany.isExistCompany(c.getCompany().getId())) {
             throw new CompanyNotFoundException(c.getCompany().getId().toString());
         }
-        ComputerValidation.validateComputerDate(c);
+        if (validation) {
+            ComputerValidation.validateComputerIntegrityAndDate(c);
+        } else {
+            ComputerValidation.dateIntroMinorThanDateDiscon(c.getIntroduced(), c.getDiscontinued());
+        }
         return computerDao.create(c);
     }
 
@@ -79,6 +85,8 @@ public class ServiceComputer implements ServiceCdb<Computer> {
      * /** Demande a la DAO de mettre a jour un computer.
      * @param c
      *            Computer à mettre a jour
+     * @param validation
+     *            True si on a besoin d'appelé le validator javax
      * @return Le computer qui a été mit a jour.
      * @throws ComputerException
      *             Si une regle propre au computer échoue.
@@ -87,12 +95,16 @@ public class ServiceComputer implements ServiceCdb<Computer> {
      * @throws CompanyNotFoundException
      *             Si la companie n'existe pas
      */
-    public Computer updateComputer(final Computer c)
+    public Computer updateComputer(final Computer c, final boolean validation)
             throws ComputerException, DateTruncationException, CompanyNotFoundException {
         if (c.getCompany() != null && !serviceCompany.isExistCompany(c.getCompany().getId())) {
             throw new CompanyNotFoundException(c.getCompany().getId().toString());
         }
-        ComputerValidation.validateComputerAndVerifyPresenceId(c);
+        if (validation) {
+            ComputerValidation.validateComputerIntegrityAndVerifyPresenceId(c);
+        } else {
+            ComputerValidation.validateComputerAndVerifyPresenceId(c);
+        }
         return computerDao.update(c).orElseThrow(() -> new ComputerNotUpdatedException(c.getId().toString()));
     }
 

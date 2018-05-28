@@ -16,6 +16,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Scanner;
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -201,7 +207,7 @@ public class ControleurCdb {
             final Computer current = serviceComputer.getComputerDaoDetails(l);
             final Computer computer2 = creationComputer(current);
             computer2.setId(l);
-            serviceComputer.updateComputer(computer2);
+            serviceComputer.updateComputer(computer2, true);
         } catch (NumberFormatException e) {
             LOGGER.debug(String.format(ID_COMPUTER_NUMBER_ONLY, "computer"));
             System.out.printf(ID_COMPUTER_NUM_ONLY, "computer");
@@ -371,7 +377,7 @@ public class ControleurCdb {
      */
     private void insertComputer(final Computer computer) {
         try {
-            if (serviceComputer.createComputer(computer).equals(-1L)) {
+            if (serviceComputer.createComputer(computer, true).equals(-1L)) {
                 System.out.println(COMPUTER_NOT_SAVE);
             }
         } catch (CompanyNotFoundException e) {

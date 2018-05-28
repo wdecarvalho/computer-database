@@ -81,7 +81,7 @@ public class ControleurComputer {
             resultErrorToStringAndSendItWithTypeError(result, model);
         } else {
             try {
-                if (serviceComputer.createComputer(MapUtil.computerDTOToComputer(computerDTO)).equals(-1L)) {
+                if (serviceComputer.createComputer(MapUtil.computerDTOToComputer(computerDTO), false).equals(-1L)) {
                     setMessageErrorAndIsTypeToModel(model, ADD_ERROR_COMPUTER.toString(), ERROR);
                 } else {
                     return sendMessageToMainControlleur(redirectAttributes, ADD_SUCCESSFULL_COMPUTER.toString(),
@@ -141,7 +141,7 @@ public class ControleurComputer {
             resultErrorToStringAndSendItWithTypeError(result, model);
         } else {
             try {
-                serviceComputer.updateComputer(MapUtil.computerDTOToComputer(computerDTO));
+                serviceComputer.updateComputer(MapUtil.computerDTOToComputer(computerDTO), false);
                 return sendMessageToMainControlleur(redirectAttributes, UPDATE_SUCCESSFULL_COMPUTER.toString(),
                         SUCCESS);
             } catch (ComputerException | DateTruncationException | CompanyNotFoundException e) {

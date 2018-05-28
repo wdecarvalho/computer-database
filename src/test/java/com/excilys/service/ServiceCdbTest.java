@@ -61,14 +61,14 @@ public class ServiceCdbTest {
     @Mock
     ComputerDao computerDao;
 
+    @Mock
+    private ServiceCompany serviceCompany;
+
     @InjectMocks
     private ServiceComputer mockServiceComputer;
 
     @InjectMocks
     private ServiceCompany mockServiceCompany;
-
-    @Mock
-    private ServiceCompany serviceCompany;
 
     @Autowired
     private ServiceCompany serviceCompanyReal;
@@ -226,11 +226,11 @@ public class ServiceCdbTest {
     public void createValidComputerTest() throws CompanyNotFoundException, ComputerException, DateTruncationException {
         Computer computer = new Computer.Builder("test").id(8L).build();
         Mockito.when(computerDao.create(computer)).thenReturn(1L);
-        assertSame(1L, mockServiceComputer.createComputer(computer));
+        assertSame(1L, mockServiceComputer.createComputer(computer, true));
         computer = new Computer.Builder("e").introduced(LocalDate.parse("2014-12-30"))
                 .discontinued(LocalDate.parse("2015-01-01")).build();
         Mockito.when(computerDao.create(computer)).thenReturn(2L);
-        assertSame(2L, mockServiceComputer.createComputer(computer));
+        assertSame(2L, mockServiceComputer.createComputer(computer, true));
         Mockito.verify(computerDao).create(computer);
     }
 
@@ -241,9 +241,9 @@ public class ServiceCdbTest {
     @DisplayName("Test throw a ComputerNameNotPresentException because name is required")
     public void createComputerWithoutNameTest() {
         final Computer computer = new Computer.Builder(null).build();
-        assertThrows(ComputerNameNotPresentException.class, () -> mockServiceComputer.createComputer(computer));
+        assertThrows(ComputerException.class, () -> mockServiceComputer.createComputer(computer, true));
         computer.setName("");
-        assertThrows(ComputerNameNotPresentException.class, () -> mockServiceComputer.createComputer(computer));
+        assertThrows(ComputerException.class, () -> mockServiceComputer.createComputer(computer, true));
     }
 
     /**
@@ -260,7 +260,7 @@ public class ServiceCdbTest {
         final Computer computer = new Computer.Builder("a").introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2015-12-30")).build();
         assertThrows(DateIntroShouldBeMinorthanDisconException.class,
-                () -> mockServiceComputer.createComputer(computer));
+                () -> mockServiceComputer.createComputer(computer, true));
     }
 
     /**
@@ -272,9 +272,9 @@ public class ServiceCdbTest {
     public void createComputerWithInvalidCompany() {
         final Company company = new Company.Builder(-1L).build();
         final Computer computer = new Computer.Builder("a").company(company).build();
-        assertThrows(CompanyNotFoundException.class, () -> mockServiceComputer.createComputer(computer));
+        assertThrows(CompanyNotFoundException.class, () -> mockServiceComputer.createComputer(computer, true));
         company.setId(50L);
-        assertThrows(CompanyNotFoundException.class, () -> mockServiceComputer.createComputer(computer));
+        assertThrows(CompanyNotFoundException.class, () -> mockServiceComputer.createComputer(computer, true));
     }
 
     /*
@@ -291,10 +291,10 @@ public class ServiceCdbTest {
     @DisplayName("Test updating a computer without name because name is required")
     public void updateComputerWithoutNameTest() {
         final Computer computer = new Computer.Builder(null).build();
-        assertThrows(ComputerNeedIdToBeUpdateException.class, () -> mockServiceComputer.updateComputer(computer));
+        assertThrows(ComputerNeedIdToBeUpdateException.class, () -> mockServiceComputer.updateComputer(computer, true));
         computer.setName("");
         computer.setId(1L);
-        assertThrows(ComputerNameNotPresentException.class, () -> mockServiceComputer.updateComputer(computer));
+        assertThrows(ComputerException.class, () -> serviceComputer.updateComputer(computer, true));
     }
 
     /**
@@ -309,7 +309,7 @@ public class ServiceCdbTest {
         final Computer computer = new Computer.Builder("a").id(9L).introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2015-12-30")).build();
         assertThrows(DateIntroShouldBeMinorthanDisconException.class,
-                () -> mockServiceComputer.updateComputer(computer));
+                () -> mockServiceComputer.updateComputer(computer, true));
     }
 
     /**
@@ -324,7 +324,7 @@ public class ServiceCdbTest {
     public void updateComputerWithNoIdTest() throws ComputerNameNotPresentException, ComputerNeedIdToBeUpdateException {
         final Computer computer = new Computer.Builder("a").introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2016-12-30")).build();
-        assertThrows(ComputerNeedIdToBeUpdateException.class, () -> mockServiceComputer.updateComputer(computer));
+        assertThrows(ComputerNeedIdToBeUpdateException.class, () -> mockServiceComputer.updateComputer(computer, true));
     }
 
     /**
@@ -340,7 +340,7 @@ public class ServiceCdbTest {
             throws ComputerNeedIdToBeUpdateException, ComputerNameNotPresentException {
         final Computer computer = new Computer.Builder("a").introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2016-12-30")).id(-1L).build();
-        assertThrows(ComputerNotUpdatedException.class, () -> mockServiceComputer.updateComputer(computer));
+        assertThrows(ComputerNotUpdatedException.class, () -> mockServiceComputer.updateComputer(computer, true));
     }
 
     /**
@@ -357,11 +357,11 @@ public class ServiceCdbTest {
     public void updateComputerTest() throws ComputerException, DateTruncationException, CompanyNotFoundException {
         Optional<Computer> computer = Optional.ofNullable(new Computer.Builder("test").id(8L).build());
         Mockito.when(computerDao.update(computer.get())).thenReturn(computer);
-        assertEquals(computer.get(), mockServiceComputer.updateComputer(computer.get()));
+        assertEquals(computer.get(), mockServiceComputer.updateComputer(computer.get(), true));
         computer = Optional.ofNullable(new Computer.Builder("test").id(8L).discontinued(null)
                 .introduced(LocalDate.parse("2015-12-30")).build());
         Mockito.when(computerDao.update(computer.get())).thenReturn(computer);
-        assertEquals(computer.get(), mockServiceComputer.updateComputer(computer.get()));
+        assertEquals(computer.get(), mockServiceComputer.updateComputer(computer.get(), true));
     }
 
     /**
@@ -379,11 +379,11 @@ public class ServiceCdbTest {
     public void updateComputerWhenCompanyNotExist()
             throws ComputerException, DateTruncationException, CompanyNotFoundException {
         final Computer computer = new Computer.Builder("ee").company(new Company.Builder(-1L).build()).build();
-        assertThrows(CompanyNotFoundException.class, () -> serviceComputer.updateComputer(computer));
+        assertThrows(CompanyNotFoundException.class, () -> serviceComputer.updateComputer(computer, true));
         computer.getCompany().setId(50L);
-        assertThrows(CompanyNotFoundException.class, () -> serviceComputer.updateComputer(computer));
+        assertThrows(CompanyNotFoundException.class, () -> serviceComputer.updateComputer(computer, true));
         computer.getCompany().setId(-1L);
-        assertThrows(CompanyNotFoundException.class, () -> mockServiceComputer.updateComputer(computer));
+        assertThrows(CompanyNotFoundException.class, () -> mockServiceComputer.updateComputer(computer, true));
     }
 
     /*
