@@ -11,7 +11,7 @@ public class Main {
      *            Argument entrée du programme
      */
     public static void main(String... args) {
-        AbstractApplicationContext context = new AnnotationConfigApplicationContext(ServerConfiguration.class);
+        AbstractApplicationContext context = new AnnotationConfigApplicationContext(CliConfiguration.class);
         new ControleurCdb(context).core();
         context.close();
     }
