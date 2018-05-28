@@ -1,14 +1,18 @@
 package com.excilys.exception.computer;
 
 import com.excilys.exception.ComputerException;
+import com.excilys.exception.ExceptionHelper;
+
+import static com.excilys.exception.ExceptionCode.COMPUTER_ALL_NOT_DELETE;
+import static com.excilys.exception.ExceptionCode.COMPUTER_SOME_NOT_DELETE;
 
 public class ComputerNotDeletedException extends ComputerException {
 
     private static final long serialVersionUID = 8121294179930154255L;
 
-    private static final String MESSAGE_WARNING = "Un ou plusieurs computers n'ont pas pû être supprimés !";
+    private static final String CODE_WARNING = COMPUTER_SOME_NOT_DELETE.toString();
 
-    private static final String MESSAGE_ERROR = "Aucun computer n'a pû être supprimés ! ";
+    private static final String CODE_ERROR = COMPUTER_ALL_NOT_DELETE.toString();
 
     /**
      * Constructeur de ComputerNotDeletedException pour errors.
@@ -16,14 +20,14 @@ public class ComputerNotDeletedException extends ComputerException {
      *            Message d'erreur
      */
     public ComputerNotDeletedException(String msg) {
-        super(MESSAGE_ERROR);
+        super(new ExceptionHelper().getMessageByCode(CODE_ERROR));
     }
 
     /**
      * Constructeur de ComputerNotDeletedException pour warnings.
      */
     public ComputerNotDeletedException() {
-        super(MESSAGE_WARNING);
+        super(new ExceptionHelper().getMessageByCode(CODE_WARNING));
     }
 
 }

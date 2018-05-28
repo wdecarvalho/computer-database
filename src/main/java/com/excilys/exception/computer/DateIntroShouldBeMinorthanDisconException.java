@@ -1,11 +1,14 @@
 package com.excilys.exception.computer;
 
+import static com.excilys.exception.ExceptionCode.COMPUTER_DATEINTRO_MINOR_DATEDISCON;
+
 import com.excilys.exception.ComputerException;
+import com.excilys.exception.ExceptionHelper;
 
 public class DateIntroShouldBeMinorthanDisconException extends ComputerException {
 
     private static final long serialVersionUID = 1L;
-    private static final String MESSAGE = "La date %s (introduced) doit être plus vieille que la date %s (discontinued)";
+    private static final String CODE = COMPUTER_DATEINTRO_MINOR_DATEDISCON.toString();
 
     /**
      * Affiche le message d'exception expliquant la regle sur les dates d'un
@@ -16,6 +19,6 @@ public class DateIntroShouldBeMinorthanDisconException extends ComputerException
      *            String de la LocalDate discontinued
      */
     public DateIntroShouldBeMinorthanDisconException(final String introduced, final String discontinued) {
-        super(String.format(MESSAGE, introduced, discontinued));
+        super(new ExceptionHelper().getMessageByCode(CODE, introduced, discontinued));
     }
 }

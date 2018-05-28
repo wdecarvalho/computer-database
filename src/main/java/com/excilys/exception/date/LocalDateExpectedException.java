@@ -1,9 +1,14 @@
 package com.excilys.exception.date;
 
+import static com.excilys.exception.ExceptionCode.LOCALDATE_FORMAT_ERROR;
+
+import com.excilys.exception.ExceptionHelper;
+
 public class LocalDateExpectedException extends Exception {
 
     private static final long serialVersionUID = -5306930537269407080L;
-    private static final String MESSAGE = "La date %s ne respecte pas le format JJ-MM-AAAA ou le jour ou le mois n'existe pas";
+
+    private static final String CODE = LOCALDATE_FORMAT_ERROR.toString();
 
     /**
      * Contructeur de l'exception.
@@ -11,7 +16,7 @@ public class LocalDateExpectedException extends Exception {
      *            a l'origine de l'exception
      */
     public LocalDateExpectedException(String date) {
-        super(String.format(MESSAGE, date));
+        super(new ExceptionHelper().getMessageByCode(CODE, date));
     }
 
 }

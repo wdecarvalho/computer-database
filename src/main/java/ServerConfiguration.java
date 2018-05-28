@@ -33,7 +33,8 @@ import com.zaxxer.hikari.HikariDataSource;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = { "com.excilys.dao", "com.excilys.service", "com.excilys.controleurs" })
+@ComponentScan(basePackages = { "com.excilys.dao", "com.excilys.service", "com.excilys.controleurs",
+        "com.excilys.exception" })
 public class ServerConfiguration implements WebMvcConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfiguration.class);
 
@@ -93,6 +94,22 @@ public class ServerConfiguration implements WebMvcConfigurer {
     }
 
     /**
+     * Creer un localeChangeInterceptor qui change pour le param lang.
+     * @return LocalChangeInterceptor
+     */
+    @Bean
+    public LocaleChangeInterceptor localeChangeInterceptor() {
+        LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
+        localeChangeInterceptor.setParamName("lang");
+        return localeChangeInterceptor;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(localeChangeInterceptor());
+    }
+
+    /**
      * Creer un message source pour indiquer on sont situer les messages.
      * @return MessageSource
      */
@@ -105,25 +122,9 @@ public class ServerConfiguration implements WebMvcConfigurer {
         return messageSource;
     }
 
-    /**
-     * Creer un localeChangeInterceptor qui change pour le param lang.
-     * @return LocalChangeInterceptor
-     */
-    @Bean
-    public LocaleChangeInterceptor localeChangeInterceptor() {
-        LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
-        localeChangeInterceptor.setParamName("lang");
-        return localeChangeInterceptor;
-    }
-
     @Override
     public void addResourceHandlers(final ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/**").addResourceLocations("/");
-    }
-
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(localeChangeInterceptor());
     }
 
     /**
