@@ -8,7 +8,9 @@ public enum RouteUrl {
     DASHBOARD("redirect:/dashboard"),
     DASHBOARD_JSP("dashboard"),
     ADDCOMPUTER_JSP("addComputer"),
+    ADDCOMPUTER("redirect:/computer"),
     EDITCOMPUTER_JSP("editComputer"),
+    EDITCOMPUTER("redirect:/computer/%s"),
 
     /*
      * Errors pages redirection

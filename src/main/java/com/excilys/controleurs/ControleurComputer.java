@@ -67,30 +67,28 @@ public class ControleurComputer {
      *            ComputerDTO
      * @param result
      *            Resultat de la validation
-     * @param model
-     *            AttributeModel
      * @param redirectAttributes
      *            Permet d'envoyer des attributs a un autre controlleur
      * @return Redirection vers dashboard
      */
     @PostMapping(path = "/computer", consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE })
     public String postComputer(@Valid @ModelAttribute ComputerDTO computerDTO, final BindingResult result,
-            final Model model, final RedirectAttributes redirectAttributes) {
+            final RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            resultErrorToStringAndSendItWithTypeError(result, model);
+            resultErrorToStringAndSendItWithTypeError(result, redirectAttributes);
         } else {
             try {
                 if (serviceComputer.createComputer(MapUtil.computerDTOToComputer(computerDTO), false).equals(-1L)) {
-                    setMessageErrorAndIsTypeToModel(model, ADD_ERROR_COMPUTER.toString(), ERROR);
+                    setMessageErrorAndIsTypeToModel(redirectAttributes, ADD_ERROR_COMPUTER.toString(), ERROR);
                 } else {
                     return sendMessageToMainControlleur(redirectAttributes, ADD_SUCCESSFULL_COMPUTER.toString(),
                             SUCCESS);
                 }
             } catch (ComputerException | CompanyNotFoundException | DateTruncationException e) {
-                setMessageErrorAndIsTypeToModel(model, e.getMessage(), ERROR);
+                setMessageErrorAndIsTypeToModel(redirectAttributes, e.getMessage(), ERROR);
             }
         }
-        return redirectToFormAdd(model);
+        return RouteUrl.ADDCOMPUTER.toString();
     }
 
     /**
@@ -137,17 +135,17 @@ public class ControleurComputer {
             return ERROR_PAGE_409.toString();
         }
         if (result.hasErrors()) {
-            resultErrorToStringAndSendItWithTypeError(result, model);
+            resultErrorToStringAndSendItWithTypeError(result, redirectAttributes);
         } else {
             try {
                 serviceComputer.updateComputer(MapUtil.computerDTOToComputer(computerDTO), false);
                 return sendMessageToMainControlleur(redirectAttributes, UPDATE_SUCCESSFULL_COMPUTER.toString(),
                         SUCCESS);
             } catch (ComputerException | DateTruncationException | CompanyNotFoundException e) {
-                setMessageErrorAndIsTypeToModel(model, e.getMessage(), ERROR);
+                setMessageErrorAndIsTypeToModel(redirectAttributes, e.getMessage(), ERROR);
             }
         }
-        return redirectToFormEdit(model, computerDTO);
+        return String.format(RouteUrl.EDITCOMPUTER.toString(), id);
     }
 
     /**
@@ -155,13 +153,14 @@ public class ControleurComputer {
      * prepare leur affichage.
      * @param result
      *            Resultat de la validation
-     * @param model
-     *            ModelAttribute
+     * @param redirectAttributes
+     *            redirectAttributes
      */
-    private void resultErrorToStringAndSendItWithTypeError(final BindingResult result, final Model model) {
+    private void resultErrorToStringAndSendItWithTypeError(final BindingResult result,
+            final RedirectAttributes redirectAttributes) {
         final String errors = result.getAllErrors().stream().map(e -> e.getDefaultMessage())
                 .collect(Collectors.joining("\n"));
-        setMessageErrorAndIsTypeToModel(model, errors, ERROR);
+        setMessageErrorAndIsTypeToModel(redirectAttributes, errors, ERROR);
     }
 
     /**
@@ -191,16 +190,17 @@ public class ControleurComputer {
 
     /**
      * Remplie le model avec le type d'erreur et le message a afficher.
-     * @param model
-     *            ModelAttribute
+     * @param redirectAttributes
+     *            redirectAttributes
      * @param errors
      *            Erreur a afficher
      * @param typeAlerte
      *            Type alerte du message
      */
-    private void setMessageErrorAndIsTypeToModel(final Model model, final String errors, final TypeAlerte typeAlerte) {
-        model.addAttribute(MESSAGE_USER.toString(), errors);
-        model.addAttribute(TYPE_MESSAGE.toString(), typeAlerte);
+    private void setMessageErrorAndIsTypeToModel(final RedirectAttributes redirectAttributes, final String errors,
+            final TypeAlerte typeAlerte) {
+        redirectAttributes.addFlashAttribute(MESSAGE_USER.toString(), errors);
+        redirectAttributes.addFlashAttribute(TYPE_MESSAGE.toString(), typeAlerte);
     }
 
     /**
