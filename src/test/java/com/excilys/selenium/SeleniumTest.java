@@ -89,8 +89,7 @@ public class SeleniumTest {
         assertEquals(pageActive.getText(), "1");
 
         driver.navigate().to("http://localhost:8081/william.cdb/dashboard?page=a");
-        pageActive = driver.findElement(By.className("pagination")).findElement(By.className("active"));
-        assertEquals(pageActive.getText(), "1");
+        assertTrue(driver.findElement(By.className("alert")).getText().contains("400"));
     }
 
     /**

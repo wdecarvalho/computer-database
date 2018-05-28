@@ -2,9 +2,16 @@ package com.excilys.model;
 
 import java.time.LocalDate;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.executable.ValidateOnExecution;
+
+import com.excilys.constants.commons.message.MessageValidationAndException;
+
+@ValidateOnExecution
 public class Computer {
 
     private Long id;
+    @NotBlank(message = MessageValidationAndException.NAME_IS_REQUIRED)
     private String name;
     private LocalDate introduced;
     private LocalDate discontinued;

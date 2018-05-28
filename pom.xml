@@ -45,23 +45,33 @@
 			<artifactId>spring-jdbc</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
+		
+		<dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+            <scope>test</scope>
+        </dependency>
 
+        <!-- VALIDATOR -->
+                    <!-- JSR REF  -->
 		<dependency>
 			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
 			<version>6.0.10.Final</version>
 		</dependency>
-
+		
 		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-			<version>2.0.1.Final</version>
-		</dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>2.0.1.Final</version>
+        </dependency>
 
+                    <!-- JSR REF  -->
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.el</artifactId>
+			<version>3.0.0</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -157,6 +167,12 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.1</version>
+			</plugin>
+
 			<!-- JUnit -->
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -210,17 +226,6 @@
 					</dependency>
 				</dependencies>
 			</plugin>
-
-			<!-- Run tomcat before Selenium -->
-			<!-- <plugin> <groupId>org.apache.tomcat.maven</groupId> <artifactId>tomcat7-maven-plugin</artifactId> 
-				<version>2.2</version> <executions> <execution> <goals> <goal>run</goal> 
-				</goals> <phase>pre-integration-test</phase> <configuration> <fork>true</fork> 
-				</configuration> </execution> <execution> <id>tomcat7-shutdown</id> <goals> 
-				<goal>shutdown</goal> </goals> <phase>post-integration-test</phase> </execution> 
-				</executions> <configuration> <port>8081</port> <additionalClasspathDirs> 
-				<additionalClasspathDir>/src/test/resources</additionalClasspathDir> </additionalClasspathDirs> 
-				<additionalConfigFilesDir>src/test/resources/</additionalConfigFilesDir> 
-				</configuration> </plugin> -->
 
 			<!-- Selenium plugin -->
 			<plugin>
