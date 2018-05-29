@@ -81,4 +81,6 @@
 </body>
 <script src="../static/js/jquery.min.js" type="text/javascript"></script>
 <script src="../static/js/validationComputer.js" type="text/javascript"></script>
+<script src="../static/js/jquery.i18n.properties.js" type="text/javascript"></script>
+<script src="../static/js/translation.js" data-path="../" id="translation" type="text/javascript"></script>
 </html>
