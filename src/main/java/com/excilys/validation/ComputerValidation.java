@@ -19,7 +19,7 @@ import com.excilys.model.Computer;
 public class ComputerValidation {
 
     private static final String ERREUR_DE_VALIDATION = "Une erreur de validation d'integrité est apparu !";
-    private static final ValidatorFactory FACTORY = Validation.buildDefaultValidatorFactory();
+    private static ValidatorFactory factory;
     private static final Logger LOGGER = LoggerFactory.getLogger(ComputerValidation.class);
 
     /**
@@ -81,7 +81,10 @@ public class ComputerValidation {
      *             n'est pas présent
      */
     private static void validationIntegrityModel(final Computer computer) throws ComputerException {
-        Validator validator = FACTORY.getValidator();
+        if (factory == null) {
+            factory = Validation.buildDefaultValidatorFactory();
+        }
+        Validator validator = factory.getValidator();
         Set<ConstraintViolation<Computer>> violationSet = validator.validate(computer);
         if (!violationSet.isEmpty()) {
             for (ConstraintViolation<Computer> constraintViolation : violationSet) {

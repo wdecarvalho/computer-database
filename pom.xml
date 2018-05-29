@@ -23,6 +23,10 @@
 		<testng.version>6.8</testng.version>
 		<hikari.version>3.0.0</hikari.version>
 		<spring.version>5.0.6.RELEASE</spring.version>
+		<hibernate.validator.version>6.0.10.Final</hibernate.validator.version>
+		<hibernate.version>5.3.1</hibernate.version>
+		<javax.version>2.0.1.Final</javax.version>
+		<javax.glassfish>3.0.0</javax.glassfish>
 	</properties>
 
 	<dependencies>
@@ -45,33 +49,33 @@
 			<artifactId>spring-jdbc</artifactId>
 			<version>${spring.version}</version>
 		</dependency>
-		
-		<dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
-            <scope>test</scope>
-        </dependency>
 
-        <!-- VALIDATOR -->
-                    <!-- JSR REF  -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- VALIDATOR -->
+		<!-- JSR REF -->
 		<dependency>
 			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
-			<version>6.0.10.Final</version>
+			<version>${hibernate.validator.version}</version>
 		</dependency>
-		
-		<dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>2.0.1.Final</version>
-        </dependency>
 
-                    <!-- JSR REF  -->
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>${javax.version}</version>
+		</dependency>
+
+		<!-- JSR REF -->
 		<dependency>
 			<groupId>org.glassfish</groupId>
 			<artifactId>javax.el</artifactId>
-			<version>3.0.0</version>
+			<version>${javax.glassfish}</version>
 			<scope>test</scope>
 		</dependency>
 
