@@ -27,6 +27,9 @@
 		<hibernate.version>5.3.1</hibernate.version>
 		<javax.version>2.0.1.Final</javax.version>
 		<javax.glassfish>3.0.0</javax.glassfish>
+		<spring.data.version>2.0.7.RELEASE</spring.data.version>
+		<query.dsl.version>4.2.1</query.dsl.version>
+		<hibernate.core.version>5.3.1.Final</hibernate.core.version>
 	</properties>
 
 	<dependencies>
@@ -45,9 +48,16 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jdbc</artifactId>
-			<version>${spring.version}</version>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-jpa</artifactId>
+			<version>${spring.data.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-jpa</artifactId>
+			<version>${query.dsl.version}</version>
+			<scope>runtime</scope>
 		</dependency>
 
 		<dependency>
@@ -127,6 +137,13 @@
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
 			<version>${hikari.version}</version>
+		</dependency>
+
+		<!-- ORM -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+        <version>${hibernate.core.version}</version>
 		</dependency>
 
 		<!-- Servlet -->
