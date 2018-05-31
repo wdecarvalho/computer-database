@@ -36,7 +36,6 @@
 				<div class="pull-left">
 					<%-- Search Form --%>
 					<form id="searchForm" action="${pageContext.request.contextPath}/dashboard" method="GET" class="form-inline">
-						<input type="hidden" name="action" value="search"/>
 						<input type="search" id="searchbox" name="search"
 							class="form-control" placeholder="Search name" />
 							<input type="submit" id="searchsubmit" value="Filter by name"
@@ -103,26 +102,25 @@
 		<div class="container text-center">
 
 			<pagination:pagination limit="${requestScope.limit}"
-				pageCourante="${requestScope.pageCourante}" toSearch="${toSearch}"/>
+				pageCourante="${requestScope.pageCourante}" toSearch="${param.search}"/>
 
 				<div class="pull-right">
 			<div class="btn-group btn-group-sm" role="group">
 				<form id="sendNumberResult" action="dashboard" method="get">
 					<input hidden name="page" value="${requestScope.pageCourante}" />
-					<c:if test="${toSearch != null}">
-						<input hidden name="action" value="search" />
-						<input hidden name="search" value="${toSearch}"/>
+					<c:if test="${param.search != null}">
+						<input hidden name="search" value="${param.search}"/>
 					</c:if>
 				</form>
 				<button form="sendNumberResult" type="submit" name="numberResult"
 					value="10"
-					class="<c:if test="${sessionScope.numberResult == 10}">active</c:if> btn btn-default">10</button>
+					class="<c:if test='${sessionScope.numberResult==null || sessionScope.numberResult == 10}'>active</c:if> btn btn-default">10</button>
 				<button form="sendNumberResult" type="submit" name="numberResult"
 					value="50"
-					class="<c:if test="${sessionScope.numberResult == 50}">active</c:if> btn btn-default">50</button>
+					class="<c:if test='${sessionScope.numberResult == 50}'>active</c:if> btn btn-default">50</button>
 				<button form="sendNumberResult" type="submit" name="numberResult"
 					value="100"
-					class="<c:if test="${sessionScope.numberResult == 100}">active</c:if> btn btn-default">100</button>
+					class="<c:if test='${sessionScope.numberResult == 100}'>active</c:if> btn btn-default">100</button>
 			</div>
 			<a href="?lang=en"><img width="40" height="25" src="https://upload.wikimedia.org/wikipedia/en/thumb/a/ae/Flag_of_the_United_Kingdom.svg/1280px-Flag_of_the_United_Kingdom.svg.png"/></a>
 			<a href="?lang=fr"><img width="40" height="25" src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Flag_of_France.svg/225px-Flag_of_France.svg.png"/></a>
