@@ -1,19 +1,24 @@
 package com.excilys.service;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.reset;
 
-import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import javax.sql.DataSource;
-
+import org.hibernate.annotations.common.util.impl.LoggerFactory;
+import org.hibernate.dialect.MySQL8Dialect;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,12 +32,20 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Page;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.transaction.UnexpectedRollbackException;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.excilys.config.ServerConfiguration;
-import com.excilys.dao.CompanyDao;
-import com.excilys.dao.ComputerDao;
+import com.excilys.dao.CompanyDAO;
+import com.excilys.dao.ComputerDAO;
 import com.excilys.exception.ComputerException;
 import com.excilys.exception.company.CompanyNotFoundException;
 import com.excilys.exception.computer.ComputerNameNotPresentException;
@@ -44,7 +57,13 @@ import com.excilys.exception.computer.DateIntroShouldBeMinorthanDisconException;
 import com.excilys.exception.date.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
+import com.excilys.service.company.ServiceCdbCompany;
+import com.excilys.service.company.ServiceCompany;
+import com.excilys.service.computer.ServiceCdbComputer;
+import com.excilys.service.computer.ServiceComputer;
 import com.excilys.util.Pages;
+import com.mysql.cj.jdbc.MysqlDataSource;
+import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
 
 @TestInstance(Lifecycle.PER_CLASS)
 @ExtendWith(MockitoExtension.class)
@@ -52,29 +71,31 @@ import com.excilys.util.Pages;
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
 public class ServiceCdbTest {
 
-    @Autowired
-    DataSource dataSource;
+    private static final Logger LOGGER = org.slf4j.LoggerFactory.getLogger(ServiceCdbTest.class);
 
     @Mock
-    CompanyDao companyDao;
+    CompanyDAO companyDao;
 
     @Mock
-    ComputerDao computerDao;
+    ComputerDAO computerDao;
 
     @Mock
-    private ServiceCompany serviceCompany;
-
-    @InjectMocks
-    private ServiceComputer mockServiceComputer;
-
-    @InjectMocks
     private ServiceCompany mockServiceCompany;
 
-    @Autowired
-    private ServiceCompany serviceCompanyReal;
+    @Mock
+    MysqlDataTruncation mysqlDataTruncation;
+
+    @InjectMocks
+    private ServiceComputer injectedServiceComputer;
+
+    @InjectMocks
+    private ServiceCompany injectedServiceCompany;
 
     @Autowired
-    private ServiceComputer serviceComputer;
+    private ServiceCdbCompany serviceCompany;
+
+    @Autowired
+    private ServiceCdbComputer serviceComputer;
 
     private Computer computer;
 
@@ -111,9 +132,9 @@ public class ServiceCdbTest {
     @Test
     @DisplayName("Test to get computer details for an existing")
     public void getComputerDetailsTest() throws ComputerNotFoundException {
-        Mockito.when(computerDao.find(1L)).thenReturn(computerOptional);
-        assertEquals(computer2, mockServiceComputer.getComputerDaoDetails(1L));
-        Mockito.verify(computerDao).find(1L);
+        Mockito.when(computerDao.findById(1L)).thenReturn(computerOptional);
+        assertEquals(computer2, injectedServiceComputer.getComputerDaoDetails(1L));
+        Mockito.verify(computerDao).findById(1L);
     }
 
     /**
@@ -125,9 +146,9 @@ public class ServiceCdbTest {
     @Test
     @DisplayName("Test getting information for a computer that does not exist")
     public void getComputerDetailsWhenNotExistTest() throws ComputerNotFoundException {
-        Mockito.when(computerDao.find(1L)).thenReturn(Optional.empty());
-        assertThrows(ComputerNotFoundException.class, () -> mockServiceComputer.getComputerDaoDetails(1L));
-        Mockito.verify(computerDao).find(1L);
+        Mockito.when(computerDao.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(ComputerNotFoundException.class, () -> injectedServiceComputer.getComputerDaoDetails(1L));
+        Mockito.verify(computerDao).findById(1L);
     }
 
     /**
@@ -140,8 +161,8 @@ public class ServiceCdbTest {
         final List<Company> collectionsCompanies = Collections.nCopies(42, company);
         Mockito.when(computerDao.findAll()).thenReturn(collectionsComputer);
         Mockito.when(companyDao.findAll()).thenReturn(collectionsCompanies);
-        assertEquals(collectionsComputer, mockServiceComputer.getAll());
-        assertEquals(collectionsCompanies, mockServiceCompany.getAll());
+        assertEquals(collectionsComputer, injectedServiceComputer.getAll());
+        assertEquals(collectionsCompanies, injectedServiceCompany.getAll());
         Mockito.verify(computerDao).findAll();
         Mockito.verify(companyDao).findAll();
     }
@@ -152,32 +173,17 @@ public class ServiceCdbTest {
     @Test
     @DisplayName("Test la recuperation par page de computer")
     public void getComputerByPageTest() {
-        List<Computer> computers = Collections.nCopies(39, computer);
-        Pages<Computer> pages = new Pages<>(0);
-        pages.getEntities().addAll(computers.subList(0, 19));
-        Pages<Computer> pagesDeux = new Pages<>(2);
-        pages.getEntities().addAll(computers.subList(20, 39));
-        Mockito.when(computerDao.findPerPage(0)).thenReturn(pages);
-        assertEquals(pages, mockServiceComputer.findByPage(0));
-        Mockito.verify(computerDao).findPerPage(0);
+        assertEquals(new Long(1), serviceComputer.findByPage(-1, 1).getContent().get(0).getId());
+        assertEquals(new Long(1), serviceComputer.findByPage(0, 1).getContent().get(0).getId());
+        assertEquals(new Long(1), serviceComputer.findByPage(1, 1).getContent().get(0).getId());
+        assertEquals(new Long(2), serviceComputer.findByPage(2, 1).getContent().get(0).getId());
 
-        Mockito.when(computerDao.findPerPage(1)).thenReturn(pages);
-        assertEquals(pages, mockServiceComputer.findByPage(1));
-        Mockito.verify(computerDao).findPerPage(1);
+        assertTrue(serviceComputer.findByPage(0, 60).getNumberOfElements() > 20);
+        assertTrue(serviceComputer.findByPage(0, 30).getNumberOfElements() > 20);
 
-        Mockito.when(computerDao.findPerPage(2)).thenReturn(pagesDeux);
-        assertEquals(pagesDeux, mockServiceComputer.findByPage(2));
-        Mockito.verify(computerDao).findPerPage(2);
-
-        Mockito.when(computerDao.findPerPage(3)).thenReturn(pagesDeux);
-        assertEquals(pagesDeux, mockServiceComputer.findByPage(3));
-        Mockito.verify(computerDao).findPerPage(3);
-
-        pages = new Pages<>(0);
-        pages.getEntities().addAll(computers.subList(0, 2));
-        Mockito.when(computerDao.findPerPage(3, 2)).thenReturn(pages);
-        assertEquals(pages, mockServiceComputer.findByPage(3, 2));
-        Mockito.verify(computerDao).findPerPage(0);
+        List<Computer> computers = serviceComputer.findByPage(1, 11).getContent();
+        assertEquals(serviceComputer.findByPage(2, 10).getContent().stream().findFirst().get().getId(),
+                computers.get(computers.size() - 1).getId());
     }
 
     /**
@@ -186,26 +192,15 @@ public class ServiceCdbTest {
     @Test
     @DisplayName("Test la recuperation par page de company")
     public void getCompanyByPageTest() {
-        List<Company> companies = Collections.nCopies(39, company);
-        Pages<Company> pages = new Pages<>(0);
-        pages.getEntities().addAll(companies.subList(0, 19));
-        Pages<Company> pagesDeux = new Pages<>(2);
-        pages.getEntities().addAll(companies.subList(20, 39));
-        Mockito.when(companyDao.findPerPage(0)).thenReturn(pages);
-        assertEquals(pages, mockServiceCompany.findByPage(0));
-        Mockito.verify(companyDao).findPerPage(0);
+        assertEquals(new Long(1), serviceCompany.findByPage(-1, 1).getContent().get(0).getId());
+        assertEquals(new Long(1), serviceCompany.findByPage(0, 1).getContent().get(0).getId());
+        assertEquals(new Long(1), serviceCompany.findByPage(1, 1).getContent().get(0).getId());
+        assertEquals(new Long(11), serviceCompany.findByPage(2, 1).getContent().get(0).getId());
 
-        Mockito.when(companyDao.findPerPage(1)).thenReturn(pages);
-        assertEquals(pages, mockServiceCompany.findByPage(1));
-        Mockito.verify(companyDao).findPerPage(1);
+        LOGGER.error(serviceCompany.findByPage(0, 60).getNumberOfElements() + "");
 
-        Mockito.when(companyDao.findPerPage(2)).thenReturn(pagesDeux);
-        assertEquals(pagesDeux, mockServiceCompany.findByPage(2));
-        Mockito.verify(companyDao).findPerPage(2);
-
-        Mockito.when(companyDao.findPerPage(3)).thenReturn(pagesDeux);
-        assertEquals(pagesDeux, mockServiceCompany.findByPage(3));
-        Mockito.verify(companyDao).findPerPage(3);
+        assertTrue(serviceCompany.findByPage(0, 60).getNumberOfElements() >= 9);
+        assertTrue(serviceCompany.findByPage(0, 30).getNumberOfElements() >= 9);
     }
 
     /*
@@ -223,27 +218,31 @@ public class ServiceCdbTest {
      */
     @Test
     @DisplayName("Test to create a valid computer")
-    public void createValidComputerTest() throws CompanyNotFoundException, ComputerException, DateTruncationException {
-        Computer computer = new Computer.Builder("test").id(8L).build();
-        Mockito.when(computerDao.create(computer)).thenReturn(1L);
-        assertSame(1L, mockServiceComputer.createComputer(computer, true));
+    public void createValidComputerTest() throws CompanyNotFoundException, DateTruncationException, ComputerException {
+        Computer computer = new Computer.Builder("test").build();
+        Computer computerSaved = new Computer.Builder("test").id(8L).build();
+        Mockito.when(computerDao.save(computer)).thenReturn(computerSaved);
+        assertSame(8L, injectedServiceComputer.save(computer, true));
         computer = new Computer.Builder("e").introduced(LocalDate.parse("2014-12-30"))
                 .discontinued(LocalDate.parse("2015-01-01")).build();
-        Mockito.when(computerDao.create(computer)).thenReturn(2L);
-        assertSame(2L, mockServiceComputer.createComputer(computer, true));
-        Mockito.verify(computerDao).create(computer);
+        computerSaved = new Computer.Builder("e").introduced(LocalDate.parse("2014-12-30"))
+                .discontinued(LocalDate.parse("2015-01-01")).id(2L).build();
+        Mockito.when(computerDao.save(computer)).thenReturn(computerSaved);
+        assertSame(2L, injectedServiceComputer.save(computer, true));
+        Mockito.verify(computerDao, Mockito.times(2)).save(computer);
     }
 
     /**
      * Essaye de crée un computer sans nom ce qui genere une exception.
      */
+
     @Test
     @DisplayName("Test throw a ComputerNameNotPresentException because name is required")
     public void createComputerWithoutNameTest() {
         final Computer computer = new Computer.Builder(null).build();
-        assertThrows(ComputerException.class, () -> mockServiceComputer.createComputer(computer, true));
+        assertThrows(ComputerException.class, () -> injectedServiceComputer.save(computer, true));
         computer.setName("");
-        assertThrows(ComputerException.class, () -> mockServiceComputer.createComputer(computer, true));
+        assertThrows(ComputerException.class, () -> injectedServiceComputer.save(computer, true));
     }
 
     /**
@@ -260,26 +259,50 @@ public class ServiceCdbTest {
         final Computer computer = new Computer.Builder("a").introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2015-12-30")).build();
         assertThrows(DateIntroShouldBeMinorthanDisconException.class,
-                () -> mockServiceComputer.createComputer(computer, true));
+                () -> injectedServiceComputer.save(computer, true));
     }
 
     /**
-     * Retourne une CompanyNotFoundException pour des entrées invalides (-1) ou des
-     * entrées non existente (50L).
+     * Retourne une CompanyNotFoundException pour des entrées invalides.
+     * @throws ComputerException
+     *             Si une regle de validation echoue
+     * @throws DateTruncationException
+     *             Si la date est < 1970
+     * @throws CompanyNotFoundException
+     *             Si la companie n'existe pas
      */
+
     @Test
-    @DisplayName("Should throw a CompanyNotFoundException for -1 (invalid) and 50 (not exist)")
-    public void createComputerWithInvalidCompany() {
+    @DisplayName("Should throw a CompanyNotFoundException if save of wrong computer occures")
+    public void createComputerWithInvalidCompany() throws DateTruncationException, ComputerException {
         final Company company = new Company.Builder(-1L).build();
         final Computer computer = new Computer.Builder("a").company(company).build();
-        assertThrows(CompanyNotFoundException.class, () -> mockServiceComputer.createComputer(computer, true));
-        company.setId(50L);
-        assertThrows(CompanyNotFoundException.class, () -> mockServiceComputer.createComputer(computer, true));
+        Mockito.when(computerDao.save(computer)).thenThrow(
+                new DataIntegrityViolationException("", new SQLIntegrityConstraintViolationException("company")));
+        assertThrows(CompanyNotFoundException.class, () -> injectedServiceComputer.save(computer, true));
     }
 
+    /**
+     * Retourne une DateTruncationException pour une date invalide.
+     * @throws DateTruncationException
+     *             Si la date est < 1970
+     * @throws ComputerException
+     *             SI une regle de validation echoue
+     */
+    @Test
+    @DisplayName("Should throw a DateTruncationException if save of wrong date occures")
+    public void createComputerWithInvalidDate() throws DateTruncationException, ComputerException {
+        final Computer computer = new Computer.Builder("a").introduced(LocalDate.of(1969, 12, 30)).build();
+        Mockito.when(mysqlDataTruncation.getSQLState()).thenReturn("22001");
+        Mockito.when(computerDao.save(computer))
+                .thenThrow(new DataIntegrityViolationException("", mysqlDataTruncation));
+        assertThrows(DateTruncationException.class, () -> injectedServiceComputer.save(computer, false));
+    }
     /*
+     *
      * =============================================================================
      * == Update computers
+     *
      * =============================================================================
      * ==
      */
@@ -291,10 +314,10 @@ public class ServiceCdbTest {
     @DisplayName("Test updating a computer without name because name is required")
     public void updateComputerWithoutNameTest() {
         final Computer computer = new Computer.Builder(null).build();
-        assertThrows(ComputerNeedIdToBeUpdateException.class, () -> mockServiceComputer.updateComputer(computer, true));
+        assertThrows(ComputerNeedIdToBeUpdateException.class, () -> serviceComputer.update(computer, true));
         computer.setName("");
         computer.setId(1L);
-        assertThrows(ComputerException.class, () -> serviceComputer.updateComputer(computer, true));
+        assertThrows(ComputerException.class, () -> serviceComputer.update(computer, true));
     }
 
     /**
@@ -308,8 +331,7 @@ public class ServiceCdbTest {
     public void updateComputerWithInvalideDateTest() throws ComputerException {
         final Computer computer = new Computer.Builder("a").id(9L).introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2015-12-30")).build();
-        assertThrows(DateIntroShouldBeMinorthanDisconException.class,
-                () -> mockServiceComputer.updateComputer(computer, true));
+        assertThrows(DateIntroShouldBeMinorthanDisconException.class, () -> serviceComputer.update(computer, true));
     }
 
     /**
@@ -324,23 +346,44 @@ public class ServiceCdbTest {
     public void updateComputerWithNoIdTest() throws ComputerNameNotPresentException, ComputerNeedIdToBeUpdateException {
         final Computer computer = new Computer.Builder("a").introduced(LocalDate.parse("2016-01-01"))
                 .discontinued(LocalDate.parse("2016-12-30")).build();
-        assertThrows(ComputerNeedIdToBeUpdateException.class, () -> mockServiceComputer.updateComputer(computer, true));
+        assertThrows(ComputerNeedIdToBeUpdateException.class, () -> serviceComputer.update(computer, true));
     }
 
     /**
-     * Essaye de mettre a jour un computer avec un ID non valide.
-     * @throws ComputerNameNotPresentException
-     *             Si le nom du computer n'est pas renseignée
-     * @throws ComputerNeedIdToBeUpdateException
-     *             Si l'ID du computer n'est pas renseignée
+     * Retourne une CompanyNotFoundException pour des entrées invalides.
+     * @throws ComputerException
+     *             Si une regle de validation echoue
+     * @throws DateTruncationException
+     *             Si la date est < 1970
+     * @throws CompanyNotFoundException
+     *             Si la companie n'existe pas
+     */
+
+    @Test
+    @DisplayName("Should throw a CompanyNotFoundException if save of wrong computer occures")
+    public void updateComputerWithInvalidCompany() throws DateTruncationException, ComputerException {
+        final Company company = new Company.Builder(-1L).build();
+        final Computer computer = new Computer.Builder("a").company(company).id(1L).build();
+        Mockito.when(computerDao.save(computer)).thenThrow(
+                new DataIntegrityViolationException("", new SQLIntegrityConstraintViolationException("company")));
+        assertThrows(CompanyNotFoundException.class, () -> injectedServiceComputer.update(computer, true));
+    }
+
+    /**
+     * Retourne une DateTruncationException pour une date invalide.
+     * @throws DateTruncationException
+     *             Si la date est < 1970
+     * @throws ComputerException
+     *             SI une regle de validation echoue
      */
     @Test
-    @DisplayName("Test update computer with invalid id")
-    public void updateComputerWithInvalidIdTest()
-            throws ComputerNeedIdToBeUpdateException, ComputerNameNotPresentException {
-        final Computer computer = new Computer.Builder("a").introduced(LocalDate.parse("2016-01-01"))
-                .discontinued(LocalDate.parse("2016-12-30")).id(-1L).build();
-        assertThrows(ComputerNotUpdatedException.class, () -> mockServiceComputer.updateComputer(computer, true));
+    @DisplayName("Should throw a DateTruncationException if save of wrong date occures")
+    public void updateComputerWithInvalidDate() throws DateTruncationException, ComputerException {
+        final Computer computer = new Computer.Builder("a").introduced(LocalDate.of(1969, 12, 30)).id(1L).build();
+        Mockito.when(mysqlDataTruncation.getSQLState()).thenReturn("22001");
+        Mockito.when(computerDao.save(computer))
+                .thenThrow(new DataIntegrityViolationException("", mysqlDataTruncation));
+        assertThrows(DateTruncationException.class, () -> injectedServiceComputer.update(computer, false));
     }
 
     /**
@@ -356,114 +399,80 @@ public class ServiceCdbTest {
     @DisplayName("Test updating a valid computer")
     public void updateComputerTest() throws ComputerException, DateTruncationException, CompanyNotFoundException {
         Optional<Computer> computer = Optional.ofNullable(new Computer.Builder("test").id(8L).build());
-        Mockito.when(computerDao.update(computer.get())).thenReturn(computer);
-        assertEquals(computer.get(), mockServiceComputer.updateComputer(computer.get(), true));
+        Mockito.when(computerDao.save(computer.get())).thenReturn(computer.get());
+        assertEquals(computer.get(), injectedServiceComputer.update(computer.get(), true));
         computer = Optional.ofNullable(new Computer.Builder("test").id(8L).discontinued(null)
                 .introduced(LocalDate.parse("2015-12-30")).build());
-        Mockito.when(computerDao.update(computer.get())).thenReturn(computer);
-        assertEquals(computer.get(), mockServiceComputer.updateComputer(computer.get(), true));
-    }
-
-    /**
-     * La mise a jour d'un computer possedant un companie invalide ou n'existant
-     * doit produire une exception.
-     * @throws CompanyNotFoundException
-     *             Si la companie n'existe pas
-     * @throws DateTruncationException
-     *             Si la date est avant 1970
-     * @throws ComputerException
-     *             Si une regle de validation sur computer n'est pas verifiée
-     */
-    @Test
-    @DisplayName("Should throw CompanyNotFoundException for company -1 and 50")
-    public void updateComputerWhenCompanyNotExist()
-            throws ComputerException, DateTruncationException, CompanyNotFoundException {
-        final Computer computer = new Computer.Builder("ee").company(new Company.Builder(-1L).build()).build();
-        assertThrows(CompanyNotFoundException.class, () -> serviceComputer.updateComputer(computer, true));
-        computer.getCompany().setId(50L);
-        assertThrows(CompanyNotFoundException.class, () -> serviceComputer.updateComputer(computer, true));
-        computer.getCompany().setId(-1L);
-        assertThrows(CompanyNotFoundException.class, () -> mockServiceComputer.updateComputer(computer, true));
+        Mockito.when(computerDao.save(computer.get())).thenReturn(computer.get());
+        assertEquals(computer.get(), injectedServiceComputer.update(computer.get(), true));
     }
 
     /*
+     *
      * =============================================================================
      * ============== Delete Computers
+     *
      * =============================================================================
      * ==============
      */
 
     /**
      * Demande a la DAO de supprimer un ordinateur qui n'existe pas.
+     * @throws ComputerNotDeletedException
+     *             Si un ou plusieurs computer n'ont pas été supprimé
      */
     @Test
     @DisplayName("Test delete a computer that not exist")
-    public void deleteComputerNotExistingTest() {
-        Mockito.when(computerDao.delete(50L)).thenReturn(false);
-        assertFalse(mockServiceComputer.deleteOne(50L));
-        Mockito.verify(computerDao).delete(50L);
+    public void deleteComputerNotExistingTest() throws ComputerNotDeletedException {
+        assertThrows(EmptyResultDataAccessException.class, () -> serviceComputer.deleteOne(50L));
     }
 
     /**
      * Demaned a la DAO de supprimer un ordinateur qui n'a pas d'ID ou un ID
      * incorrecte.
+     * @throws ComputerNotDeletedException
+     *             Si un ou plusieurs ordinateurs n'ont pas pu être supprimé
      */
     @Test
     @DisplayName("Test delete a computer with no ID or invalid ID")
-    public void deleteComputerWithInvalidIdTest() {
+    public void deleteComputerWithInvalidIdTest() throws ComputerNotDeletedException {
         final Computer computer = new Computer.Builder("").build();
-        Mockito.when(computerDao.delete(computer.getId())).thenReturn(false);
-        assertFalse(mockServiceComputer.deleteOne(computer.getId()));
-        Mockito.verify(computerDao).delete(computer.getId());
-        Mockito.when(computerDao.delete(-1L)).thenReturn(false);
-        assertFalse(mockServiceComputer.deleteOne(-1L));
-        Mockito.verify(computerDao).delete(-1L);
+        assertThrows(InvalidDataAccessApiUsageException.class, () -> serviceComputer.deleteOne(computer.getId()));
+        assertThrows(EmptyResultDataAccessException.class, () -> serviceComputer.deleteOne(-1L));
     }
 
     /**
      * Demande a la DAO de supprimer un ordinateur present en base.
+     * @throws ComputerNotDeletedException
      */
     @Test
     @DisplayName("Test delete an existing computer")
-    public void deleteComputerTest() {
-        Mockito.when(computerDao.delete(7L)).thenReturn(true);
-        assertTrue(computerDao.delete(7L));
-        Mockito.verify(computerDao).delete(7L);
+    public void deleteComputerTest() throws ComputerNotDeletedException {
+        serviceComputer.deleteOne(7L);
     }
 
     /**
      * Demande a la DAO de supprimer un ordinateur présent en base de données.
+     * @throws ComputerNotDeletedException
      */
     @Test
     @DisplayName("Test delete an existing company")
-    public void deleteCompanytest() {
-        Mockito.when(companyDao.delete(1L)).thenReturn(true);
-        assertTrue(companyDao.delete(1L));
-        Mockito.verify(companyDao).delete(1L);
-    }
-
-    /**
-     * Demande a la DAO de supprimer un ordinateur présent en base de données.
-     */
-    @Test
-    @DisplayName("Test delete an existing company")
-    public void deleteCompanyThatNotExistTest() {
-        Mockito.when(companyDao.delete(1L)).thenReturn(false);
-        assertFalse(companyDao.delete(1L));
-        Mockito.verify(companyDao).delete(1L);
+    public void deleteCompanytest() throws ComputerNotDeletedException {
+        serviceCompany.deleteOne(1L);
     }
 
     /**
      * Verifie que la suppresion d'une companie supprime bien tous ses computers.
+     * @throws ComputerNotDeletedException
      * @throws SQLException
      *             SQLException
      */
     @Test
     @DisplayName("Test delete an existing company with his computers")
-    public void deleteCompanyAndHisComputers() throws SQLException {
-        assertTrue(serviceComputer.findByPagesComputer("name", 0, 10).getEntities().size() >= 2);
+    public void deleteCompanyAndHisComputers() throws ComputerNotDeletedException {
+        assertTrue(serviceComputer.findByPagesSearch("name", 0, 10).getNumberOfElements() >= 2);
         serviceComputer.deleteOne(32L);
-        assertEquals(2, serviceComputer.findByPagesComputer("name", 0, 10).getEntities().size());
+        assertEquals(2, serviceComputer.findByPagesSearch("name", 0, 10).getNumberOfElements());
     }
 
     /**
@@ -474,32 +483,36 @@ public class ServiceCdbTest {
     @Test
     @DisplayName("Test delete a list of computers ")
     public void deleteListComputerTest() throws ComputerNotDeletedException {
-        Mockito.when(computerDao.delete("(4,2)")).thenReturn(true);
-        assertTrue(mockServiceComputer.deleteComputer("(4,2)"));
-        Mockito.verify(computerDao).delete("(4,2)");
+        List<Long> liste = Arrays.asList(4L, 2L);
+        Mockito.when(computerDao.deleteByIdIn(liste)).thenReturn(2L);
+        assertTrue(injectedServiceComputer.deleteMulitple(liste));
+        Mockito.verify(computerDao).deleteByIdIn(liste);
     }
-
-    /**
-     * Demande a la DAO de supprimer une liste de computer non valide.
-     * @throws ComputerNotDeletedException
-     *             Computer Not deleted exception
-     */
-    @Test
-    @DisplayName("Test delete a list of computers ")
-    public void deleteListComputerNotValidTest() throws ComputerNotDeletedException {
-        Mockito.when(computerDao.delete("(-4,1222)")).thenReturn(false);
-        assertFalse(mockServiceComputer.deleteComputer("(-4,1222)"));
-        Mockito.verify(computerDao).delete("(-4,1222)");
-    }
-
-    /**
-     * Demande a la DAO de supprimer une company.
-     */
-    @Test
-    @DisplayName("Should delete company id ? and computers (?,?,?")
-    public void deleteOneCompany() {
-        assertEquals(3, serviceComputer.findByPagesComputer("cascade", 1).getEntities().size());
-        serviceCompanyReal.deleteOne(38L);
-        assertEquals(0, serviceComputer.findByPagesComputer("cascade", 1).getEntities().size());
-    }
+    //
+    // /**
+    // * Demande a la DAO de supprimer une liste de computer non valide.
+    // * @throws ComputerNotDeletedException
+    // * Computer Not deleted exception
+    // */
+    // // @Test
+    // // @DisplayName("Test delete a list of computers ")
+    // // public void deleteListComputerNotValidTest() throws
+    // // ComputerNotDeletedException {
+    // // Mockito.when(computerDao.delete("(-4,1222)")).thenReturn(false);
+    // // assertFalse(mockServiceComputer.deleteComputer("(-4,1222)"));
+    // // Mockito.verify(computerDao).delete("(-4,1222)");
+    // // }
+    //
+    // /**
+    // * Demande a la DAO de supprimer une company.
+    // */
+    // // @Test
+    // // @DisplayName("Should delete company id ? and computers (?,?,?")
+    // // public void deleteOneCompany() {
+    // // assertEquals(3, serviceComputer.findByPagesComputer("cascade",
+    // // 1).getEntities().size());
+    // // serviceCompanyReal.deleteOne(38L);
+    // // assertEquals(0, serviceComputer.findByPagesComputer("cascade",
+    // // 1).getEntities().size());
+    // // }
 }

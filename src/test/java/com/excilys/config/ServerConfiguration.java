@@ -21,14 +21,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.JpaVendorAdapter;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
-import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
-
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 
 @Configuration
+@EnableJpaRepositories(basePackages = { "com.excilys.dao" })
+@EnableTransactionManagement
 @ComponentScan(basePackages = { "com.excilys" })
 public class ServerConfiguration {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfiguration.class);
@@ -39,7 +45,7 @@ public class ServerConfiguration {
      * @throws IOException
      *             IOException
      */
-    @Bean(destroyMethod = "close")
+    @Bean
     public DataSource dataSource() {
         final Properties aProperties = new Properties();
         final InputStream path = ClassLoader.getSystemClassLoader().getResourceAsStream("app.properties");
@@ -50,16 +56,48 @@ public class ServerConfiguration {
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
         }
-        try {
-            Class.forName(aProperties.getProperty("dataSource.driverClassName"));
-        } catch (ClassNotFoundException e) {
-            LOGGER.error(e.getMessage());
-        }
         LOGGER.info("Base de donnée utilisée : " + aProperties.getProperty("jdbcUrl"));
-        final DataSource dSource = hikariConnectionInit(aProperties);
+        final DataSource dSource = configureDataSource(aProperties);
         runScriptForDatabaseConnection(dSource);
         return dSource;
 
+    }
+
+    /**
+     * Creer un entityManagerFactory.
+     * @return EntityManagerFactory
+     */
+    @Bean(name = "entityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean getEntityManagerFactoryBean() {
+        LocalContainerEntityManagerFactoryBean lcemfb = new LocalContainerEntityManagerFactoryBean();
+        lcemfb.setJpaVendorAdapter(getJpaVendorAdapter());
+        lcemfb.setDataSource(dataSource());
+        lcemfb.setPersistenceUnitName("JpaPersistenceUnit");
+        lcemfb.setPackagesToScan("com.excilys.model");
+        lcemfb.setJpaProperties(hibernateProperties());
+        return lcemfb;
+    }
+
+    /**
+     * Set hibernateProperties.
+     * @return Properties setted
+     */
+    private Properties hibernateProperties() {
+        final Properties hibernateProperties = new Properties();
+        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
+        hibernateProperties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+        hibernateProperties.put("hibernate.show_sql", false);
+        return hibernateProperties;
+    }
+
+    /**
+     * Creer un HibernateJpaVendorAdapter.
+     * @return JpaVendorAdapter
+     */
+    @Bean
+    public JpaVendorAdapter getJpaVendorAdapter() {
+        JpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
+        return adapter;
     }
 
     /**
@@ -71,17 +109,6 @@ public class ServerConfiguration {
         CookieLocaleResolver cookieLocaleResolver = new CookieLocaleResolver();
         cookieLocaleResolver.setDefaultLocale(Locale.ENGLISH);
         return cookieLocaleResolver;
-    }
-
-    /**
-     * Creer un localeChangeInterceptor qui change pour le param lang.
-     * @return LocalChangeInterceptor
-     */
-    @Bean
-    public LocaleChangeInterceptor localeChangeInterceptor() {
-        LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
-        localeChangeInterceptor.setParamName("lang");
-        return localeChangeInterceptor;
     }
 
     /**
@@ -98,20 +125,6 @@ public class ServerConfiguration {
     }
 
     /**
-     * Creer la premiere connexion avec la bonne config.
-     * @param aProperties
-     *            Propriété pour la connexion
-     * @return DataSource
-     */
-    private DataSource hikariConnectionInit(final Properties aProperties) {
-        final HikariConfig config = new HikariConfig(aProperties);
-        config.addDataSourceProperty("cachePrepStmts", true);
-        config.addDataSourceProperty("prepStmtCacheSize", 250);
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", 2048);
-        return new HikariDataSource(config);
-    }
-
-    /**
      * Lance le script pour preparer la base de données de test.
      * @param ds
      *            HikariDataSource
@@ -123,5 +136,31 @@ public class ServerConfiguration {
         } catch (FileNotFoundException | SQLException | URISyntaxException e) {
             LOGGER.error(e.getMessage());
         }
+    }
+
+    /**
+     * Creer la premiere connexion avec la bonne config.
+     * @param aProperties
+     *            Propriété pour la connexion
+     * @return DataSource
+     */
+    private DataSource configureDataSource(final Properties aProperties) {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        dataSource.setDriverClassName(aProperties.getProperty("dataSource.driverClassName"));
+        dataSource.setUrl(aProperties.getProperty("jdbcUrl"));
+        dataSource.setUsername(aProperties.getProperty("dataSource.user"));
+        dataSource.setPassword(aProperties.getProperty("dataSource.password"));
+        return dataSource;
+    }
+
+    /**
+     * Creer un JpaTransactionManager.
+     * @return PlatformTransactionManager
+     */
+    @Bean(name = "transactionManager")
+    public PlatformTransactionManager txManager() {
+        JpaTransactionManager jpaTransactionManager = new JpaTransactionManager(
+                getEntityManagerFactoryBean().getObject());
+        return jpaTransactionManager;
     }
 }
