@@ -1,32 +1,34 @@
-package com.excilys.service;
+package com.excilys.service.computer;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.excilys.dao.ComputerDao;
+import com.excilys.dao.ComputerDAO;
 import com.excilys.exception.ComputerException;
 import com.excilys.exception.company.CompanyNotFoundException;
 import com.excilys.exception.computer.ComputerNotDeletedException;
 import com.excilys.exception.computer.ComputerNotFoundException;
-import com.excilys.exception.computer.ComputerNotUpdatedException;
 import com.excilys.exception.date.DateTruncationException;
 import com.excilys.model.Computer;
-import com.excilys.util.Pages;
+import com.excilys.service.ServiceUtil;
 import com.excilys.validation.ComputerValidation;
+import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
 
 @Service
 @Transactional
-public class ServiceComputer implements ServiceCdb<Computer> {
+public class ServiceComputer implements ServiceCdbComputer {
+    private static final String ERROR_CODE_DATE_SQL = "22001";
 
     @Autowired
-    private ComputerDao computerDao;
-
-    @Autowired
-    private ServiceCompany serviceCompany;
+    private ComputerDAO computerDao;
 
     /**
      * Constructeur de ServiceComputer [Spring].
@@ -34,114 +36,149 @@ public class ServiceComputer implements ServiceCdb<Computer> {
     private ServiceComputer() {
     }
 
+    /*
+     * Retrieve
+     */
+
     @Override
     @Transactional(readOnly = true)
     public Collection<Computer> getAll() {
         return computerDao.findAll();
     }
 
-    /**
-     * Recupere les information d'un computer.
-     * @param id
-     *            ID du computer recherché
-     * @return Computer
-     * @throws ComputerNotFoundException
-     *             Si le computer n'est pas présent
-     */
+    @Override
     @Transactional(readOnly = true)
     public Computer getComputerDaoDetails(final Long id) throws ComputerNotFoundException {
-        return computerDao.find(id).orElseThrow(() -> new ComputerNotFoundException("" + id));
-
-    }
-
-    /**
-     * Demande a la DAO de crée un computer.
-     * @param c
-     *            Computer à sauvegarder
-     * @param validation
-     *            True si on a besoin d'appelé le validator javax
-     * @return L'ID du computer crée ou -1L si a echoué
-     * @throws ComputerException
-     *             Si une regle propre au computer échoue
-     * @throws CompanyNotFoundException
-     *             Si la company n'existe pas
-     * @throws DateTruncationException
-     *             Lorsque une date invalide essaye de se stocker en BD
-     */
-    public Long createComputer(final Computer c, final boolean validation)
-            throws ComputerException, CompanyNotFoundException, DateTruncationException {
-        if (c.getCompany() != null && !serviceCompany.isExistCompany(c.getCompany().getId())) {
-            throw new CompanyNotFoundException(c.getCompany().getId().toString());
-        }
-        if (validation) {
-            ComputerValidation.validateComputerIntegrityAndDate(c);
-        } else {
-            ComputerValidation.dateIntroMinorThanDateDiscon(c.getIntroduced(), c.getDiscontinued());
-        }
-        return computerDao.create(c);
-    }
-
-    /**
-     * /** Demande a la DAO de mettre a jour un computer.
-     * @param c
-     *            Computer à mettre a jour
-     * @param validation
-     *            True si on a besoin d'appelé le validator javax
-     * @return Le computer qui a été mit a jour.
-     * @throws ComputerException
-     *             Si une regle propre au computer échoue.
-     * @throws DateTruncationException
-     *             Lorsque une date invalide essaye de se stocker en BD
-     * @throws CompanyNotFoundException
-     *             Si la companie n'existe pas
-     */
-    public Computer updateComputer(final Computer c, final boolean validation)
-            throws ComputerException, DateTruncationException, CompanyNotFoundException {
-        if (c.getCompany() != null && !serviceCompany.isExistCompany(c.getCompany().getId())) {
-            throw new CompanyNotFoundException(c.getCompany().getId().toString());
-        }
-        if (validation) {
-            ComputerValidation.validateComputerIntegrityAndVerifyPresenceId(c);
-        } else {
-            ComputerValidation.validateComputerAndVerifyPresenceId(c);
-        }
-        return computerDao.update(c).orElseThrow(() -> new ComputerNotUpdatedException(c.getId().toString()));
-    }
-
-    @Override
-    public boolean deleteOne(final Long id) {
-        return computerDao.delete(id);
-    }
-
-    /**
-     * Demande a la DAO de supprimer une liste de computer.
-     * @param ids
-     *            ID des computers à supprimer
-     * @return True si réussi
-     * @throws ComputerNotDeletedException
-     *             Si un ou plusieurs ordinateurs n'arrivent pas a être supprimé
-     */
-    @Transactional(propagation = Propagation.REQUIRED)
-    public boolean deleteComputer(final String ids) throws ComputerNotDeletedException {
-        return computerDao.delete(ids);
+        return computerDao.findById(id).orElseThrow(() -> new ComputerNotFoundException("" + id));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Pages<Computer> findByPage(int... pageAndNumberResult) {
-        return computerDao.findPerPage(pageAndNumberResult);
+    public Page<Computer> findByPage(int... pageAndNumberResult) {
+        final long nbComputer = getCountInDatabase();
+        int pageRequested = ServiceUtil.getTheRequestPageOrTheBestAppropriate(nbComputer, pageAndNumberResult);
+        if (pageAndNumberResult.length > 1) {
+            return computerDao.findAll(new QPageRequest(pageRequested, pageAndNumberResult[1]));
+        } else {
+            return computerDao.findAll(new QPageRequest(pageRequested, NB_PAGE));
+        }
     }
 
-    /**
-     * Retourne les computer par pages et par recherche.
-     * @param search
-     *            Computer ou company name a recherché
-     * @param pageAndNumberResult
-     *            Numero de page courante et nombre de resultat a afficher
-     * @return Page de computer
-     */
+    @Override
     @Transactional(readOnly = true)
-    public Pages<Computer> findByPagesComputer(final String search, int... pageAndNumberResult) {
-        return computerDao.findPerPage(search, pageAndNumberResult);
+    public Page<Computer> findByPagesSearch(final String search, int... pageAndNumberResult) {
+        final long nbComputer = getCountSearched(search);
+        final int pageRequested = ServiceUtil.getTheRequestPageOrTheBestAppropriate(nbComputer, pageAndNumberResult);
+        if (pageAndNumberResult.length > 1) {
+            return computerDao.findByNameContainingOrCompanyNameContainingOrderByName(search, search,
+                    (Pageable) new QPageRequest(pageRequested, pageAndNumberResult[1]));
+        } else {
+            return computerDao.findByNameContainingOrCompanyNameContainingOrderByName(search, search,
+                    (Pageable) new QPageRequest(pageRequested, NB_PAGE));
+        }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long getCountInDatabase() {
+        return computerDao.count();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long getCountSearched(final String search) {
+        return computerDao.countByNameContainingOrCompanyNameContaining(search, search);
+    }
+
+    /*
+     * Create
+     */
+
+    @Override
+    public Long save(Computer c, boolean validation)
+            throws CompanyNotFoundException, DateTruncationException, ComputerException {
+        Long idCreatedLong = -1L; // Never used
+        try {
+            if (validation) {
+                ComputerValidation.validateComputerIntegrityAndDate(c);
+            } else {
+                ComputerValidation.dateIntroMinorThanDateDiscon(c.getIntroduced(), c.getDiscontinued());
+            }
+            idCreatedLong = computerDao.save(c).getId();
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMostSpecificCause() instanceof SQLIntegrityConstraintViolationException) {
+                if (e.getMostSpecificCause().getMessage().contains("company")) {
+                    throw new CompanyNotFoundException(c.getCompany().getId().toString());
+                }
+            }
+            if (e.getMostSpecificCause() instanceof MysqlDataTruncation) {
+                if (((MysqlDataTruncation) e.getMostSpecificCause()).getSQLState().equals(ERROR_CODE_DATE_SQL)) {
+                    throw new DateTruncationException();
+                }
+            }
+        }
+        return idCreatedLong;
+
+    }
+
+    /*
+     * Update
+     */
+
+    @Override
+    public Computer update(final Computer c, boolean validation)
+            throws CompanyNotFoundException, DateTruncationException, ComputerException {
+        Computer computer = null; // never used
+        try {
+            if (validation) {
+                ComputerValidation.validateComputerIntegrityAndVerifyPresenceId(c);
+            } else {
+                ComputerValidation.validateComputerAndVerifyPresenceId(c);
+            }
+            computer = computerDao.save(c);
+        } catch (DataIntegrityViolationException e) {
+            if (e.getMostSpecificCause() instanceof SQLIntegrityConstraintViolationException) {
+                if (e.getMostSpecificCause().getMessage().contains("company")) {
+                    throw new CompanyNotFoundException(c.getCompany().getId().toString());
+                }
+            }
+            if (e.getMostSpecificCause() instanceof MysqlDataTruncation) {
+                if (((MysqlDataTruncation) e.getMostSpecificCause()).getSQLState().equals(ERROR_CODE_DATE_SQL)) {
+                    throw new DateTruncationException();
+                }
+            }
+        }
+        return computer;
+
+    }
+
+    /*
+     * Delete
+     */
+
+    @Override
+    public void deleteOne(final Long id) {
+        computerDao.deleteById(id);
+    }
+
+    @Override
+    public boolean deleteMulitple(Iterable<Long> computersToDelete) throws ComputerNotDeletedException {
+        boolean res = false;
+        final Long nbComputerDelete = computerDao.deleteByIdIn(computersToDelete);
+        if (nbComputerDelete.equals(computersToDelete.spliterator().getExactSizeIfKnown())) {
+            res = true;
+        } else if (nbComputerDelete > 0) {
+            throw new ComputerNotDeletedException();
+        }
+        return res;
+    }
+
+    @Override
+    public void deleteByCompany(final Long companyId) throws ComputerNotDeletedException {
+        final Long nbComputerDelete = computerDao.deleteByCompanyId(companyId);
+        if (nbComputerDelete == 0) {
+            throw new ComputerNotDeletedException("");
+        }
+    }
+
 }

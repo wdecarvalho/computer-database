@@ -2,30 +2,48 @@ package com.excilys.service;
 
 import java.util.Collection;
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.excilys.util.Pages;
+import com.excilys.exception.computer.ComputerNotDeletedException;
 
 @Service
+@Transactional
 public interface ServiceCdb<T> {
+
+    int NB_PAGE = 10;
 
     /**
      * Recupere tout les objets de type T.
      * @return Collection<T>
      */
+    @Transactional(readOnly = true)
     Collection<T> getAll();
 
     /**
-     * Supprime un objet de type T.
-     * @param id de l'objet a supprimer
-     * @return True si réussi / False sinon
-     */
-    boolean deleteOne(Long id);
-
-    /**
      * Recupere par pagination les objets de type T.
-     * @param page Numero de page courant
+     * @param page
+     *            Numero de page courant
      * @return Pages<T>
      */
-    Pages<T> findByPage(int... page);
+    @Transactional(readOnly = true)
+    Page<T> findByPage(int... page);
+
+    /**
+     * Recupere le nombre de T en base de données.
+     * @return Nombre en base de données
+     */
+    @Transactional(readOnly = true)
+    Long getCountInDatabase();
+
+    /**
+     * Supprime un objet de type T.
+     * @param id
+     *            de l'objet a supprimer
+     * @throws ComputerNotDeletedException
+     *             ComputerNotDeletedException
+     */
+    void deleteOne(Long id) throws ComputerNotDeletedException;
+
 }
