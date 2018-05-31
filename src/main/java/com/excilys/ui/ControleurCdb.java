@@ -2,7 +2,9 @@ package com.excilys.ui;
 
 import static com.excilys.ui.ChoixUtilisateur.AJOUTER_COMPANIE_TO_COMPUTER;
 import static com.excilys.ui.ChoixUtilisateur.CHOIX_USER;
+import static com.excilys.ui.ChoixUtilisateur.DATE_INCORRECTE;
 import static com.excilys.ui.ChoixUtilisateur.MESSAGE_USER_COMPUTER;
+import static com.excilys.ui.ChoixUtilisateur.NAME_REQUIRED;
 import static com.excilys.ui.ChoixUtilisateur.NUMBER_COMPANY;
 import static com.excilys.ui.ChoixUtilisateur.NUMBER_COMPUTER;
 import static com.excilys.ui.ChoixUtilisateur.PAGE_OR_QUIT;
@@ -11,6 +13,13 @@ import static com.excilys.ui.FormEntry.COMPUTER_NAME;
 import static com.excilys.ui.FormEntry.CURRENT;
 import static com.excilys.ui.FormEntry.DATE_DISCONTINUED;
 import static com.excilys.ui.FormEntry.DATE_INTRODUCED;
+import static com.excilys.ui.MessageInfoCli.AU_REVOIR;
+import static com.excilys.ui.MessageInfoCli.CHOIX_INCORRECTE;
+import static com.excilys.ui.MessageInfoCli.COMPANY_NOT_FOUND;
+import static com.excilys.ui.MessageInfoCli.DELETE_ERROR_COMPANY;
+import static com.excilys.ui.MessageInfoCli.DELETE_SUCCESSFULL;
+import static com.excilys.ui.MessageInfoCli.ID_NUMBER_ONLY;
+import static com.excilys.ui.MessageInfoCli.PAGE_NUMBER_ONLY;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -20,40 +29,34 @@ import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Controller;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
 
 import com.excilys.exception.ComputerException;
 import com.excilys.exception.company.CompanyNotFoundException;
 import com.excilys.exception.computer.ComputerNameNotPresentException;
+import com.excilys.exception.computer.ComputerNotDeletedException;
 import com.excilys.exception.computer.ComputerNotFoundException;
 import com.excilys.exception.date.DateTruncationException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
-import com.excilys.service.ServiceCompany;
-import com.excilys.service.ServiceComputer;
-import com.excilys.util.Pages;
+import com.excilys.service.company.ServiceCdbCompany;
+import com.excilys.service.computer.ServiceCdbComputer;
 
-@Controller
+@Component
 public class ControleurCdb {
 
-    private static final String AU_REVOIR = "Au revoir ! ";
+    private static final String LA_COMPANIE = "La companie";
 
-    private static final String COMPUTER_NOT_SAVE = "L'ordinateur n'a pas pu être sauvegardé car la date discontinued est inferieur a la date introduced";
+    private static final String LE_COMPUTER = "Le computer";
 
-    private static final String COMPUTER_NAME_MANDATORY = "Le nom de l'ordinateur est obligatoire ";
+    private static final String COMPANY = "company";
 
-    private static final String COMPANY_NOT_FOUND = "Cette companie n'existe pas : ";
+    private static final String COMPUTER = "computer";
 
-    private static final String DATE_INCORECTE = "Date incorrecte veuillez recommencer :";
+    private static final String SERVICE_COMPANY = "serviceCompany";
 
-    private static final String ID_COMPUTER_NUMBER_ONLY = "L'ID de %s doit être composé uniquement de nombre [0-9] ";
-
-    private static final String ID_COMPUTER_NUM_ONLY = "L'action n'a pas pu être réalisé car " + ID_COMPUTER_NUMBER_ONLY
-            + "\n";
-
-    private static final String PAGE_NUMBER_ONLY = "Le numero de page doit être composé uniquement de nombre [0-9] ";
-
-    private static final String PAGE_NUM_ONLY = "L'action n'a pas pu être réalisé car " + PAGE_NUMBER_ONLY;
+    private static final String SERVICE_COMPUTER = "serviceComputer";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ControleurCdb.class);
 
@@ -61,11 +64,13 @@ public class ControleurCdb {
 
     private static final String DECORATE = "============== Gestion CDB ==============";
 
-    private ServiceComputer serviceComputer;
+    private ServiceCdbComputer serviceComputer;
 
-    private ServiceCompany serviceCompany;
+    private ServiceCdbCompany serviceCompany;
 
     private Scanner scanner;
+
+    private static ApplicationContext context;
 
     /**
      * Contructeur de ControleurCdb.
@@ -76,13 +81,18 @@ public class ControleurCdb {
 
     /**
      * Contructeur de ControleurCdb.
-     * @param context
+     * @param applicationContext
      *            ApplicationContext
      */
-    public ControleurCdb(final ApplicationContext context) {
+    public ControleurCdb(final ApplicationContext applicationContext) {
         scanner = new Scanner(System.in);
-        serviceComputer = (ServiceComputer) context.getBean("serviceComputer");
-        serviceCompany = (ServiceCompany) context.getBean("serviceCompany");
+        context = applicationContext;
+        serviceComputer = (ServiceCdbComputer) context.getBean(SERVICE_COMPUTER);
+        serviceCompany = (ServiceCdbCompany) context.getBean(SERVICE_COMPANY);
+    }
+
+    public static ApplicationContext getApplicationContext() {
+        return context;
     }
 
     /**
@@ -98,7 +108,7 @@ public class ControleurCdb {
             try {
                 choixUtilisateur = ChoixUtilisateur.getChoix(Integer.parseInt(scanner.nextLine()));
                 if (choixUtilisateur == null) {
-                    System.out.println("Choix incorrecte !\n");
+                    System.out.println(CHOIX_INCORRECTE.toString());
                     continue;
                 }
             } catch (NumberFormatException e) {
@@ -106,7 +116,7 @@ public class ControleurCdb {
             }
             run = executeChoixUtilisateur(choixUtilisateur);
         }
-        System.out.println(AU_REVOIR);
+        System.out.println(AU_REVOIR.toString());
     }
 
     /**
@@ -160,10 +170,10 @@ public class ControleurCdb {
             final Long l = Long.valueOf(scanner.nextLine());
             final Computer computer3 = serviceComputer.getComputerDaoDetails(l);
             serviceComputer.deleteOne(computer3.getId());
+            LOGGER.info(String.format(DELETE_SUCCESSFULL.toString(), LE_COMPUTER, l));
         } catch (NumberFormatException e) {
-            LOGGER.debug(String.format(ID_COMPUTER_NUMBER_ONLY, "computer"));
-            System.out.printf(ID_COMPUTER_NUM_ONLY, "computer");
-        } catch (ComputerNotFoundException e) {
+            LOGGER.info(String.format(ID_NUMBER_ONLY.toString(), COMPUTER));
+        } catch (ComputerException e) {
             LOGGER.info(e.getMessage());
         }
     }
@@ -175,17 +185,12 @@ public class ControleurCdb {
         System.out.println(NUMBER_COMPANY);
         try {
             final Long l = Long.valueOf(scanner.nextLine());
-            if (!serviceCompany.deleteOne(l)) {
-                if (serviceCompany.isExistCompany(l)) {
-                    LOGGER.info(
-                            "La company n'a pas pu être supprimé a cause d'une dépendence à un ou plusieurs computers");
-                } else {
-                    LOGGER.info(String.format("La company d'id %s n'existe pas", l));
-                }
-            }
+            serviceCompany.deleteOne(l);
+            LOGGER.info(String.format(DELETE_SUCCESSFULL.toString(), LA_COMPANIE, l));
         } catch (NumberFormatException e) {
-            LOGGER.debug(String.format(ID_COMPUTER_NUMBER_ONLY, "company"));
-            System.out.printf(ID_COMPUTER_NUM_ONLY, "company");
+            LOGGER.info(String.format(ID_NUMBER_ONLY.toString(), COMPANY));
+        } catch (ComputerNotDeletedException e) {
+            LOGGER.info(DELETE_ERROR_COMPANY.toString());
         }
     }
 
@@ -201,16 +206,13 @@ public class ControleurCdb {
             final Computer current = serviceComputer.getComputerDaoDetails(l);
             final Computer computer2 = creationComputer(current);
             computer2.setId(l);
-            serviceComputer.updateComputer(computer2, true);
+            serviceComputer.update(computer2, true);
         } catch (NumberFormatException e) {
-            LOGGER.debug(String.format(ID_COMPUTER_NUMBER_ONLY, "computer"));
-            System.out.printf(ID_COMPUTER_NUM_ONLY, "computer");
-        } catch (ComputerException e) {
+            LOGGER.info(String.format(ID_NUMBER_ONLY.toString(), COMPUTER));
+        } catch (ComputerException | CompanyNotFoundException e) {
             LOGGER.info(e.getMessage());
         } catch (DateTruncationException e) {
             LOGGER.error(e.getMessage());
-        } catch (CompanyNotFoundException e) {
-            LOGGER.info(e.getMessage());
         }
     }
 
@@ -224,8 +226,7 @@ public class ControleurCdb {
             final Long l = Long.valueOf(scanner.nextLine());
             printComputer(l);
         } catch (NumberFormatException e) {
-            LOGGER.debug(String.format(ID_COMPUTER_NUMBER_ONLY, "computer"));
-            System.out.printf(ID_COMPUTER_NUM_ONLY, "computer");
+            LOGGER.info(String.format(ID_NUMBER_ONLY.toString(), COMPUTER));
         }
     }
 
@@ -294,7 +295,7 @@ public class ControleurCdb {
         String stringDate = scanner.nextLine();
         if (!stringDate.isEmpty()) {
             while (!stringDate.matches(DATE_REGEX)) {
-                System.out.print(DATE_INCORECTE);
+                System.out.print(DATE_INCORRECTE.toString());
                 stringDate = scanner.nextLine();
             }
         }
@@ -318,7 +319,7 @@ public class ControleurCdb {
 
         String computerName = scanner.nextLine();
         while (computerName.isEmpty()) {
-            System.out.println(COMPUTER_NAME_MANDATORY);
+            System.out.println(NAME_REQUIRED.toString());
             computerName = scanner.nextLine();
         }
         return computerName;
@@ -345,14 +346,13 @@ public class ControleurCdb {
 
             try {
                 Long companyId = Long.valueOf(scanner.nextLine());
-                while (!serviceCompany.isExistCompany(companyId)) {
-                    System.out.println(COMPANY_NOT_FOUND + companyId);
+                while (!serviceCompany.isExists(companyId)) {
+                    System.out.println(COMPANY_NOT_FOUND.toString() + companyId);
                     companyId = Long.valueOf(scanner.nextLine());
                 }
                 company = new Company.Builder(companyId).build();
             } catch (NumberFormatException e) {
-                LOGGER.debug(String.format(ID_COMPUTER_NUMBER_ONLY, "company"));
-                System.out.printf(ID_COMPUTER_NUM_ONLY, "company");
+                LOGGER.info(String.format(ID_NUMBER_ONLY.toString(), COMPANY));
                 company = null;
             }
 
@@ -371,15 +371,9 @@ public class ControleurCdb {
      */
     private void insertComputer(final Computer computer) {
         try {
-            if (serviceComputer.createComputer(computer, true).equals(-1L)) {
-                System.out.println(COMPUTER_NOT_SAVE);
-            }
-        } catch (CompanyNotFoundException e) {
+            serviceComputer.save(computer, true);
+        } catch (CompanyNotFoundException | ComputerException | DateTruncationException e) {
             LOGGER.info(e.getMessage());
-        } catch (ComputerException e) {
-            LOGGER.info(e.getMessage());
-        } catch (DateTruncationException e) {
-            LOGGER.error(e.getMessage());
         }
     }
 
@@ -415,8 +409,7 @@ public class ControleurCdb {
                     int page = Integer.parseInt(choix);
                     printListComputersByPage(page);
                 } catch (NumberFormatException e) {
-                    LOGGER.debug(PAGE_NUMBER_ONLY);
-                    System.out.println(PAGE_NUM_ONLY);
+                    LOGGER.info(PAGE_NUMBER_ONLY.toString());
                 }
 
             }
@@ -430,8 +423,8 @@ public class ControleurCdb {
      *            : Numero de page a afficher
      */
     private void printListComputersByPage(int page) {
-        final Pages<Computer> pages = serviceComputer.findByPage(page);
-        for (Computer computer : pages.getEntities()) {
+        final Page<Computer> pages = serviceComputer.findByPage(page);
+        for (Computer computer : pages.getContent()) {
             System.out.println(computer);
         }
         printPageInformation(pages);
@@ -453,8 +446,7 @@ public class ControleurCdb {
                     int page = Integer.parseInt(choix);
                     printListCompaniesByPage(page);
                 } catch (NumberFormatException e) {
-                    LOGGER.debug(PAGE_NUMBER_ONLY);
-                    System.out.println(PAGE_NUM_ONLY);
+                    LOGGER.info(PAGE_NUMBER_ONLY.toString());
                 }
 
             }
@@ -468,8 +460,8 @@ public class ControleurCdb {
      *            Numero de page a afficher
      */
     private void printListCompaniesByPage(int page) {
-        final Pages<Company> pages = serviceCompany.findByPage(page);
-        for (Company company : pages.getEntities()) {
+        final Page<Company> pages = serviceCompany.findByPage(page);
+        for (Company company : pages.getContent()) {
             System.out.println(company);
         }
         printPageInformation(pages);
@@ -493,9 +485,9 @@ public class ControleurCdb {
      * @param pages
      *            Pagination
      */
-    private void printPageInformation(final Pages<?> pages) {
+    private void printPageInformation(final Page<?> pages) {
         final StringBuilder sBuilder = new StringBuilder("Page actuelle : ");
-        sBuilder.append(pages.getPageCourante()).append(" / ").append(pages.getPageMax());
+        sBuilder.append(pages.getNumber() + 1).append(" / ").append(pages.getTotalPages());
         System.out.println(sBuilder.toString());
     }
 

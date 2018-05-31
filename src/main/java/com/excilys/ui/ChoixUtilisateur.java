@@ -9,7 +9,9 @@ public enum ChoixUtilisateur {
     NUMBER_COMPUTER("Quel est le numero de l'ordinateur ? : [0-9] ", 0),
     NUMBER_COMPANY("Quel est le numero de la companie ? : [0-9] ", 0),
     AJOUTER_COMPANIE_TO_COMPUTER("Voulez vous ajouter une companie à l'ordinateur ? : [y/n] ", 0),
-    //-------------------------------------------------
+    NAME_REQUIRED("Le nom de l'ordinateur est obligatore : ", 0),
+    DATE_INCORRECTE("Date incorrecte veuillez recommencer : ", 0),
+    // -------------------------------------------------
     QUIT("8. Quit program ", 8),
     DELETE_COMPANY("7. Delete a company ", 7),
     DELETE_COMPUTER("6. Delete a computer ", 6),

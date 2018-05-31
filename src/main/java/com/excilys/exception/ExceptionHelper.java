@@ -9,8 +9,6 @@ import org.springframework.stereotype.Component;
 
 import com.excilys.ui.ControleurCdb;
 
-import net.sourceforge.htmlunit.corejs.javascript.tools.debugger.Main;
-
 @Component
 public class ExceptionHelper implements ApplicationContextAware {
 

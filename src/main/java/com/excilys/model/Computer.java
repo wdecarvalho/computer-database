@@ -2,19 +2,33 @@ package com.excilys.model;
 
 import java.time.LocalDate;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.executable.ValidateOnExecution;
 
 import com.excilys.constants.commons.message.MessageValidationAndException;
 
 @ValidateOnExecution
+@Entity
+@Table(name = "computer")
 public class Computer {
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotBlank(message = MessageValidationAndException.NAME_IS_REQUIRED)
     private String name;
+
     private LocalDate introduced;
+
     private LocalDate discontinued;
+
+    @ManyToOne
     private Company company;
 
     /**
@@ -28,6 +42,13 @@ public class Computer {
         introduced = b.introduced;
         discontinued = b.discontinued;
         company = b.company;
+    }
+
+    /**
+     * Constructeur privée pour hibernate.
+     */
+    public Computer() {
+
     }
 
     public Long getId() {

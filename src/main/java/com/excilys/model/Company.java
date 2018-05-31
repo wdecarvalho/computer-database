@@ -1,17 +1,38 @@
 package com.excilys.model;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.validation.constraints.NotBlank;
+
+@Entity
+@Table(name = "company")
 public class Company {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank
     private String name;
 
     /**
      * Constructeur de Company.
-     * @param builder Builder (pattern)
+     * @param builder
+     *            Builder (pattern)
      */
     private Company(Builder builder) {
         this.id = builder.iD;
         this.name = builder.name;
+    }
+
+    /**
+     * Constructeur privée pour hibernate.
+     */
+    private Company() {
+
     }
 
     public Long getId() {
@@ -30,10 +51,6 @@ public class Company {
         this.name = name;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#hashCode()
-     */
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -42,10 +59,6 @@ public class Company {
         return result;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -68,10 +81,6 @@ public class Company {
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
         return "Company [id=" + id + ", name=" + name + "]";
@@ -83,7 +92,8 @@ public class Company {
 
         /**
          * Constructeur du Builder.
-         * @param iD Id de la companie
+         * @param iD
+         *            Id de la companie
          */
         public Builder(Long iD) {
             this.iD = iD;
@@ -91,7 +101,8 @@ public class Company {
 
         /**
          * Permet de mettre le nom d'une companie.
-         * @param name Nom de la compagnie
+         * @param name
+         *            Nom de la compagnie
          * @return Builder
          */
         public Builder name(String name) {

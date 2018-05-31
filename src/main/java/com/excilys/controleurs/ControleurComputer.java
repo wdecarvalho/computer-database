@@ -1,7 +1,6 @@
 package com.excilys.controleurs;
 
 import static com.excilys.controleurs.AttributeToSend.COMPANYS;
-import static com.excilys.controleurs.MessagetypeUser.ADD_ERROR_COMPUTER;
 import static com.excilys.controleurs.MessagetypeUser.ADD_SUCCESSFULL_COMPUTER;
 import static com.excilys.controleurs.MessagetypeUser.MESSAGE_USER;
 import static com.excilys.controleurs.MessagetypeUser.TYPE_MESSAGE;
@@ -34,8 +33,8 @@ import com.excilys.exception.company.CompanyNotFoundException;
 import com.excilys.exception.computer.ComputerNotFoundException;
 import com.excilys.exception.date.DateTruncationException;
 import com.excilys.mapper.MapUtil;
-import com.excilys.service.ServiceCompany;
-import com.excilys.service.ServiceComputer;
+import com.excilys.service.company.ServiceCdbCompany;
+import com.excilys.service.computer.ServiceCdbComputer;
 import com.excilys.tags.TypeAlerte;
 
 @Controller
@@ -44,10 +43,10 @@ public class ControleurComputer {
     private static final String COMPUTER = "computer";
 
     @Autowired
-    private ServiceCompany serviceCompany;
+    private ServiceCdbCompany serviceCompany;
 
     @Autowired
-    private ServiceComputer serviceComputer;
+    private ServiceCdbComputer serviceComputer;
 
     /**
      * Redirige vers le formulaire d'ajout de computer.
@@ -78,13 +77,9 @@ public class ControleurComputer {
             resultErrorToStringAndSendItWithTypeError(result, redirectAttributes);
         } else {
             try {
-                if (serviceComputer.createComputer(MapUtil.computerDTOToComputer(computerDTO), false).equals(-1L)) {
-                    setMessageErrorAndIsTypeToModel(redirectAttributes, ADD_ERROR_COMPUTER.toString(), ERROR);
-                } else {
-                    return sendMessageToMainControlleur(redirectAttributes, ADD_SUCCESSFULL_COMPUTER.toString(),
-                            SUCCESS);
-                }
-            } catch (ComputerException | CompanyNotFoundException | DateTruncationException e) {
+                serviceComputer.save(MapUtil.computerDTOToComputer(computerDTO), false);
+                return sendMessageToMainControlleur(redirectAttributes, ADD_SUCCESSFULL_COMPUTER.toString(), SUCCESS);
+            } catch (CompanyNotFoundException | DateTruncationException | ComputerException e) {
                 setMessageErrorAndIsTypeToModel(redirectAttributes, e.getMessage(), ERROR);
             }
         }
@@ -138,7 +133,7 @@ public class ControleurComputer {
             resultErrorToStringAndSendItWithTypeError(result, redirectAttributes);
         } else {
             try {
-                serviceComputer.updateComputer(MapUtil.computerDTOToComputer(computerDTO), false);
+                serviceComputer.update(MapUtil.computerDTOToComputer(computerDTO), false);
                 return sendMessageToMainControlleur(redirectAttributes, UPDATE_SUCCESSFULL_COMPUTER.toString(),
                         SUCCESS);
             } catch (ComputerException | DateTruncationException | CompanyNotFoundException e) {

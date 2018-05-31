@@ -1,5 +1,15 @@
 package com.excilys.controleurs;
 
+import static com.excilys.controleurs.AttributeToSend.COMPUTERS;
+import static com.excilys.controleurs.AttributeToSend.LIMIT;
+import static com.excilys.controleurs.AttributeToSend.NB_COMPUTERS;
+import static com.excilys.controleurs.AttributeToSend.PAGE_COURANTE;
+import static com.excilys.controleurs.MessagetypeUser.DELETE_NO_COMPUTER_SELECTED;
+import static com.excilys.controleurs.MessagetypeUser.DELETE_SUCCESSFULL_COMPUTER;
+import static com.excilys.controleurs.MessagetypeUser.MESSAGE_USER;
+import static com.excilys.controleurs.MessagetypeUser.TYPE_MESSAGE;
+import static com.excilys.controleurs.RouteUrl.DASHBOARD;
+import static com.excilys.controleurs.RouteUrl.DASHBOARD_JSP;
 import static com.excilys.tags.TypeAlerte.ERROR;
 import static com.excilys.tags.TypeAlerte.INFO;
 import static com.excilys.tags.TypeAlerte.SUCCESS;
@@ -10,6 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,19 +34,7 @@ import com.excilys.dto.ComputerDTO;
 import com.excilys.exception.computer.ComputerNotDeletedException;
 import com.excilys.mapper.MapUtil;
 import com.excilys.model.Computer;
-import com.excilys.service.ServiceComputer;
-import com.excilys.util.Pages;
-
-import static com.excilys.controleurs.AttributeToSend.COMPUTERS;
-import static com.excilys.controleurs.AttributeToSend.NB_COMPUTERS;
-import static com.excilys.controleurs.AttributeToSend.LIMIT;
-import static com.excilys.controleurs.AttributeToSend.PAGE_COURANTE;
-import static com.excilys.controleurs.MessagetypeUser.DELETE_NO_COMPUTER_SELECTED;
-import static com.excilys.controleurs.MessagetypeUser.DELETE_SUCCESSFULL_COMPUTER;
-import static com.excilys.controleurs.MessagetypeUser.MESSAGE_USER;
-import static com.excilys.controleurs.MessagetypeUser.TYPE_MESSAGE;
-import static com.excilys.controleurs.RouteUrl.DASHBOARD;
-import static com.excilys.controleurs.RouteUrl.DASHBOARD_JSP;
+import com.excilys.service.computer.ServiceCdbComputer;
 
 @Controller
 @SessionAttributes(names = { "numberResult" }, types = { Integer.class })
@@ -49,14 +48,15 @@ public class ControleurMain {
     private static final String PAGE = "page";
 
     @Autowired
-    private ServiceComputer serviceComputer;
+    private ServiceCdbComputer serviceComputer;
 
     @RequestMapping(path = "/dashboard", method = { RequestMethod.GET })
     public String accueil(final Model model,
             @RequestParam(name = PAGE, required = false, defaultValue = "1") final Integer page,
             @RequestParam(name = NUMBER_RESULT, required = false) Integer nbResult) {
         nbResult = createNbResultWithAllowedValue(model, nbResult);
-        final Pages<Computer> pagesComputer = serviceComputer.findByPage(page, nbResult);
+        final Page<Computer> pagesComputer = serviceComputer.findByPage(page, nbResult);
+        model.addAttribute(NB_COMPUTERS.toString(), serviceComputer.getCountInDatabase());
         return getComputerDTOAndPrintAccueil(model, pagesComputer);
     }
 
@@ -66,7 +66,8 @@ public class ControleurMain {
             @RequestParam(name = NUMBER_RESULT, required = false) Integer nbResult,
             @RequestParam(name = SEARCH) final String search) {
         nbResult = createNbResultWithAllowedValue(model, nbResult);
-        final Pages<Computer> pagesComputer = serviceComputer.findByPagesComputer(search, page, nbResult);
+        final Page<Computer> pagesComputer = serviceComputer.findByPagesSearch(search, page, nbResult);
+        model.addAttribute(NB_COMPUTERS.toString(), serviceComputer.getCountSearched(search));
         return getComputerDTOAndPrintAccueil(model, pagesComputer);
     }
 
@@ -79,13 +80,12 @@ public class ControleurMain {
      *            Pages<Computer>
      * @return JSP
      */
-    private String getComputerDTOAndPrintAccueil(final Model model, final Pages<Computer> pagesComputer) {
-        final List<ComputerDTO> computerDTOs = pagesComputer.getEntities().stream()
+    private String getComputerDTOAndPrintAccueil(final Model model, final Page<Computer> pagesComputer) {
+        final List<ComputerDTO> computerDTOs = pagesComputer.getContent().stream()
                 .map(c -> MapUtil.computerToComputerDTO(c)).collect(Collectors.toList());
         model.addAttribute(COMPUTERS.toString(), computerDTOs);
-        model.addAttribute(NB_COMPUTERS.toString(), pagesComputer.getMaxComputers());
-        model.addAttribute(LIMIT.toString(), pagesComputer.getPageMax());
-        model.addAttribute(PAGE_COURANTE.toString(), pagesComputer.getPageCourante());
+        model.addAttribute(LIMIT.toString(), pagesComputer.getTotalPages());
+        model.addAttribute(PAGE_COURANTE.toString(), pagesComputer.getNumber() + 1);
         return DASHBOARD_JSP.toString();
     }
 
@@ -105,8 +105,9 @@ public class ControleurMain {
             requestAttributes.addFlashAttribute(TYPE_MESSAGE.toString(), INFO);
         } else {
             try {
-                if (serviceComputer.deleteComputer(MapUtil.setIdToStringListDatabase(toDelete))) {
-                    requestAttributes.addFlashAttribute(MESSAGE_USER.toString(), DELETE_SUCCESSFULL_COMPUTER.toString());
+                if (serviceComputer.deleteMulitple(toDelete)) {
+                    requestAttributes.addFlashAttribute(MESSAGE_USER.toString(),
+                            DELETE_SUCCESSFULL_COMPUTER.toString());
                     requestAttributes.addFlashAttribute(TYPE_MESSAGE.toString(), SUCCESS);
                 } else {
                     requestAttributes.addFlashAttribute(MESSAGE_USER.toString(),
