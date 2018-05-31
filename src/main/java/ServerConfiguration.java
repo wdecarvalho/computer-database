@@ -26,7 +26,6 @@ import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -38,9 +37,8 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 @Configuration
 @EnableWebMvc
-@EnableTransactionManagement
 @EnableJpaRepositories(basePackages = { "com.excilys.dao" })
-@ComponentScan(basePackages = { "com.excilys.dao", "com.excilys.service", "com.excilys.controleurs" })
+@ComponentScan(basePackages = { "com.excilys.dao", "com.excilys.service", "com.excilys.controleurs", "com.excilys.exception" })
 public class ServerConfiguration implements WebMvcConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfiguration.class);
 

@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.excilys.dao.ComputerDAO;
 import com.excilys.exception.ComputerException;
@@ -23,8 +22,9 @@ import com.excilys.validation.ComputerValidation;
 import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
 
 @Service
-@Transactional
 public class ServiceComputer implements ServiceCdbComputer {
+    private static final String COMPANY = "company";
+
     private static final String ERROR_CODE_DATE_SQL = "22001";
 
     @Autowired
@@ -41,19 +41,16 @@ public class ServiceComputer implements ServiceCdbComputer {
      */
 
     @Override
-    @Transactional(readOnly = true)
     public Collection<Computer> getAll() {
         return computerDao.findAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Computer getComputerDaoDetails(final Long id) throws ComputerNotFoundException {
         return computerDao.findById(id).orElseThrow(() -> new ComputerNotFoundException("" + id));
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<Computer> findByPage(int... pageAndNumberResult) {
         final long nbComputer = getCountInDatabase();
         int pageRequested = ServiceUtil.getTheRequestPageOrTheBestAppropriate(nbComputer, pageAndNumberResult);
@@ -65,7 +62,6 @@ public class ServiceComputer implements ServiceCdbComputer {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Page<Computer> findByPagesSearch(final String search, int... pageAndNumberResult) {
         final long nbComputer = getCountSearched(search);
         final int pageRequested = ServiceUtil.getTheRequestPageOrTheBestAppropriate(nbComputer, pageAndNumberResult);
@@ -79,13 +75,11 @@ public class ServiceComputer implements ServiceCdbComputer {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Long getCountInDatabase() {
         return computerDao.count();
     }
 
     @Override
-    @Transactional(readOnly = true)
     public Long getCountSearched(final String search) {
         return computerDao.countByNameContainingOrCompanyNameContaining(search, search);
     }
@@ -93,7 +87,6 @@ public class ServiceComputer implements ServiceCdbComputer {
     /*
      * Create
      */
-
     @Override
     public Long save(Computer c, boolean validation)
             throws CompanyNotFoundException, DateTruncationException, ComputerException {
@@ -107,7 +100,7 @@ public class ServiceComputer implements ServiceCdbComputer {
             idCreatedLong = computerDao.save(c).getId();
         } catch (DataIntegrityViolationException e) {
             if (e.getMostSpecificCause() instanceof SQLIntegrityConstraintViolationException) {
-                if (e.getMostSpecificCause().getMessage().contains("company")) {
+                if (e.getMostSpecificCause().getMessage().contains(COMPANY)) {
                     throw new CompanyNotFoundException(c.getCompany().getId().toString());
                 }
             }
@@ -138,7 +131,7 @@ public class ServiceComputer implements ServiceCdbComputer {
             computer = computerDao.save(c);
         } catch (DataIntegrityViolationException e) {
             if (e.getMostSpecificCause() instanceof SQLIntegrityConstraintViolationException) {
-                if (e.getMostSpecificCause().getMessage().contains("company")) {
+                if (e.getMostSpecificCause().getMessage().contains(COMPANY)) {
                     throw new CompanyNotFoundException(c.getCompany().getId().toString());
                 }
             }

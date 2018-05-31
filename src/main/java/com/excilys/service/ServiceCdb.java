@@ -44,6 +44,7 @@ public interface ServiceCdb<T> {
      * @throws ComputerNotDeletedException
      *             ComputerNotDeletedException
      */
+    @Transactional(rollbackFor = ComputerNotDeletedException.class)
     void deleteOne(Long id) throws ComputerNotDeletedException;
 
 }

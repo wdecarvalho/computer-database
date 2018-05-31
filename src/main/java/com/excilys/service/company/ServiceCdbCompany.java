@@ -15,6 +15,7 @@ public interface ServiceCdbCompany extends ServiceCdb<Company> {
      * @param id ID de la companie a tester
      * @return True si il existe
      */
+    @Transactional(readOnly = true)
     boolean isExists(Long id);
 
 }
