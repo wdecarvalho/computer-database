@@ -16,4 +16,6 @@
 </logger>
 <logger name="org.openqa.selenium" level="info">
 <appender-ref ref="STDOUT" /></logger>
+<logger name="org.hibernate" level="info">
+<appender-ref ref="STDOUT" /></logger>
 </configuration>

@@ -150,7 +150,7 @@ public class ServiceComputer implements ServiceCdbComputer {
      */
 
     @Override
-    public void deleteOne(final Long id) {
+    public void deleteOne(final Long id) throws ComputerNotDeletedException {
         computerDao.deleteById(id);
     }
 
