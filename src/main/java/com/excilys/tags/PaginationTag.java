@@ -77,7 +77,7 @@ public class PaginationTag extends SimpleTagSupport {
         final StringBuilder sBuilder = new StringBuilder(DASHBOARD_PAGE);
         sBuilder.append(page);
         if (toSearch != null && !toSearch.isEmpty()) {
-            sBuilder.append("&action=search&search=").append(toSearch);
+            sBuilder.append("&search=").append(toSearch);
         }
         sBuilder.append("'");
         return sBuilder.toString();

@@ -7,6 +7,10 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
+import com.excilys.ui.ControleurCdb;
+
+import net.sourceforge.htmlunit.corejs.javascript.tools.debugger.Main;
+
 @Component
 public class ExceptionHelper implements ApplicationContextAware {
 
@@ -21,11 +25,20 @@ public class ExceptionHelper implements ApplicationContextAware {
      * Default constructor.
      */
     public ExceptionHelper() {
-
+        if (context == null) {
+            setUpContext();
+        }
     }
 
     public static ApplicationContext getContext() {
         return context;
+    }
+
+    /**
+     * Permet de mettre le context dans le cas du CLI.
+     */
+    private static void setUpContext() {
+        context = ControleurCdb.getApplicationContext();
     }
 
     /**
@@ -38,6 +51,7 @@ public class ExceptionHelper implements ApplicationContextAware {
      */
     public String getMessageByCode(final String code, Object... params) {
         return context.getBean(MessageSource.class).getMessage(code, params, LocaleContextHolder.getLocale());
+
     }
 
 }
