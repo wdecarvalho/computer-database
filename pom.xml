@@ -6,90 +6,30 @@
 	<artifactId>william.cdb</artifactId>
 	<version>4.5.1-SNAPSHOT</version>
 	<name>ComputerDatabase</name>
+	<packaging>pom</packaging>
 
 	<properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+		<!-- <maven.compiler.source>1.8</maven.compiler.source> <maven.compiler.target>1.8</maven.compiler.target> -->
 		<slf4J.version>1.7.25</slf4J.version>
 		<logback.version>1.0.9</logback.version>
-		<junit.platform.version>1.2.0-M1</junit.platform.version>
-		<junit.version>5.2.0-M1</junit.version>
-		<mockito.version>2.18.3</mockito.version>
-		<h2.version>1.4.196</h2.version>
-		<mysql.version>8.0.11</mysql.version>
-		<servlet.version>4.0.0</servlet.version>
-		<jstl.version>1.2</jstl.version>
-		<selenium.version>3.4.0</selenium.version>
-		<testng.version>6.8</testng.version>
-		<hikari.version>3.0.0</hikari.version>
-		<spring.version>5.0.6.RELEASE</spring.version>
-		<hibernate.validator.version>6.0.10.Final</hibernate.validator.version>
-		<hibernate.version>5.3.1</hibernate.version>
-		<javax.version>2.0.1.Final</javax.version>
-		<javax.glassfish>3.0.0</javax.glassfish>
-		<spring.data.version>2.0.7.RELEASE</spring.data.version>
-		<query.dsl.version>4.2.1</query.dsl.version>
-		<hibernate.core.version>5.3.1.Final</hibernate.core.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<!-- <junit.platform.version>1.2.0-M1</junit.platform.version> <junit.version>5.2.0-M1</junit.version> 
+			<mockito.version>2.18.3</mockito.version> <h2.version>1.4.196</h2.version> 
+			<mysql.version>8.0.11</mysql.version> <servlet.version>4.0.0</servlet.version> 
+			<jstl.version>1.2</jstl.version> <selenium.version>3.4.0</selenium.version> 
+			<testng.version>6.8</testng.version> <hikari.version>3.0.0</hikari.version> 
+			<spring.version>5.0.6.RELEASE</spring.version> <hibernate.validator.version>6.0.10.Final</hibernate.validator.version> 
+			<hibernate.version>5.3.1</hibernate.version> <javax.version>2.0.1.Final</javax.version> 
+			<javax.glassfish>3.0.0</javax.glassfish> <spring.data.version>2.0.7.RELEASE</spring.data.version> 
+			<query.dsl.version>4.2.1</query.dsl.version> <hibernate.core.version>5.3.1.Final</hibernate.core.version> -->
 	</properties>
 
 	<dependencies>
 
-		<!-- SPRING -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>commons.logging</groupId>
-					<artifactId>commons.logging</artifactId>
-				</exclusion>
-			</exclusions>
-			<version>${spring.version}</version>
-		</dependency>
 
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-jpa</artifactId>
-			<version>${spring.data.version}</version>
-		</dependency>
 
-		<dependency>
-			<groupId>com.querydsl</groupId>
-			<artifactId>querydsl-jpa</artifactId>
-			<version>${query.dsl.version}</version>
-			<scope>runtime</scope>
-		</dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- VALIDATOR -->
-		<!-- JSR REF -->
-		<dependency>
-			<groupId>org.hibernate.validator</groupId>
-			<artifactId>hibernate-validator</artifactId>
-			<version>${hibernate.validator.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>javax.validation</groupId>
-			<artifactId>validation-api</artifactId>
-			<version>${javax.version}</version>
-		</dependency>
-
-		<!-- JSR REF -->
-		<dependency>
-			<groupId>org.glassfish</groupId>
-			<artifactId>javax.el</artifactId>
-			<version>${javax.glassfish}</version>
-			<scope>test</scope>
-		</dependency>
-
-		<!-- LOG -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -101,89 +41,21 @@
 			<version>${logback.version}</version>
 		</dependency>
 
-		<!-- TEST -->
-		<dependency>
-			<groupId>org.junit.platform</groupId>
-			<artifactId>junit-platform-launcher</artifactId>
-			<version>${junit.platform.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-engine</artifactId>
-			<version>${junit.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-junit-jupiter</artifactId>
-			<version>${mockito.version}</version>
-		</dependency>
-
-		<!-- Database -->
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>${h2.version}</version>
-			<!-- <scope>test</scope> -->
-		</dependency>
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>${mysql.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.zaxxer</groupId>
-			<artifactId>HikariCP</artifactId>
-			<version>${hikari.version}</version>
-		</dependency>
-
-		<!-- ORM -->
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-core</artifactId>
-			<version>${hibernate.core.version}</version>
-		</dependency>
-
-		<!-- Servlet -->
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>${servlet.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>javax.servlet.jsp.jstl</groupId>
-			<artifactId>jstl-api</artifactId>
-			<version>${jstl.version}</version>
-		</dependency>
-
-		<!-- Selenium -->
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-java</artifactId>
-			<version>${selenium.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-server</artifactId>
-			<version>${selenium.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-firefox-driver</artifactId>
-			<version>${selenium.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<version>${testng.version}</version>
-			<scope>test</scope>
-		</dependency>
+		<!-- <dependency> <groupId>org.junit.platform</groupId> <artifactId>junit-platform-launcher</artifactId> 
+			<version>${junit.platform.version}</version> <scope>test</scope> </dependency> 
+			<dependency> <groupId>org.junit.jupiter</groupId> <artifactId>junit-jupiter-engine</artifactId> 
+			<version>${junit.version}</version> <scope>test</scope> </dependency> <dependency> 
+			<groupId>org.mockito</groupId> <artifactId>mockito-junit-jupiter</artifactId> 
+			<version>${mockito.version}</version> </dependency> <dependency> <groupId>com.h2database</groupId> 
+			<artifactId>h2</artifactId> <version>${h2.version}</version> <scope>test</scope> 
+			</dependency> <dependency> <groupId>org.seleniumhq.selenium</groupId> <artifactId>selenium-java</artifactId> 
+			<version>${selenium.version}</version> <scope>test</scope> </dependency> 
+			<dependency> <groupId>org.seleniumhq.selenium</groupId> <artifactId>selenium-server</artifactId> 
+			<version>${selenium.version}</version> <scope>test</scope> </dependency> 
+			<dependency> <groupId>org.seleniumhq.selenium</groupId> <artifactId>selenium-firefox-driver</artifactId> 
+			<version>${selenium.version}</version> <scope>test</scope> </dependency> 
+			<dependency> <groupId>org.testng</groupId> <artifactId>testng</artifactId> 
+			<version>${testng.version}</version> <scope>test</scope> </dependency> -->
 	</dependencies>
 
 	<build>
@@ -191,90 +63,41 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
-				<version>3.1.1</version>
+				<version>3.7.0</version>
 			</plugin>
 
 			<!-- JUnit -->
-			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.21.0</version>
-				<executions>
-					<execution>
-						<id>test</id>
-						<phase>test</phase>
-						<configuration>
-							<includes>
-								<include>**/*Test.java</include>
-							</includes>
-							<excludedGroups>
-								com.excilys.selenium
-							</excludedGroups>
-						</configuration>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.junit.platform</groupId>
-						<artifactId>junit-platform-surefire-provider</artifactId>
-						<version>1.2.0</version>
-					</dependency>
-				</dependencies>
-			</plugin>
+			<!-- <plugin> <artifactId>maven-surefire-plugin</artifactId> <version>2.21.0</version> 
+				<executions> <execution> <id>test</id> <phase>test</phase> <configuration> 
+				<includes> <include>**/*Test.java</include> </includes> <excludedGroups> 
+				com.excilys.selenium </excludedGroups> </configuration> </execution> </executions> 
+				<dependencies> <dependency> <groupId>org.junit.platform</groupId> <artifactId>junit-platform-surefire-provider</artifactId> 
+				<version>1.2.0</version> </dependency> </dependencies> </plugin> -->
 
 			<!-- Selenium -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>2.21.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>integration-test</goal>
-							<goal>verify</goal>
-						</goals>
-						<configuration>
-							<includes>
-								<include>**/selenium/*.java</include>
-							</includes>
-						</configuration>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.maven.surefire</groupId>
-						<artifactId>surefire-testng</artifactId>
-						<version>2.21.0</version>
-					</dependency>
-				</dependencies>
-			</plugin>
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-failsafe-plugin</artifactId> 
+				<version>2.21.0</version> <executions> <execution> <goals> <goal>integration-test</goal> 
+				<goal>verify</goal> </goals> <configuration> <includes> <include>**/selenium/*.java</include> 
+				</includes> </configuration> </execution> </executions> <dependencies> <dependency> 
+				<groupId>org.apache.maven.surefire</groupId> <artifactId>surefire-testng</artifactId> 
+				<version>2.21.0</version> </dependency> </dependencies> </plugin> -->
 
 			<!-- Selenium plugin -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>selenium-maven-plugin</artifactId>
-				<version>1.0.1</version>
-				<configuration>
-					<background>true</background>
-					<startURL>http://localhost:${tomcat.servlet.port}/${project.artifactId}/dashboard</startURL>
-				</configuration>
-				<executions>
-					<execution>
-						<id>start-selenium-server</id>
-						<phase>pre-integration-test</phase>
-						<goals>
-							<goal>start-server</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>stop-selenium-server</id>
-						<phase>post-integration-test</phase>
-						<goals>
-							<goal>stop-server</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>selenium-maven-plugin</artifactId> 
+				<version>1.0.1</version> <configuration> <background>true</background> <startURL>http://localhost:${tomcat.servlet.port}/${project.artifactId}/dashboard</startURL> 
+				</configuration> <executions> <execution> <id>start-selenium-server</id> 
+				<phase>pre-integration-test</phase> <goals> <goal>start-server</goal> </goals> 
+				</execution> <execution> <id>stop-selenium-server</id> <phase>post-integration-test</phase> 
+				<goals> <goal>stop-server</goal> </goals> </execution> </executions> </plugin> -->
 
 		</plugins>
 	</build>
+	<modules>
+		<module>core</module>
+		<module>binding</module>
+		<module>persistence</module>
+		<module>service</module>
+		<module>webapp</module>
+		<module>console</module>
+	</modules>
 </project>
