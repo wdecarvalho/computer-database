@@ -18,6 +18,7 @@ import com.excilys.exception.computer.ComputerNotFoundException;
 import com.excilys.exception.date.DateTruncationException;
 import com.excilys.model.Computer;
 import com.excilys.service.ServiceUtil;
+import com.excilys.service.company.ServiceCdbCompany;
 import com.excilys.validation.ComputerValidation;
 import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
 
@@ -29,6 +30,9 @@ public class ServiceComputer implements ServiceCdbComputer {
 
     @Autowired
     private ComputerDAO computerDao;
+
+    @Autowired
+    private ServiceCdbCompany serviceCompany;
 
     /**
      * Constructeur de ServiceComputer [Spring].
@@ -167,11 +171,14 @@ public class ServiceComputer implements ServiceCdbComputer {
     }
 
     @Override
-    public void deleteByCompany(final Long companyId) throws ComputerNotDeletedException {
-        final Long nbComputerDelete = computerDao.deleteByCompanyId(companyId);
-        if (nbComputerDelete == 0) {
-            throw new ComputerNotDeletedException("");
+    public void deleteByCompany(final Long companyId) throws ComputerNotDeletedException, CompanyNotFoundException {
+        final String name = serviceCompany.getCompanyNameById(companyId);
+        final Long nbComputer = computerDao.countByCompanyName(name);
+        if (nbComputer != 0) {
+            final Long nbComputerDelete = computerDao.deleteByCompanyId(companyId);
+            if (nbComputerDelete == 0) {
+                throw new ComputerNotDeletedException("");
+            }
         }
     }
-
 }

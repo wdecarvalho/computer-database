@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.excilys.exception.company.CompanyNotFoundException;
 import com.excilys.exception.computer.ComputerNotDeletedException;
 
 @Service
@@ -43,8 +44,10 @@ public interface ServiceCdb<T> {
      *            de l'objet a supprimer
      * @throws ComputerNotDeletedException
      *             ComputerNotDeletedException
+     * @throws CompanyNotFoundException
+     *             Si la companie n'existe pas
      */
-    @Transactional(rollbackFor = ComputerNotDeletedException.class)
-    void deleteOne(Long id) throws ComputerNotDeletedException;
+    @Transactional(rollbackFor = { ComputerNotDeletedException.class, CompanyNotFoundException.class })
+    void deleteOne(Long id) throws ComputerNotDeletedException, CompanyNotFoundException;
 
 }

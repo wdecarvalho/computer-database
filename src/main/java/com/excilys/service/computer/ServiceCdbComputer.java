@@ -104,7 +104,9 @@ public interface ServiceCdbComputer extends ServiceCdb<Computer> {
      *            ID de la companie
      * @throws ComputerNotDeletedException
      *             Si aucun ordinateur n'a été supprimé
+     * @throws CompanyNotFoundException
+     *             Si la companie n'existe pas
      */
-    @Transactional(rollbackFor = ComputerNotDeletedException.class)
-    void deleteByCompany(Long companyId) throws ComputerNotDeletedException;
+    @Transactional(rollbackFor = { ComputerNotDeletedException.class, CompanyNotFoundException.class })
+    void deleteByCompany(Long companyId) throws ComputerNotDeletedException, CompanyNotFoundException;
 }

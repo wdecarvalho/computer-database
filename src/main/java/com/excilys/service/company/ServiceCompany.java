@@ -8,6 +8,7 @@ import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.stereotype.Service;
 
 import com.excilys.dao.CompanyDAO;
+import com.excilys.exception.company.CompanyNotFoundException;
 import com.excilys.exception.computer.ComputerNotDeletedException;
 import com.excilys.model.Company;
 import com.excilys.service.ServiceUtil;
@@ -55,12 +56,17 @@ public class ServiceCompany implements ServiceCdbCompany {
         return companyDAO.existsById(id);
     }
 
+    @Override
+    public String getCompanyNameById(final Long id) throws CompanyNotFoundException {
+        return companyDAO.findById(id).orElseThrow(() -> new CompanyNotFoundException(id.toString())).getName();
+    }
+
     /*
      * Delete
      */
 
     @Override
-    public void deleteOne(final Long id) throws ComputerNotDeletedException {
+    public void deleteOne(final Long id) throws ComputerNotDeletedException, CompanyNotFoundException {
         computerService.deleteByCompany(id);
         companyDAO.deleteById(id);
 

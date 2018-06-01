@@ -173,7 +173,7 @@ public class ControleurCdb {
             LOGGER.info(String.format(DELETE_SUCCESSFULL.toString(), LE_COMPUTER, l));
         } catch (NumberFormatException e) {
             LOGGER.info(String.format(ID_NUMBER_ONLY.toString(), COMPUTER));
-        } catch (ComputerException e) {
+        } catch (ComputerException | CompanyNotFoundException e) {
             LOGGER.info(e.getMessage());
         }
     }
@@ -189,7 +189,7 @@ public class ControleurCdb {
             LOGGER.info(String.format(DELETE_SUCCESSFULL.toString(), LA_COMPANIE, l));
         } catch (NumberFormatException e) {
             LOGGER.info(String.format(ID_NUMBER_ONLY.toString(), COMPANY));
-        } catch (ComputerNotDeletedException e) {
+        } catch (ComputerNotDeletedException | CompanyNotFoundException e) {
             LOGGER.info(DELETE_ERROR_COMPANY.toString());
         }
     }

@@ -45,7 +45,8 @@ public interface ComputerDAO extends PagingAndSortingRepository<Computer, Long> 
 
     /**
      * Supprime tous les computers qui ont cette companie.
-     * @param companyID companie ID
+     * @param companyID
+     *            companie ID
      * @return Nombre de company supprimé
      */
     Long deleteByCompanyId(Long companyID);
@@ -55,4 +56,12 @@ public interface ComputerDAO extends PagingAndSortingRepository<Computer, Long> 
      * @return Collection<Computer>
      */
     Collection<Computer> findAll();
+
+    /**
+     * Recupere le nombre de computer qui ont cette companie.
+     * @param name
+     *            Nom de la companie
+     * @return Nombre de computer qui possede cette companie
+     */
+    Long countByCompanyName(String name);
 }

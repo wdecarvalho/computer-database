@@ -24,7 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class PaginationTagTest {
 
     private static final String PAGE1 = "<a href='dashboard?page=1'";
-    private static final String PAGE1SEARCH = "<a href='dashboard?page=1&action=search&search=e'";
+    private static final String PAGE1SEARCH = "<a href='dashboard?page=1&search=e'";
     private static final String PAGE2 = "<a href='dashboard?page=2'";
 
     @Mock
