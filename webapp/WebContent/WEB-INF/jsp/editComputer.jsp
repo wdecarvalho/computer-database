@@ -71,7 +71,7 @@
 						</fieldset>
 						<div class="actions pull-right">
 							<input type="submit" name="action" value="edit" class="btn btn-primary">
-							or <a href="dashboard" class="btn btn-default">Cancel</a>
+							or <a href="${pageContext.request.contextPath}/dashboard" class="btn btn-default">Cancel</a>
 						</div>
 					</form>
 				</div>

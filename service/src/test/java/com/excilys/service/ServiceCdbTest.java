@@ -38,7 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.excilys.config.ServiceTestConfig;
+import com.excilys.config.ServiceConfig;
 import com.excilys.dao.CompanyDAO;
 import com.excilys.dao.ComputerDAO;
 import com.excilys.exception.ComputerException;
@@ -60,7 +60,7 @@ import com.mysql.cj.jdbc.exceptions.MysqlDataTruncation;
 
 @TestInstance(Lifecycle.PER_CLASS)
 @ExtendWith(MockitoExtension.class)
-@SpringJUnitConfig(classes = ServiceTestConfig.class)
+@SpringJUnitConfig(classes = ServiceConfig.class)
 @MockitoSettings(strictness = Strictness.STRICT_STUBS)
 public class ServiceCdbTest  {
     

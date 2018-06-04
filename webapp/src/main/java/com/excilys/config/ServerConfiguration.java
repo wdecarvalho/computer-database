@@ -38,9 +38,8 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 @Configuration
 @EnableWebMvc
-@EnableJpaRepositories(basePackages = { "com.excilys.dao" })
-@ComponentScan(basePackages = { "com.excilys.dao", "com.excilys.service", "com.excilys.controleurs", "com.excilys.exception" })
-public class ServerConfiguration implements WebMvcConfigurer {
+@ComponentScan(basePackages = {"com.excilys.controleurs" })
+public class ServerConfiguration extends ServiceConfig  implements WebMvcConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfiguration.class);
 
     /**
@@ -82,32 +81,8 @@ public class ServerConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(localeChangeInterceptor());
     }
 
-    /**
-     * Creer un message source pour indiquer on sont situer les messages.
-     * @return MessageSource
-     */
-    @Bean
-    public MessageSource messageSource() {
-        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        messageSource.setBasename("classpath:messages");
-        messageSource.setDefaultEncoding("UTF-8");
-        messageSource.setUseCodeAsDefaultMessage(true);
-        return messageSource;
-    }
-
     @Override
     public void addResourceHandlers(final ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/**").addResourceLocations("/");
-    }
-
-    /**
-     * Creer un JpaTransactionManager.
-     * @return PlatformTransactionManager
-     */
-    @Bean(name = "transactionManager")
-    public PlatformTransactionManager txManager() {
-        JpaTransactionManager jpaTransactionManager = new JpaTransactionManager(
-                getEntityManagerFactoryBean().getObject());
-        return jpaTransactionManager;
     }
 }

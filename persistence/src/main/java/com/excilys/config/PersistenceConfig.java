@@ -24,9 +24,7 @@ import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 
-@Configuration
 @EnableJpaRepositories(basePackages = { "com.excilys.dao" })
-@ComponentScan(basePackages = { "com.excilys.dao" })
 public class PersistenceConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceConfig.class);
