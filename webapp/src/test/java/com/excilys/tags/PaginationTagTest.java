@@ -1,6 +1,6 @@
 package com.excilys.tags;
 
-import static org.testng.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
@@ -59,7 +59,7 @@ public class PaginationTagTest {
         paginationTag.setToSearch("");
         Mockito.when(jspContext.getOut()).thenReturn(writer);
         paginationTag.doTag();
-        // Mockito.verify(jspContext).getOut();
+
         assertEquals(paginationTag.constructUrl(1), PAGE1);
         assertEquals(paginationTag.constructUrl(2), PAGE2);
 
