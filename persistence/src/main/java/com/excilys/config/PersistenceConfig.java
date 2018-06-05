@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -27,30 +28,46 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 @EnableJpaRepositories(basePackages = { "com.excilys.dao" })
 public class PersistenceConfig {
 
+    private static final String HIBERNATE_SHOW_SQL = "hibernate.show_sql";
+    private static final String ORG_HIBERNATE_DIALECT_H2_DIALECT = "org.hibernate.dialect.H2Dialect";
+    private static final String ORG_HIBERNATE_DIALECT_MY_SQL5_DIALECT = "org.hibernate.dialect.MySQL5Dialect";
+    private static final String HIBERNATE_DIALECT = "hibernate.dialect";
+    private static final String HIBERNATE_HBM2DDL_AUTO = "hibernate.hbm2ddl.auto";
+    private static final String COM_EXCILYS_MODEL = "com.excilys.model";
+    private static final String JPA_PERSISTENCE_UNIT = "JpaPersistenceUnit";
+    private static final String TEST_DB_SQL = "test_db.sql";
+    private static final String DATA_SOURCE_PASSWORD = "dataSource.password";
+    private static final String DATA_SOURCE_USER = "dataSource.user";
+    private static final String JDBC_URL = "jdbcUrl";
+    private static final String DATA_SOURCE_DRIVER_CLASS_NAME = "dataSource.driverClassName";
+    private static final String APP_PROPERTIES = "app.properties";
+    private static final String H2_DRIVER = "org.h2.Driver";
     private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceConfig.class);
 
+    private static boolean test = false;
     /**
      * Initialise la DataSource et configure HikariCP.
      * @return DataSource
      * @throws IOException
      *             IOException
      */
-    @Bean
+    @Bean(name = "DataSource")
     public DataSource dataSource() {
         final Properties aProperties = new Properties();
-        final InputStream path = ClassLoader.getSystemClassLoader().getResourceAsStream("app.properties");
+        final InputStream path = ClassLoader.getSystemClassLoader().getResourceAsStream(APP_PROPERTIES);
         String driver = null;
         try {
             aProperties.load(path);
-            driver = aProperties.getProperty("dataSource.driverClassName");
+            driver = aProperties.getProperty(DATA_SOURCE_DRIVER_CLASS_NAME);
         } catch (FileNotFoundException e) {
             LOGGER.error(e.getMessage());
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
         }
-        LOGGER.info("Base de données utilisée : " + aProperties.getProperty("jdbcUrl"));
+        LOGGER.info("Base de données utilisée : " + aProperties.getProperty(JDBC_URL));
         final DataSource dSource = configureDataSource(aProperties);
-        if ("org.h2.Driver".equals(driver)) { // Selenium
+        if (H2_DRIVER.equals(driver)) {
+            test = true;
             runScriptForDatabaseConnection(dSource);
         }
         return dSource;
@@ -64,10 +81,10 @@ public class PersistenceConfig {
      */
     private DataSource configureDataSource(final Properties aProperties) {
         DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(aProperties.getProperty("dataSource.driverClassName"));
-        dataSource.setUrl(aProperties.getProperty("jdbcUrl"));
-        dataSource.setUsername(aProperties.getProperty("dataSource.user"));
-        dataSource.setPassword(aProperties.getProperty("dataSource.password"));
+        dataSource.setDriverClassName(aProperties.getProperty(DATA_SOURCE_DRIVER_CLASS_NAME));
+        dataSource.setUrl(aProperties.getProperty(JDBC_URL));
+        dataSource.setUsername(aProperties.getProperty(DATA_SOURCE_USER));
+        dataSource.setPassword(aProperties.getProperty(DATA_SOURCE_PASSWORD));
         return dataSource;
     }
 
@@ -79,7 +96,7 @@ public class PersistenceConfig {
     private void runScriptForDatabaseConnection(DataSource ds) {
         try (Connection connection = ds.getConnection()) {
             RunScript.execute(connection,
-                    new FileReader(new File(ClassLoader.getSystemClassLoader().getResource("test_db.sql").toURI())));
+                    new FileReader(new File(ClassLoader.getSystemClassLoader().getResource(TEST_DB_SQL).toURI())));
         } catch (FileNotFoundException | SQLException | URISyntaxException e) {
             LOGGER.error(e.getMessage());
         }
@@ -90,12 +107,13 @@ public class PersistenceConfig {
      * @return EntityManagerFactory
      */
     @Bean(name = "entityManagerFactory")
+    @DependsOn("DataSource")
     public LocalContainerEntityManagerFactoryBean getEntityManagerFactoryBean() {
         LocalContainerEntityManagerFactoryBean lcemfb = new LocalContainerEntityManagerFactoryBean();
         lcemfb.setJpaVendorAdapter(getJpaVendorAdapter());
         lcemfb.setDataSource(dataSource());
-        lcemfb.setPersistenceUnitName("JpaPersistenceUnit");
-        lcemfb.setPackagesToScan("com.excilys.model");
+        lcemfb.setPersistenceUnitName(JPA_PERSISTENCE_UNIT);
+        lcemfb.setPackagesToScan(COM_EXCILYS_MODEL);
         lcemfb.setJpaProperties(hibernateProperties());
         return lcemfb;
     }
@@ -116,9 +134,13 @@ public class PersistenceConfig {
      */
     private Properties hibernateProperties() {
         final Properties hibernateProperties = new Properties();
-        hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");
-        hibernateProperties.put("hibernate.dialect", "org.hibernate.dialect.MySQL5Dialect");
-        hibernateProperties.put("hibernate.show_sql", true);
+        hibernateProperties.setProperty(HIBERNATE_HBM2DDL_AUTO, "update");
+        String dialect = ORG_HIBERNATE_DIALECT_MY_SQL5_DIALECT;
+        if(test) {
+            dialect = ORG_HIBERNATE_DIALECT_H2_DIALECT;
+        }
+        hibernateProperties.put(HIBERNATE_DIALECT, dialect);
+        hibernateProperties.put(HIBERNATE_SHOW_SQL, true);
         return hibernateProperties;
     }
 

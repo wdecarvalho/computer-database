@@ -16,7 +16,7 @@
 		<mockito.version>2.18.3</mockito.version>
 		<query.dsl.version>4.2.1</query.dsl.version>
 		<javax.glassfish>3.0.0</javax.glassfish>
-	
+
 	</properties>
 
 	<dependencies>

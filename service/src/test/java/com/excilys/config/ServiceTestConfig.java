@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableTransactionManagement
 @ComponentScan(basePackages = { "com.excilys.service"})
-public class ServiceTestConfig extends PersistenceTestConfig{
+public class ServiceTestConfig extends PersistenceConfig {
 
     /**
      * Creer un JpaTransactionManager.
