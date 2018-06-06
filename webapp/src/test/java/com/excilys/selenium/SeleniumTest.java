@@ -35,7 +35,14 @@ public class SeleniumTest {
     public void beforeClass() throws FileNotFoundException, URISyntaxException {
         System.setProperty("webdriver.gecko.driver", "/home/decarvalho/Documents/geckodriver/geckodriver");
         driver = new FirefoxDriver();
-
+        
+        driver.get("http://localhost:8081/webapp/dashboard");
+        driver.findElement(By.id("inputEmail")).sendKeys("toto");
+        driver.findElement(By.id("inputPassword")).sendKeys("titi");
+        driver.findElement(By.className("btn")).click();
+        driver.findElement(By.className("btn")).click();
+        driver.findElement(By.className("btn")).submit();
+        driver.findElement(By.className("btn")).submit();
     }
 
     /**

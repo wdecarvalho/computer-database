@@ -1,5 +1,8 @@
 drop table if exists computer;
 drop table if exists company;
+drop table if exists User_Role;
+drop table if exists Role;
+drop table if exists User;
 
   create table company (
     id                        bigint not null auto_increment,
@@ -15,6 +18,31 @@ drop table if exists company;
     company_id                bigint default NULL,
     constraint pk_computer primary key (id))
   ;
+  
+   create table User (
+    id                        bigint not null auto_increment,
+    username                  varchar(255),
+    password                  varchar(255),
+    constraint pk_user primary key (id))
+  ;
+  
+    create table Role (
+    id                        bigint not null auto_increment,
+    name                      varchar(255),
+    constraint pk_role primary key (id))
+  ;
+  
+   create table User_Role (
+    User_id                        bigint not null,
+    roles_id                       bigint not null
+    )
+  ;
+
+insert into User_Role values (1,1);
+insert into User_Role values (1,2);
+insert into Role values (1,'ADMIN');
+insert into Role values (2,'USER');
+insert into User values (1,'toto','$2a$14$XMo/96c4WMMGDB3Ua9UUTOxdpL1UAXMHxJ4OiZjoeabLblvA7x.qK');
 
 alter table computer add constraint fk_computer_company_1 foreign key (company_id) references company (id) on delete restrict on update restrict;
 create index ix_computer_company_1 on computer (company_id);
