@@ -157,6 +157,8 @@ public class SeleniumTest {
         driver.findElement(By.id("computerName")).sendKeys("CM-modif");
         driver.findElement(By.name("action")).click();
         driver.findElement(By.name("action")).click();
+        WebDriverWait webDriverWait = new WebDriverWait(driver, 3000);
+        webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.className("alert-success")));
         assertTrue(driver.findElement(By.linkText("CM-modif")).isDisplayed());
     }
 
