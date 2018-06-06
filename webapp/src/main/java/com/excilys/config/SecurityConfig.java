@@ -1,7 +1,5 @@
 package com.excilys.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +16,6 @@ import com.excilys.service.user.UserDetailsServiceImpl;
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Autowired
     UserDetailsServiceImpl userDetailsServiceImpl;

@@ -30,7 +30,7 @@ public class MapUtilTest {
         assertSame(computerDTO.getId(), 1L);
         assertEquals(computerDTO.getCompanyName(), "COMP_MAPPE");
         assertEquals(new ComputerDTO(null), MapUtil.computerToComputerDTO(null));
-        MapUtil mapUtil = new MapUtil() {
+        new MapUtil() {
         };
     }
 
@@ -49,7 +49,7 @@ public class MapUtilTest {
         Computer computerResult = MapUtil.computerDTOToComputer(computerDTO);
         assertSame(computerResult.getId(), 1L);
         assertEquals(computerResult.getCompany().getName(), "COMP_MAPPE");
-        MapUtil mapUtil = new MapUtil() {
+        new MapUtil() {
         };
         computer.setCompany(null);
         computerDTO = new ComputerDTO(computer);

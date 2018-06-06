@@ -27,16 +27,12 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.junit.jupiter.web.SpringJUnitWebConfig;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.excilys.config.ServiceConfig;
 import com.excilys.dao.CompanyDAO;
@@ -66,8 +62,6 @@ public class ServiceCdbTest  {
     
     @Autowired
     public ApplicationContext applicationContext;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceCdbTest.class);
 
     @Mock
     CompanyDAO companyDao;

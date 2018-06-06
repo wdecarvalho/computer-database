@@ -1,15 +1,6 @@
 package com.excilys.mapper;
 
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.excilys.dto.ComputerDTO;
-import com.excilys.exception.date.LocalDateExpectedException;
 import com.excilys.model.Company;
 import com.excilys.model.Computer;
 

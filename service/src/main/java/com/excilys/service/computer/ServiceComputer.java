@@ -28,15 +28,14 @@ public class ServiceComputer implements ServiceCdbComputer {
 
     private static final String ERROR_CODE_DATE_SQL = "22001";
 
-    @Autowired
     private ComputerDAO computerDao;
 
-    @Autowired
     private ServiceCdbCompany serviceCompany;
 
     /**
      * Constructeur de ServiceComputer [Spring].
      */
+    
     private ServiceComputer() {
     }
 
@@ -181,4 +180,22 @@ public class ServiceComputer implements ServiceCdbComputer {
             }
         }
     }
+
+    /**
+     * @param computerDao the computerDao to set
+     */
+    @Autowired
+    public void setComputerDao(ComputerDAO computerDao) {
+        this.computerDao = computerDao;
+    }
+
+    /**
+     * @param serviceCompany the serviceCompany to set
+     */
+    @Autowired
+    public void setServiceCompany(ServiceCdbCompany serviceCompany) {
+        this.serviceCompany = serviceCompany;
+    }
+    
+    
 }

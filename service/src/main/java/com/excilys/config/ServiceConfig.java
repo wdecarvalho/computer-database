@@ -5,14 +5,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
 @EnableTransactionManagement
-@ComponentScan(basePackages = { "com.excilys.service","com.excilys.exception"})
+@ComponentScan(basePackages = { "com.excilys.service", "com.excilys.exception" })
 public class ServiceConfig extends PersistenceConfig {
 
     /**
@@ -21,11 +20,9 @@ public class ServiceConfig extends PersistenceConfig {
      */
     @Bean(name = "transactionManager")
     public PlatformTransactionManager txManager() {
-        JpaTransactionManager jpaTransactionManager = new JpaTransactionManager(
-                getEntityManagerFactoryBean().getObject());
-        return jpaTransactionManager;
+        return new JpaTransactionManager(getEntityManagerFactoryBean().getObject());
     }
-    
+
     /**
      * Creer un message source pour indiquer on sont situer les messages.
      * @return MessageSource
@@ -38,5 +35,5 @@ public class ServiceConfig extends PersistenceConfig {
         messageSource.setUseCodeAsDefaultMessage(true);
         return messageSource;
     }
-    
+
 }

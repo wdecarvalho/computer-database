@@ -122,8 +122,7 @@ public class PersistenceConfig {
      */
     @Bean
     public JpaVendorAdapter getJpaVendorAdapter() {
-        JpaVendorAdapter adapter = new HibernateJpaVendorAdapter();
-        return adapter;
+        return new HibernateJpaVendorAdapter();
     }
 
     /**

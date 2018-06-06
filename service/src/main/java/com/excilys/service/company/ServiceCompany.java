@@ -17,10 +17,8 @@ import com.excilys.service.computer.ServiceCdbComputer;
 @Service
 public class ServiceCompany implements ServiceCdbCompany {
 
-    @Autowired
     private ServiceCdbComputer computerService;
 
-    @Autowired
     private CompanyDAO companyDAO;
 
     /**
@@ -28,7 +26,6 @@ public class ServiceCompany implements ServiceCdbCompany {
      */
 
     private ServiceCompany() {
-
     }
 
     /*
@@ -69,7 +66,24 @@ public class ServiceCompany implements ServiceCdbCompany {
     public void deleteOne(final Long id) throws ComputerNotDeletedException, CompanyNotFoundException {
         computerService.deleteByCompany(id);
         companyDAO.deleteById(id);
-
     }
+
+    /**
+     * @param computerService the computerService to set
+     */
+    @Autowired
+    public void setComputerService(ServiceCdbComputer computerService) {
+        this.computerService = computerService;
+    }
+
+    /**
+     * @param companyDAO the companyDAO to set
+     */
+    @Autowired
+    public void setCompanyDAO(CompanyDAO companyDAO) {
+        this.companyDAO = companyDAO;
+    }
+    
+    
 
 }

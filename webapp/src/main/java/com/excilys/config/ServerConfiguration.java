@@ -2,16 +2,11 @@ package com.excilys.config;
 
 import java.util.Locale;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.FilterChainProxy;
-import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -21,15 +16,12 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-import com.excilys.service.user.UserDetailsServiceImpl;
-
 @Configuration
 @EnableWebSecurity
 @Import(SecurityConfig.class)
 @EnableWebMvc
 @ComponentScan(basePackages = { "com.excilys.controleurs", "com.excilys.config" })
 public class ServerConfiguration extends ServiceConfig implements WebMvcConfigurer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfiguration.class);
 
     /**
      * Creer un InternalResourceViewResolver pour trouver les fichiers jsp.
@@ -73,10 +65,5 @@ public class ServerConfiguration extends ServiceConfig implements WebMvcConfigur
     @Override
     public void addResourceHandlers(final ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/**").addResourceLocations("/");
-    }
-
-    @Bean
-    public UserDetailsServiceImpl userDetailsService() {
-        return new UserDetailsServiceImpl();
     }
 }
