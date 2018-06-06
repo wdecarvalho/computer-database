@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.security.PermitAll;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -26,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
@@ -61,6 +64,7 @@ public class ControleurMain {
     @Autowired
     private ServiceCdbComputer serviceComputer;
     
+    @PreAuthorize("hasAuthority('USER')")
     @RequestMapping(path = "/dashboard", method = { RequestMethod.GET })
     public String accueil(final Model model,
             @RequestParam(name = PAGE, required = false, defaultValue = "1") final Integer page,
@@ -71,6 +75,7 @@ public class ControleurMain {
         return getComputerDTOAndPrintAccueil(model, pagesComputer);
     }
 
+    @PreAuthorize("hasAuthority('USER')")
     @RequestMapping(path = "/dashboard", method = { RequestMethod.GET }, params = { SEARCH })
     public String accueil(final Model model,
             @RequestParam(name = PAGE, required = false, defaultValue = "1") final Integer page,
@@ -108,6 +113,7 @@ public class ControleurMain {
      *            Set<Long> a supprimer
      * @return JSP
      */
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping(path = "/dashboard/delete")
     public String deleteComputers(final RedirectAttributes requestAttributes,
             @RequestParam(name = "selection", required = true) Set<Long> toDelete) {
