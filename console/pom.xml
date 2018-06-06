@@ -17,12 +17,6 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.excilys.william.cdb</groupId>
-			<artifactId>service</artifactId>
-			<version>${project.parent.version}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
 			<version>${javax.servlet.api}</version>
@@ -39,6 +33,12 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${spring.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.excilys.william.cdb</groupId>
+			<artifactId>service</artifactId>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 	</dependencies>
