@@ -16,10 +16,17 @@
 		<mockito.version>2.18.3</mockito.version>
 		<query.dsl.version>4.2.1</query.dsl.version>
 		<javax.glassfish>3.0.0</javax.glassfish>
+		<spring.security.version>5.0.5.RELEASE</spring.security.version>
 
 	</properties>
 
 	<dependencies>
+
+		 <dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+			<version>${spring.security.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>mysql</groupId>
@@ -27,6 +34,7 @@
 			<version>${mysql.version}</version>
 		</dependency>
 
+		<!-- TEST -->
 		<dependency>
 			<groupId>org.junit.platform</groupId>
 			<artifactId>junit-platform-launcher</artifactId>

@@ -19,10 +19,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -40,6 +49,8 @@ import com.excilys.service.computer.ServiceCdbComputer;
 @SessionAttributes(names = { "numberResult" }, types = { Integer.class })
 public class ControleurMain {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ControleurMain.class);
+    
     /*
      * Request params
      */
@@ -49,7 +60,7 @@ public class ControleurMain {
 
     @Autowired
     private ServiceCdbComputer serviceComputer;
-
+    
     @RequestMapping(path = "/dashboard", method = { RequestMethod.GET })
     public String accueil(final Model model,
             @RequestParam(name = PAGE, required = false, defaultValue = "1") final Integer page,
@@ -121,6 +132,12 @@ public class ControleurMain {
         }
         return DASHBOARD.toString();
     }
+    
+    @GetMapping(path="/login")
+    public String loginPage() {
+        return "login";
+    }
+    
 
     /**
      * @param model

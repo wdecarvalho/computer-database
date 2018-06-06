@@ -1,32 +1,17 @@
 package com.excilys.config;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.sql.Connection;
-import java.sql.SQLException;
+
 import java.util.Locale;
-import java.util.Properties;
 
-import javax.sql.DataSource;
-
-import org.h2.tools.RunScript;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ReloadableResourceBundleMessageSource;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.JpaVendorAdapter;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.FilterChainProxy;
+import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -36,10 +21,14 @@ import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
+import com.excilys.service.user.UserDetailsServiceImpl;
+
 @Configuration
+@EnableWebSecurity
+@Import(SecurityConfig.class)
 @EnableWebMvc
-@ComponentScan(basePackages = {"com.excilys.controleurs" })
-public class ServerConfiguration extends ServiceConfig  implements WebMvcConfigurer {
+@ComponentScan(basePackages = { "com.excilys.controleurs", "com.excilys.config" })
+public class ServerConfiguration extends ServiceConfig implements WebMvcConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConfiguration.class);
 
     /**
@@ -84,5 +73,10 @@ public class ServerConfiguration extends ServiceConfig  implements WebMvcConfigu
     @Override
     public void addResourceHandlers(final ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/**").addResourceLocations("/");
+    }
+
+    @Bean
+    public UserDetailsServiceImpl userDetailsService() {
+        return new UserDetailsServiceImpl();
     }
 }
