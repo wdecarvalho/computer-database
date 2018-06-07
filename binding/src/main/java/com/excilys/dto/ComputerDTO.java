@@ -43,6 +43,10 @@ public class ComputerDTO {
             this.companyID = c.getCompany() == null ? null : c.getCompany().getId();
         }
     }
+    
+    public ComputerDTO() {
+        
+    }
 
     public Long getId() {
         return id;

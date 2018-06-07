@@ -182,5 +182,6 @@
 		<module>service</module>
 		<module>webapp</module>
 		<module>console</module>
+		<module>restapp</module>
 	</modules>
 </project>
