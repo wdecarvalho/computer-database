@@ -45,7 +45,7 @@ public interface ServiceCdbComputer extends ServiceCdb<Computer> {
      * @throws ComputerNotDeletedException
      *             Si au moin un Computer n'a pas été supprimé.
      */
-    @Transactional(rollbackFor = ComputerNotDeletedException.class)
+    @Transactional
     boolean deleteMulitple(Iterable<Long> computersToDelete) throws ComputerNotDeletedException;
 
     /**
