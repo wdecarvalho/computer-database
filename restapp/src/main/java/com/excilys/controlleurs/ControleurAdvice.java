@@ -2,7 +2,6 @@ package com.excilys.controlleurs;
 
 import javax.persistence.EntityNotFoundException;
 
-import org.apiguardian.api.API;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import com.excilys.exception.CompanyException;
 import com.excilys.exception.company.CompanyNotFoundException;
 import com.excilys.exception.computer.ComputerNotDeletedException;
 import com.excilys.exception.computer.ComputerNotFoundException;

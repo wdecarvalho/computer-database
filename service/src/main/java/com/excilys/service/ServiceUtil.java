@@ -4,8 +4,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.data.repository.PagingAndSortingRepository;
 
-import com.excilys.model.Computer;
-
 public class ServiceUtil {
 
     public static final int NB_PAGE = ServiceCdb.NB_PAGE;
