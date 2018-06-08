@@ -55,6 +55,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>2.9.5</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.excilys.william.cdb</groupId>
 			<artifactId>service</artifactId>
 			<version>${project.parent.version}</version>
@@ -66,12 +72,12 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<configuration>
-					<webXml>webapp/WEB-INF/web.xml</webXml>
-				</configuration>
-			</plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <webXml>webapp/WEB-INF/web.xml</webXml>
+                </configuration>
+            </plugin>
 		</plugins>
 	</build>
 </project>

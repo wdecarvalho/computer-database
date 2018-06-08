@@ -1,5 +1,11 @@
 package com.excilys.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.querydsl.QPageRequest;
+import org.springframework.data.repository.PagingAndSortingRepository;
+
+import com.excilys.model.Computer;
+
 public class ServiceUtil {
 
     public static final int NB_PAGE = ServiceCdb.NB_PAGE;
@@ -13,46 +19,22 @@ public class ServiceUtil {
      *            Page demandée
      * @return Page demandée ou possible
      */
-    private static int verifyPageRequestedIsValidOrPutOne(final long nbPageMax, int pageRequired) {
+    public static int verifyPageRequestedIsValidOrPutOne(final int pageRequired) {
         int pageRequested = pageRequired - 1;
-        if (pageRequested > nbPageMax) {
-            pageRequested = (int) nbPageMax;
-        } else if (pageRequested < 0) {
+        if (pageRequested < 0) {
             pageRequested = 0;
         }
         return pageRequested;
     }
 
-    /**
-     * Verifie que le nombre de resultat est renseignée, s'il ne l'ai pas prend
-     * celui par défaut.
-     * @param nbComputer
-     *            Nombre de computer
-     * @param pageAndNumberResult
-     *            Page demandée et nombre de resultat
-     * @return page Maximum atteignable
-     */
-    private static long verifyVaragsExistAndSetNbPageMax(final long nbComputer, int... pageAndNumberResult) {
-        final long nbPageMax;
-        if (pageAndNumberResult.length > 1) {
-            nbPageMax = nbComputer / pageAndNumberResult[1];
+    public static <T> Page<T> findObjectInDatabaseByPage(final PagingAndSortingRepository<T,Long> pAndSortingRepository,
+            final int pageRequested, final int numberResult) {
+        Page<T> pagecomputer = pAndSortingRepository.findAll(new QPageRequest(pageRequested, numberResult));
+        if (pagecomputer.getTotalPages() > pageRequested) {
+            return pagecomputer;
         } else {
-            nbPageMax = nbComputer / NB_PAGE;
+            return pAndSortingRepository.findAll(new QPageRequest(
+                    pagecomputer.getTotalPages() == 0 ? 0 : pagecomputer.getTotalPages() - 1, numberResult));
         }
-        return nbPageMax;
-    }
-
-    /**
-     * Verifie que le nombre de resultat est renseignée et prend la page demandée ou
-     * la page la plus appropriée si celle demandée n'existe pas.
-     * @param nbComputer
-     *            Nombre de computer
-     * @param pageAndNumberResult
-     *            Page demandée et nombre de résultat
-     * @return .
-     */
-    public static int getTheRequestPageOrTheBestAppropriate(final long nbComputer, int... pageAndNumberResult) {
-        final long nbPageMax = verifyVaragsExistAndSetNbPageMax(nbComputer, pageAndNumberResult);
-        return verifyPageRequestedIsValidOrPutOne(nbPageMax, pageAndNumberResult[0]);
     }
 }

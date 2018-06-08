@@ -2,7 +2,8 @@ package com.excilys.exceptions.error.code;
 
 public enum ExceptionCode {
 
-    SEARCH_NO_CONTENT("search.no.content");
+    SEARCH_NO_CONTENT("search.no.content"),
+    CONFLICT_UPDATE("conflict.update");
 
     private String code;
 

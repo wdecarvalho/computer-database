@@ -6,7 +6,6 @@ import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +34,7 @@ public class ServiceComputer implements ServiceCdbComputer {
     /**
      * Constructeur de ServiceComputer [Spring].
      */
-    
+
     private ServiceComputer() {
     }
 
@@ -55,25 +54,33 @@ public class ServiceComputer implements ServiceCdbComputer {
 
     @Override
     public Page<Computer> findByPage(int... pageAndNumberResult) {
-        final long nbComputer = getCountInDatabase();
-        int pageRequested = ServiceUtil.getTheRequestPageOrTheBestAppropriate(nbComputer, pageAndNumberResult);
+        int pageRequested = ServiceUtil.verifyPageRequestedIsValidOrPutOne(pageAndNumberResult[0]);
         if (pageAndNumberResult.length > 1) {
-            return computerDao.findAll(new QPageRequest(pageRequested, pageAndNumberResult[1]));
+            return ServiceUtil.findObjectInDatabaseByPage(computerDao,pageRequested, pageAndNumberResult[1]);
         } else {
-            return computerDao.findAll(new QPageRequest(pageRequested, NB_PAGE));
+            return ServiceUtil.findObjectInDatabaseByPage(computerDao,pageRequested, NB_PAGE);
+        }
+    }
+
+    private Page<Computer> findComputerSearchedInDatabaseByPage(final String search, final int pageRequested,
+            final int numberResult) {
+        Page<Computer> pagecomputer = computerDao.findByNameContainingOrCompanyNameContainingOrderByName(search, search,
+                new QPageRequest(pageRequested, numberResult));
+        if (pagecomputer.getTotalPages() > pageRequested) {
+            return pagecomputer;
+        } else {
+            return computerDao.findByNameContainingOrCompanyNameContainingOrderByName(search, search, new QPageRequest(
+                    pagecomputer.getTotalPages() == 0 ? 0 : pagecomputer.getTotalPages() - 1, numberResult));
         }
     }
 
     @Override
     public Page<Computer> findByPagesSearch(final String search, int... pageAndNumberResult) {
-        final long nbComputer = getCountSearched(search);
-        final int pageRequested = ServiceUtil.getTheRequestPageOrTheBestAppropriate(nbComputer, pageAndNumberResult);
+        final int pageRequested = ServiceUtil.verifyPageRequestedIsValidOrPutOne(pageAndNumberResult[0]);
         if (pageAndNumberResult.length > 1) {
-            return computerDao.findByNameContainingOrCompanyNameContainingOrderByName(search, search,
-                    (Pageable) new QPageRequest(pageRequested, pageAndNumberResult[1]));
+            return findComputerSearchedInDatabaseByPage(search, pageRequested, pageAndNumberResult[1]);
         } else {
-            return computerDao.findByNameContainingOrCompanyNameContainingOrderByName(search, search,
-                    (Pageable) new QPageRequest(pageRequested, NB_PAGE));
+            return findComputerSearchedInDatabaseByPage(search, pageRequested, NB_PAGE);
         }
     }
 
@@ -182,7 +189,8 @@ public class ServiceComputer implements ServiceCdbComputer {
     }
 
     /**
-     * @param computerDao the computerDao to set
+     * @param computerDao
+     *            the computerDao to set
      */
     @Autowired
     public void setComputerDao(ComputerDAO computerDao) {
@@ -190,12 +198,12 @@ public class ServiceComputer implements ServiceCdbComputer {
     }
 
     /**
-     * @param serviceCompany the serviceCompany to set
+     * @param serviceCompany
+     *            the serviceCompany to set
      */
     @Autowired
     public void setServiceCompany(ServiceCdbCompany serviceCompany) {
         this.serviceCompany = serviceCompany;
     }
-    
-    
+
 }
