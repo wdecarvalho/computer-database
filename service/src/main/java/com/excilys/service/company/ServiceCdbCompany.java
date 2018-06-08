@@ -30,5 +30,14 @@ public interface ServiceCdbCompany extends ServiceCdb<Company> {
      */
     @Transactional(readOnly = true)
     String getCompanyNameById(Long id) throws CompanyNotFoundException;
+    
+    /**
+     * Reciêre une company par son ID
+     * @param id ID de la company recherché
+     * @return Company
+     * @throws CompanyNotFoundException 
+     */
+    @Transactional(readOnly = true)
+    Company findOneById(Long id) throws CompanyNotFoundException;
 
 }

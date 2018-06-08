@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.stereotype.Service;
 
 import com.excilys.dao.CompanyDAO;
@@ -37,10 +36,13 @@ public class ServiceCompany implements ServiceCdbCompany {
     }
 
     @Override
-    public Page<Company> findByPage(final int... page) {
-        final long nbComputer = getCountInDatabase();
-        final int pageRequested = ServiceUtil.getTheRequestPageOrTheBestAppropriate(nbComputer, page);
-        return companyDAO.findAll(new QPageRequest(pageRequested, NB_PAGE));
+    public Page<Company> findByPage(final int... page) { //FIXME eeeee
+        int pageRequested = ServiceUtil.verifyPageRequestedIsValidOrPutOne(page[0]);
+        if (page.length > 1) {
+            return ServiceUtil.findObjectInDatabaseByPage(companyDAO,pageRequested, page[1]);
+        } else {
+            return ServiceUtil.findObjectInDatabaseByPage(companyDAO,pageRequested, NB_PAGE);
+        }
     }
 
     @Override
@@ -56,6 +58,11 @@ public class ServiceCompany implements ServiceCdbCompany {
     @Override
     public String getCompanyNameById(final Long id) throws CompanyNotFoundException {
         return companyDAO.findById(id).orElseThrow(() -> new CompanyNotFoundException(id.toString())).getName();
+    }
+    
+    @Override
+    public Company findOneById(Long id) throws CompanyNotFoundException {
+        return companyDAO.findById(id).orElseThrow(() -> new CompanyNotFoundException(id+""));
     }
 
     /*
@@ -83,7 +90,4 @@ public class ServiceCompany implements ServiceCdbCompany {
     public void setCompanyDAO(CompanyDAO companyDAO) {
         this.companyDAO = companyDAO;
     }
-    
-    
-
 }
