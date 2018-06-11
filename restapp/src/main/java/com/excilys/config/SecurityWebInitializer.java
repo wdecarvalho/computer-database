@@ -1,5 +1,7 @@
 package com.excilys.config;
 
-//public class SecurityWebInitializer extends AbstractSecurityWebApplicationInitializer {
-//
-//}
+import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
+
+public class SecurityWebInitializer extends AbstractSecurityWebApplicationInitializer {
+
+}

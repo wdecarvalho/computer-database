@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +58,7 @@ public class ControleurComputer {
      *            10 par défaut
      * @return Page<ComputerDTO> 200
      */
+    @PreAuthorize("hasAuthority('USER')")
     @RequestMapping(path = "/computer", method = {
             RequestMethod.GET }, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Page<ComputerDTO>> getComputerByPage(
@@ -82,6 +84,7 @@ public class ControleurComputer {
      * @throws NoContentFoundException
      *             Si aucun ordinateur ou aucune company n'est trouvé
      */
+    @PreAuthorize("hasAuthority('USER')")
     @RequestMapping(path = "/computer", method = { RequestMethod.GET }, params = { SEARCH })
     public ResponseEntity<Page<ComputerDTO>> getComputerBySearchByPage(
             @RequestParam(name = PAGE, required = false, defaultValue = "1") final Integer page,
@@ -106,6 +109,7 @@ public class ControleurComputer {
      * @throws ComputerNotFoundException
      *             Si l'ordinateur n'est pas trouvé.
      */
+    @PreAuthorize("hasAuthority('USER')")
     @RequestMapping(path = "/computer/{id}", method = { RequestMethod.GET })
     public ResponseEntity<ComputerDTO> findComputerById(@PathVariable("id") final Long id)
             throws ComputerNotFoundException {
@@ -127,6 +131,7 @@ public class ControleurComputer {
      * @throws ComputerException
      *             Si une exception intervient au niveau du computer
      */
+    @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(path = "/computer", method = {
             RequestMethod.POST }, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<Object> createComputerById(@Valid @RequestBody final ComputerDTO computerDTO,
@@ -137,6 +142,7 @@ public class ControleurComputer {
         return ResponseEntity.created(ucb.path("/{id}").buildAndExpand(id).toUri()).build();
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(path = "/computer/{id}", method = { RequestMethod.PUT })
     public ResponseEntity<ComputerDTO> updateComputerById(@PathVariable("id") final Long id,
             @Valid @RequestBody final ComputerDTO computerDTO)
@@ -160,6 +166,7 @@ public class ControleurComputer {
      * @throws CompanyNotFoundException
      *             Si la companie n'existe pas
      */
+    @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(path = "/computer/{id}", method = { RequestMethod.DELETE })
     public ResponseEntity<Object> deleteComputerById(@PathVariable("id") final Long id)
             throws ComputerException, CompanyNotFoundException {
@@ -179,6 +186,7 @@ public class ControleurComputer {
      * @throws CompanyNotFoundException
      *             Si la companie n'existe pas
      */
+    @PreAuthorize("hasAuthority('ADMIN')")
     @RequestMapping(path = "/computer", method = { RequestMethod.DELETE }, params = DELETE)
     public ResponseEntity<Object> deleteComputerById(@RequestParam(name = DELETE, required = true) final Set<Long> id) throws ComputerNotDeletedException {
         if(!serviceComputer.deleteMulitple(id)) {
@@ -186,5 +194,6 @@ public class ControleurComputer {
         }
         return ResponseEntity.ok().build();
     }
-
+    
+    
 }

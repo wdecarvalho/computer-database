@@ -2,7 +2,6 @@ package com.excilys.controlleurs;
 
 import javax.persistence.EntityNotFoundException;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -35,9 +34,7 @@ public class ControleurAdvice {
     @ExceptionHandler(UnsatisfiedServletRequestParameterException.class)
     public ResponseEntity<ApiError> handleBadRequestMultipleParamPossible(
             UnsatisfiedServletRequestParameterException ex) {
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return ResponseEntity.badRequest().body(apiError);
+        return ResponseEntity.badRequest().body(constructApiError(ex));
     }
 
     /**
@@ -56,30 +53,22 @@ public class ControleurAdvice {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return ResponseEntity.badRequest().body(apiError);
+        return ResponseEntity.badRequest().body(constructApiError(ex));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return ResponseEntity.badRequest().body(apiError);
+        return ResponseEntity.badRequest().body(constructApiError(ex));
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ApiError> handleEntityNotFoundException(EntityNotFoundException ex) {
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), HttpStatus.PRECONDITION_FAILED);
+        return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(constructApiError(ex));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex) {
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return ResponseEntity.badRequest().body(apiError);
+        return ResponseEntity.badRequest().body(constructApiError(ex));
     }
 
     /**
@@ -110,51 +99,47 @@ public class ControleurAdvice {
      */
     @ExceptionHandler(NoContentFoundException.class)
     public ResponseEntity<ApiError> handleNoContentFoundException(NoContentFoundException ex) {
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), HttpStatus.NO_CONTENT);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(constructApiError(ex));
     }
 
     @ExceptionHandler(ComputerNotFoundException.class)
     public ResponseEntity<ApiError> handleComputerNotFoundException(ComputerNotFoundException ex) {
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(constructApiError(ex));
     }
 
     @ExceptionHandler(DateIntroShouldBeMinorthanDisconException.class)
     public ResponseEntity<ApiError> handleDateIntroMinorThanDateDisconException(
             DateIntroShouldBeMinorthanDisconException ex) {
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), HttpStatus.PRECONDITION_FAILED);
+        return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(constructApiError(ex));
     }
 
     @ExceptionHandler(DateTruncationException.class)
     public ResponseEntity<ApiError> handleDateTruncationException(DateTruncationException ex) {
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), HttpStatus.PRECONDITION_FAILED);
+        return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).body(constructApiError(ex));
     }
 
     @ExceptionHandler(CompanyNotFoundException.class)
     public ResponseEntity<ApiError> handleCompanyNotFoundException(CompanyNotFoundException ex) {
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(constructApiError(ex));
     }
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiError> handleConflitException(ConflictException ex) {
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return new ResponseEntity<>(apiError, new HttpHeaders(), HttpStatus.CONFLICT);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(constructApiError(ex));
     }
-    
+
     @ExceptionHandler(ComputerNotDeletedException.class)
-    public ResponseEntity<ApiError> handleComputerNotDeletedException(ComputerNotDeletedException ex){
-        final ApiError apiError = new ApiError(ex.getClass().toString(), ex.getMessage(),
-                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
-        return ResponseEntity.accepted().body(apiError);
+    public ResponseEntity<ApiError> handleComputerNotDeletedException(ComputerNotDeletedException ex) {
+        return ResponseEntity.accepted().body(constructApiError(ex));
     }
+    /**
+     * Construit le pojo ApiError
+     * @param exception Exception exception
+     * @return ApiError
+     */
+    private ApiError constructApiError(Exception ex) {
+        return new ApiError(ex.getClass().toString(), ex.getMessage(),
+                ex.getCause() == null ? DEFAULT_CAUSE : ex.getCause().toString());
+    }
+
 }

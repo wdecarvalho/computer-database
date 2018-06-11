@@ -11,7 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.excilys.service.user.UserDetailsServiceImpl;
 
-//@Configuration
+@Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
@@ -33,12 +33,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-//        http.sessionManagement().maximumSessions(1).expiredUrl("/login");
-//       
-//        http.authorizeRequests().anyRequest().authenticated().and().authorizeRequests().antMatchers("/login")
-//                .permitAll().and().formLogin().loginPage("/login").loginProcessingUrl("/login")
-//                .defaultSuccessUrl("/dashboard", true).permitAll().and().logout().logoutSuccessUrl("/login").permitAll()
-//                .and().csrf().disable();
+        http.sessionManagement().maximumSessions(1);
+        http.authorizeRequests().and().formLogin().loginPage("/login").loginProcessingUrl("/login").defaultSuccessUrl("/computer", true).failureForwardUrl("/loginError").permitAll();
+        http.csrf().disable();
     }
    
 }
