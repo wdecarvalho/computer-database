@@ -64,6 +64,15 @@ public class ServiceCompany implements ServiceCdbCompany {
     public Company findOneById(Long id) throws CompanyNotFoundException {
         return companyDAO.findById(id).orElseThrow(() -> new CompanyNotFoundException(id+""));
     }
+    
+    /*
+     * Create
+     */
+    
+    @Override
+    public Long save(Company company) {
+        return companyDAO.save(company).getId();
+    }
 
     /*
      * Delete
@@ -90,4 +99,6 @@ public class ServiceCompany implements ServiceCdbCompany {
     public void setCompanyDAO(CompanyDAO companyDAO) {
         this.companyDAO = companyDAO;
     }
+
+
 }

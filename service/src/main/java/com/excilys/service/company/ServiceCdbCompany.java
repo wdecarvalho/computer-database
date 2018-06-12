@@ -39,5 +39,12 @@ public interface ServiceCdbCompany extends ServiceCdb<Company> {
      */
     @Transactional(readOnly = true)
     Company findOneById(Long id) throws CompanyNotFoundException;
+    
+    /**
+     * Creer 
+     * @param company
+     * @return
+     */
+    Long save(Company company);
 
 }
